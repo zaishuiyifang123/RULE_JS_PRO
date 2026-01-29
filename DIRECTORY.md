@@ -1,6 +1,6 @@
 ﻿# DIRECTORY
 
-本文件描述当前仓库结构（截至 2026-01-27）。
+本文件描述当前仓库结构（截至 2026-01-29）。
 
 ```
 RULE_JS_PRO/
@@ -19,22 +19,58 @@ RULE_JS_PRO/
 │  │  └─ session.py
 │  ├─ models/               ORM 模型
 │  │  ├─ admin.py
+│  │  ├─ class_model.py
+│  │  ├─ college.py
+│  │  ├─ course.py
+│  │  ├─ import_log.py
+│  │  ├─ major.py
+│  │  ├─ mixins.py
+│  │  ├─ student.py
+│  │  ├─ teacher.py
 │  │  └─ __init__.py
 │  ├─ routers/              API 路由模块
 │  │  ├─ admin.py
 │  │  ├─ auth.py
+│  │  ├─ data.py
+│  │  ├─ importer.py
 │  │  └─ __init__.py
 │  ├─ schemas/              Pydantic 请求/响应结构
 │  │  ├─ admin.py
 │  │  ├─ auth.py
+│  │  ├─ class_schema.py
+│  │  ├─ college.py
+│  │  ├─ course.py
+│  │  ├─ importer.py
+│  │  ├─ major.py
+│  │  ├─ response.py
+│  │  ├─ student.py
+│  │  ├─ teacher.py
 │  │  └─ __init__.py
 │  ├─ services/             业务服务层逻辑
-│  │  └─ auth_service.py
+│  │  ├─ auth_service.py
+│  │  └─ import_service.py
 │  ├─ deps.py               依赖注入辅助函数
 │  ├─ main.py               FastAPI 工厂与路由注册
 │  └─ __init__.py
 ├─ scripts/                 辅助脚本
-│  └─ init_admin.py
+│  ├─ init_admin.py
+│  └─ init_db.py
+├─ frontend/                Vue3 + Vite 前端
+│  ├─ src/
+│  │  ├─ api/                Axios 客户端与拦截器
+│  │  ├─ layouts/            页面布局组件
+│  │  ├─ router/             路由与守卫
+│  │  ├─ stores/             Pinia 登录态
+│  │  ├─ styles/             全局样式
+│  │  ├─ views/              登录页与数据页
+│  │  ├─ App.vue
+│  │  ├─ env.d.ts
+│  │  └─ main.ts
+│  ├─ index.html
+│  ├─ package.json
+│  ├─ package-lock.json
+│  ├─ tsconfig.json
+│  └─ vite.config.ts
 ├─ .env                     本地环境变量
 ├─ DEV_PLAN.md              开发计划与任务清单
 ├─ DIRECTORY.md             目录结构说明（本文件）

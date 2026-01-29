@@ -2,7 +2,7 @@
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
 
-from app.routers import auth, admin, data
+from app.routers import admin, auth, data, importer
 from app.schemas.response import ErrorResponse
 
 
@@ -12,6 +12,7 @@ def create_app() -> FastAPI:
     app.include_router(auth.router, prefix="/api/auth", tags=["auth"])
     app.include_router(admin.router, prefix="/api/admin", tags=["admin"])
     app.include_router(data.router, tags=["data"])
+    app.include_router(importer.router, tags=["import"])
 
     @app.exception_handler(HTTPException)
     async def http_exception_handler(request: Request, exc: HTTPException):

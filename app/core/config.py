@@ -21,7 +21,7 @@ class Settings:
     db_password = os.getenv("DB_PASSWORD", "")
     db_name = os.getenv("DB_NAME", "edu_admin")
 
-    jwt_secret = os.getenv("JWT_SECRET", "change_me")
+    jwt_secret = os.getenv("JWT_SECRET", "sane")
     jwt_algorithm = os.getenv("JWT_ALGORITHM", "HS256")
     access_token_expire_minutes = int(os.getenv("ACCESS_TOKEN_EXPIRE_MINUTES", "120"))
 
