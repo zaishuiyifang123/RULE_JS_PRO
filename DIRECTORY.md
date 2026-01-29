@@ -24,6 +24,8 @@ RULE_JS_PRO/
 │  │  ├─ course.py
 │  │  ├─ import_log.py
 │  │  ├─ major.py
+│  │  ├─ metric_def.py
+│  │  ├─ metric_snapshot.py
 │  │  ├─ mixins.py
 │  │  ├─ student.py
 │  │  ├─ teacher.py
@@ -31,17 +33,22 @@ RULE_JS_PRO/
 │  ├─ routers/              API 路由模块
 │  │  ├─ admin.py
 │  │  ├─ auth.py
+│  │  ├─ cockpit.py
 │  │  ├─ data.py
 │  │  ├─ importer.py
+│  │  ├─ metric.py
 │  │  └─ __init__.py
 │  ├─ schemas/              Pydantic 请求/响应结构
 │  │  ├─ admin.py
 │  │  ├─ auth.py
 │  │  ├─ class_schema.py
+│  │  ├─ cockpit.py
 │  │  ├─ college.py
 │  │  ├─ course.py
 │  │  ├─ importer.py
 │  │  ├─ major.py
+│  │  ├─ metric_def.py
+│  │  ├─ metric_snapshot.py
 │  │  ├─ response.py
 │  │  ├─ student.py
 │  │  ├─ teacher.py

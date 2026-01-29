@@ -65,7 +65,7 @@ const fetchData = async () => {
   loading.value = true;
   error.value = "";
   try {
-    const res = await api.get("/student/list", {
+    const res = await api.get("/data/student/list", {
       params: { offset: 0, limit: 8 },
     });
     rows.value = res.data.data || [];

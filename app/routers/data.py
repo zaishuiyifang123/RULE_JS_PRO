@@ -108,7 +108,7 @@ def apply_sort(query, model, sort_by: str | None, sort_dir: str | None):
     return query
 
 
-@router.get("/api/{table}/list", response_model=ListResponse)
+@router.get("/{table}/list", response_model=ListResponse)
 def list_items(
     table: str,
     request: Request,
@@ -138,7 +138,7 @@ def list_items(
     )
 
 
-@router.get("/api/{table}/{item_id}", response_model=OkResponse)
+@router.get("/{table}/{item_id}", response_model=OkResponse)
 def get_item(
     table: str,
     item_id: int,
@@ -153,7 +153,7 @@ def get_item(
     return OkResponse(data=jsonable_encoder(item))
 
 
-@router.post("/api/{table}/create", response_model=OkResponse)
+@router.post("/{table}/create", response_model=OkResponse)
 def create_item(
     table: str,
     payload: dict = Body(...),
@@ -179,7 +179,7 @@ def create_item(
     return OkResponse(data=jsonable_encoder(item))
 
 
-@router.put("/api/{table}/{item_id}", response_model=OkResponse)
+@router.put("/{table}/{item_id}", response_model=OkResponse)
 def update_item(
     table: str,
     item_id: int,
@@ -215,7 +215,7 @@ def update_item(
     return OkResponse(data=jsonable_encoder(item))
 
 
-@router.delete("/api/{table}/{item_id}", response_model=OkResponse)
+@router.delete("/{table}/{item_id}", response_model=OkResponse)
 def delete_item(
     table: str,
     item_id: int,
