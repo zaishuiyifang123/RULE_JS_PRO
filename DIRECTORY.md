@@ -1,6 +1,6 @@
 ﻿# DIRECTORY
 
-本文件描述当前仓库结构（截至 2026-01-29）。
+本文件描述当前仓库结构（截至 2026-01-30）。
 
 ```
 RULE_JS_PRO/
@@ -19,16 +19,30 @@ RULE_JS_PRO/
 │  │  └─ session.py
 │  ├─ models/               ORM 模型
 │  │  ├─ admin.py
+│  │  ├─ alert_event.py
+│  │  ├─ alert_rule.py
+│  │  ├─ attendance.py
+│  │  ├─ audit_log.py
+│  │  ├─ chat_history.py
 │  │  ├─ class_model.py
+│  │  ├─ classroom.py
 │  │  ├─ college.py
 │  │  ├─ course.py
+│  │  ├─ course_class.py
+│  │  ├─ enroll.py
 │  │  ├─ import_log.py
 │  │  ├─ major.py
 │  │  ├─ metric_def.py
 │  │  ├─ metric_snapshot.py
 │  │  ├─ mixins.py
+│  │  ├─ query_template.py
+│  │  ├─ score.py
+│  │  ├─ sql_log.py
+│  │  ├─ strategy_policy.py
 │  │  ├─ student.py
+│  │  ├─ system_config.py
 │  │  ├─ teacher.py
+│  │  ├─ workflow_log.py
 │  │  └─ __init__.py
 │  ├─ routers/              API 路由模块
 │  │  ├─ admin.py
@@ -61,10 +75,15 @@ RULE_JS_PRO/
 │  └─ __init__.py
 ├─ scripts/                 辅助脚本
 │  ├─ init_admin.py
-│  └─ init_db.py
+│  ├─ init_db.py
+│  └─ generate_mock_data.py
 ├─ frontend/                Vue3 + Vite 前端
 │  ├─ src/
 │  │  ├─ api/                Axios 客户端与拦截器
+│  │  ├─ components/         前端通用组件（弹窗、分页等）
+│  │  │  ├─ DataFormModal.vue
+│  │  │  ├─ PaginationBar.vue
+│  │  │  └─ ScoreListModal.vue
 │  │  ├─ layouts/            页面布局组件
 │  │  ├─ router/             路由与守卫
 │  │  ├─ stores/             Pinia 登录态

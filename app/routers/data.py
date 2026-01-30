@@ -5,7 +5,7 @@ from sqlalchemy.orm import Session
 
 from app.core.security import hash_password
 from app.deps import get_current_admin, get_db
-from app.models import Admin, ClassModel, College, Course, Major, Student, Teacher
+from app.models import Admin, ClassModel, College, Course, Major, Score, Student, Teacher
 from app.schemas.admin import AdminCreate, AdminOut, AdminUpdate
 from app.schemas.class_schema import ClassCreate, ClassOut, ClassUpdate
 from app.schemas.college import CollegeCreate, CollegeOut, CollegeUpdate
@@ -234,3 +234,38 @@ def delete_item(
     db.commit()
     db.refresh(item)
     return OkResponse(data=jsonable_encoder(item))
+
+
+@router.get("/student/{student_id}/scores", response_model=ListResponse)
+def get_student_scores(
+    student_id: int,
+    offset: int = Query(0, ge=0),
+    limit: int = Query(50, ge=1, le=200),
+    db: Session = Depends(get_db),
+    current_admin=Depends(get_current_admin),
+):
+    query = (
+        db.query(Score, Course)
+        .join(Course, Score.course_id == Course.id)
+        .filter(Score.student_id == student_id, Score.is_deleted == False)
+    )
+    total = query.count()
+    items = query.offset(offset).limit(limit).all()
+    data = [
+        {
+            "id": score.id,
+            "student_id": score.student_id,
+            "course_id": score.course_id,
+            "course_name": course.course_name,
+            "course_code": course.course_code,
+            "course_class_id": score.course_class_id,
+            "term": score.term,
+            "score_value": score.score_value,
+            "score_level": score.score_level,
+        }
+        for score, course in items
+    ]
+    return ListResponse(
+        data=jsonable_encoder(data),
+        meta=Meta(offset=offset, limit=limit, total=total),
+    )

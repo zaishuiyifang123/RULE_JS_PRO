@@ -767,6 +767,16 @@ llm:
 
 ---
 
+## 12.1 数据库建表与模拟数据
+
+- 建表：
+  - `python scripts/init_db.py`
+- 生成模拟数据（可重复执行）：
+  - `python scripts/generate_mock_data.py --truncate --seed 42`
+  - 生成规则：真实格式但虚构，默认中国学生占多数，学校为“三峡科技MOCK大学”。
+
+---
+
 ## 13. 交互体验
 
 - SSE 实时输出每个步骤进度

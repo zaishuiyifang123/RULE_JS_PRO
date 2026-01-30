@@ -1,15 +1,22 @@
 import { createRouter, createWebHistory } from "vue-router";
 
 import LoginView from "../views/LoginView.vue";
+import CockpitView from "../views/CockpitView.vue";
 import DataView from "../views/DataView.vue";
 
 const routes = [
-  { path: "/", redirect: "/data" },
+  { path: "/", redirect: "/cockpit" },
   {
     path: "/login",
     name: "login",
     component: LoginView,
     meta: { public: true },
+  },
+  {
+    path: "/cockpit",
+    name: "cockpit",
+    component: CockpitView,
+    meta: { requiresAuth: true },
   },
   {
     path: "/data",

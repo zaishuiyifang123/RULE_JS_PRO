@@ -8,16 +8,16 @@ from app.models.mixins import AuditMixin
 class Teacher(AuditMixin, Base):
     __tablename__ = "teacher"
 
-    id: Mapped[int] = mapped_column(Integer, primary_key=True, index=True)
-    teacher_no: Mapped[str] = mapped_column(String(64), nullable=False, unique=True, index=True)
-    real_name: Mapped[str] = mapped_column(String(64), nullable=False)
-    gender: Mapped[str | None] = mapped_column(String(16), nullable=True)
-    id_card: Mapped[str | None] = mapped_column(String(32), nullable=True)
-    birth_date: Mapped[Date | None] = mapped_column(Date, nullable=True)
-    phone: Mapped[str | None] = mapped_column(String(32), nullable=True)
-    email: Mapped[str | None] = mapped_column(String(128), nullable=True)
-    title: Mapped[str | None] = mapped_column(String(64), nullable=True)
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, index=True, comment="主键")
+    teacher_no: Mapped[str] = mapped_column(String(64), nullable=False, unique=True, index=True, comment="工号")
+    real_name: Mapped[str] = mapped_column(String(64), nullable=False, comment="姓名")
+    gender: Mapped[str | None] = mapped_column(String(16), nullable=True, comment="性别")
+    id_card: Mapped[str | None] = mapped_column(String(32), nullable=True, comment="身份证号")
+    birth_date: Mapped[Date | None] = mapped_column(Date, nullable=True, comment="出生日期")
+    phone: Mapped[str | None] = mapped_column(String(32), nullable=True, comment="手机号")
+    email: Mapped[str | None] = mapped_column(String(128), nullable=True, comment="邮箱")
+    title: Mapped[str | None] = mapped_column(String(64), nullable=True, comment="职称")
     college_id: Mapped[int | None] = mapped_column(
-        Integer, ForeignKey("college.id"), nullable=True, index=True
+        Integer, ForeignKey("college.id"), nullable=True, index=True, comment="所属学院ID"
     )
-    status: Mapped[str | None] = mapped_column(String(32), nullable=True)
+    status: Mapped[str | None] = mapped_column(String(32), nullable=True, comment="状态")
