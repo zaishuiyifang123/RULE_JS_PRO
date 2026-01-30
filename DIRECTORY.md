@@ -69,6 +69,7 @@ RULE_JS_PRO/
 │  │  └─ __init__.py
 │  ├─ services/             业务服务层逻辑
 │  │  ├─ auth_service.py
+│  │  ├─ cockpit_service.py
 │  │  └─ import_service.py
 │  ├─ deps.py               依赖注入辅助函数
 │  ├─ main.py               FastAPI 工厂与路由注册

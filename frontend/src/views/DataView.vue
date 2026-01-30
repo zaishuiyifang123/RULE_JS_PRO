@@ -140,6 +140,7 @@
 
 <script setup lang="ts">
 import { computed, onMounted, ref } from "vue";
+import { useRoute } from "vue-router";
 
 import api from "../api/client";
 import DataFormModal from "../components/DataFormModal.vue";
@@ -179,12 +180,22 @@ type FilterItem = {
   value: string;
 };
 
+type ScoreRow = {
+  id: number;
+  course_name?: string;
+  term?: string;
+  score_value?: number | null;
+  score_level?: string | null;
+};
+
 type NameMaps = {
   colleges: Record<number, string>;
   majors: Record<number, string>;
   classes: Record<number, string>;
   teachers: Record<number, string>;
 };
+
+const route = useRoute();
 
 const tableOptions: TableOption[] = [
   {
@@ -342,7 +353,7 @@ const formError = ref("");
 const scoreModalVisible = ref(false);
 const scoreLoading = ref(false);
 const scoreError = ref("");
-const scoreRows = ref<Record<string, any>[]>([]);
+const scoreRows = ref<ScoreRow[]>([]);
 const scoreStudentName = ref("");
 
 const modalTitle = computed(() => {
@@ -479,6 +490,38 @@ const fetchNameMaps = async () => {
     });
   }
   nameMaps.value = nextMaps;
+};
+
+const applyRouteParams = () => {
+  const query = route.query;
+  const table = typeof query.table === "string" ? query.table : "";
+  if (table && tableOptions.some((item) => item.key === table)) {
+    tableKey.value = table;
+  }
+  const q = typeof query.q === "string" ? query.q : "";
+  if (q) {
+    keyword.value = q;
+  }
+  const nextFilters: FilterItem[] = [];
+  Object.entries(query).forEach(([key, value]) => {
+    if (["table", "q", "page", "pageSize"].includes(key)) {
+      return;
+    }
+    if (typeof value === "string" && value !== "") {
+      nextFilters.push({ key, value });
+    }
+  });
+  if (nextFilters.length) {
+    filters.value = nextFilters;
+  }
+  const pageValue = typeof query.page === "string" ? Number(query.page) : 0;
+  if (pageValue > 0) {
+    page.value = pageValue;
+  }
+  const pageSizeValue = typeof query.pageSize === "string" ? Number(query.pageSize) : 0;
+  if (pageSizeValue > 0) {
+    pageSize.value = pageSizeValue;
+  }
 };
 
 const changeTable = (key: string) => {
@@ -671,6 +714,7 @@ const removeItem = async (row: Record<string, any>) => {
 
 onMounted(async () => {
   formState.value = buildEmptyForm();
+  applyRouteParams();
   await fetchNameMaps();
   await fetchData();
 });
