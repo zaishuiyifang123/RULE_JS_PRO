@@ -110,33 +110,32 @@ def _attendance_rate(
 
 
 def _build_trends(
-    db: Session, term: str | None, college_id: int | None, major_id: int | None, grade_year: int | None
+    db: Session, college_id: int | None, major_id: int | None, grade_year: int | None
 ):
     today = date.today()
-    start = today - timedelta(days=6)
+    first_of_month = today.replace(day=1)
+    months = []
+    cursor = first_of_month
+    for _ in range(6):
+        months.append(cursor)
+        cursor = (cursor - timedelta(days=1)).replace(day=1)
+    months = list(reversed(months))
+
     present_case = case((Attendance.status.in_(PRESENT_STATUSES), 1), else_=0)
     query = (
-        db.query(func.date(Attendance.attend_date), func.sum(present_case), func.count(Attendance.id))
+        db.query(func.date_format(Attendance.attend_date, "%Y-%m"), func.sum(present_case), func.count(Attendance.id))
         .join(Student, Attendance.student_id == Student.id)
         .filter(Attendance.is_deleted == False, Student.is_deleted == False)
-        .filter(Attendance.attend_date >= start)
+        .filter(Attendance.attend_date >= months[0])
     )
     query = _apply_student_filters(query, college_id, major_id, grade_year)
-    stats = {row[0]: (row[1] or 0, row[2] or 0) for row in query.group_by(func.date(Attendance.attend_date)).all()}
-    avg_score, fail_rate, _ = _score_stats(db, term, college_id, major_id, grade_year)
+    stats = {row[0]: (row[1] or 0, row[2] or 0) for row in query.group_by(func.date_format(Attendance.attend_date, "%Y-%m")).all()}
     points: list[TrendPoint] = []
-    for idx in range(7):
-        day = start + timedelta(days=idx)
-        present_sum, total = stats.get(day, (0, 0))
+    for month in months:
+        key = month.strftime("%Y-%m")
+        present_sum, total = stats.get(key, (0, 0))
         attendance_rate = float(present_sum / total) if total else 0.0
-        points.append(
-            TrendPoint(
-                date=day.isoformat(),
-                attendance_rate=attendance_rate,
-                fail_rate=fail_rate,
-                avg_score=avg_score,
-            )
-        )
+        points.append(TrendPoint(date=key, attendance_rate=attendance_rate))
     return points
 
 
@@ -268,7 +267,7 @@ def build_dashboard(
     for name, student_no, fail_sum in (
         risk_query.group_by(Student.id)
         .order_by(desc(func.sum(fail_case)))
-        .limit(8)
+        .limit(200)
         .all()
     ):
         count = int(fail_sum or 0)
@@ -284,7 +283,7 @@ def build_dashboard(
     dashboard = CockpitDashboard(
         filters=_build_filter_options(db),
         cards=cards,
-        trends=_build_trends(db, term, college_id, major_id, grade_year),
+        trends=_build_trends(db, college_id, major_id, grade_year),
         distributions={
             "college_students": college_dist,
             "score_band": score_band,
@@ -301,10 +300,26 @@ def build_dashboard(
 def build_risk_csv(
     db: Session, term: str | None, college_id: int | None, major_id: int | None, grade_year: int | None
 ) -> str:
-    dashboard = build_dashboard(db, term, college_id, major_id, grade_year)
+    fail_case = case((Score.score_value < 60, 1), else_=0)
+    risk_query = (
+        db.query(Student.real_name, Student.student_no, func.sum(fail_case))
+        .join(Score, Score.student_id == Student.id)
+        .filter(Student.is_deleted == False, Score.is_deleted == False)
+    )
+    risk_query = _apply_student_filters(risk_query, college_id, major_id, grade_year)
+    if term:
+        risk_query = risk_query.filter(Score.term == term)
     lines = ["name,level,message"]
-    for item in dashboard.risks:
-        title = item.title.replace(",", " ")
-        message = item.message.replace(",", " ")
-        lines.append(f"{title},{item.level},{message}")
+    for name, student_no, fail_sum in (
+        risk_query.group_by(Student.id)
+        .order_by(desc(func.sum(fail_case)))
+        .all()
+    ):
+        count = int(fail_sum or 0)
+        level = "high" if count >= 3 else "medium"
+        title = f"{name}（{student_no}）"
+        message = f"挂科 {count} 门"
+        title = title.replace(",", " ")
+        message = message.replace(",", " ")
+        lines.append(f"{title},{level},{message}")
     return "\n".join(lines) + "\n"

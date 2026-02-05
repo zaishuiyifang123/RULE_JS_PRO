@@ -40,7 +40,7 @@
             <label>专业</label>
             <select v-model="filters.major_id">
               <option value="">全部</option>
-              <option v-for="item in filterOptions.majors" :key="item.value" :value="String(item.value)">
+              <option v-for="item in filteredMajors" :key="item.value" :value="String(item.value)">
                 {{ item.label }}
               </option>
             </select>
@@ -66,10 +66,26 @@
       </section>
 
       <section class="cockpit-grid">
-        <div class="card metric-card" v-for="card in cards" :key="card.code">
-          <p class="metric-label">{{ card.name }}</p>
-          <p class="metric-value">{{ formatValue(card) }}</p>
-          <span class="metric-tag">{{ card.code }}</span>
+        <div
+          class="card metric-card"
+          v-for="card in cards"
+          :key="card.code"
+          :style="{ '--metric-accent': metricAccent(card.code) }"
+        >
+          <div class="metric-info">
+            <p class="metric-name">{{ card.name }}</p>
+            <p class="metric-value">{{ formatValue(card) }}</p>
+            <span class="metric-tag">{{ card.code }}</span>
+          </div>
+          <div
+            class="metric-icon"
+            :style="{
+              background: metricSoft(card.code),
+              color: metricAccent(card.code),
+            }"
+          >
+            {{ metricIcon(card.code) }}
+          </div>
         </div>
       </section>
 
@@ -78,20 +94,16 @@
           <div class="card-head">
             <div>
               <p class="table-title">趋势对比</p>
-              <p class="table-sub">近 7 天出勤率 / 挂科率 / 平均成绩</p>
+              <p class="table-sub">近 6 个月出勤率</p>
             </div>
           </div>
           <div v-if="loading" class="table-state">正在加载趋势...</div>
           <div v-else class="trend-chart">
             <svg viewBox="0 0 320 140" role="img" aria-label="trend">
               <polyline :points="trendLine(attendance)" fill="none" stroke="#1f7a8c" stroke-width="3" />
-              <polyline :points="trendLine(failRate)" fill="none" stroke="#e07a5f" stroke-width="3" />
-              <polyline :points="trendLine(avgScore)" fill="none" stroke="#324cdd" stroke-width="3" />
             </svg>
             <div class="trend-legend">
               <span><i class="legend-dot teal"></i>出勤率</span>
-              <span><i class="legend-dot coral"></i>挂科率</span>
-              <span><i class="legend-dot blue"></i>平均成绩</span>
             </div>
             <div class="trend-axis">
               <span v-for="item in trends" :key="item.date">{{ item.date.slice(5) }}</span>
@@ -105,30 +117,62 @@
               <p class="table-title">结构分布</p>
               <p class="table-sub">学院规模与成绩段分布</p>
             </div>
-            <button class="btn ghost" type="button" @click="goToData('college')">查看学院</button>
+            <div class="tab-group">
+              <button
+                class="tab-btn"
+                :class="{ active: distTab === 'college' }"
+                type="button"
+                @click="distTab = 'college'"
+              >
+                College Scale
+              </button>
+              <button
+                class="tab-btn"
+                :class="{ active: distTab === 'score' }"
+                type="button"
+                @click="distTab = 'score'"
+              >
+                Grade Dist.
+              </button>
+            </div>
           </div>
-          <div class="dist-grid">
-            <div>
-              <p class="dist-title">学院规模</p>
-              <div class="dist-list">
-                <div v-for="item in distributions.college_students" :key="item.name" class="dist-item">
-                  <span class="dist-name">{{ item.name }}</span>
-                  <div class="dist-bar">
-                    <span :style="{ width: calcBar(item.value, collegeMax) }"></span>
-                  </div>
-                  <span class="dist-value">{{ formatNumber(item.value) }}</span>
+          <div v-if="distTab === 'college'" class="bar-chart">
+            <div v-if="distributions.college_students.length === 0" class="table-state">No data</div>
+            <div v-else class="bar-list">
+              <div v-for="item in distributions.college_students" :key="item.name" class="bar-row">
+                <span class="bar-label" :title="item.name">{{ item.name }}</span>
+                <div class="bar-track">
+                  <span class="bar-fill" :style="{ width: calcBar(item.value, collegeMax) }"></span>
                 </div>
+                <span class="bar-value">{{ formatNumber(item.value) }}</span>
               </div>
             </div>
-            <div>
-              <p class="dist-title">成绩段</p>
-              <div class="dist-list">
-                <div v-for="item in distributions.score_band" :key="item.name" class="dist-item">
-                  <span class="dist-name">{{ item.name }}</span>
-                  <div class="dist-bar">
-                    <span :style="{ width: calcBar(item.value, scoreMax) }"></span>
-                  </div>
-                  <span class="dist-value">{{ formatNumber(item.value) }}</span>
+          </div>
+          <div v-else class="donut-wrap">
+            <div v-if="scoreTotal === 0" class="table-state">No data</div>
+            <div v-else class="donut-layout">
+              <svg class="donut-chart" viewBox="0 0 120 120" role="img" aria-label="score">
+                <g transform="rotate(-90 60 60)">
+                  <circle
+                    v-for="segment in scoreSegments"
+                    :key="segment.name"
+                    cx="60"
+                    cy="60"
+                    r="42"
+                    fill="none"
+                    :stroke="segment.color"
+                    stroke-width="12"
+                    :stroke-dasharray="segment.dasharray"
+                    :stroke-dashoffset="segment.dashoffset"
+                    stroke-linecap="round"
+                  />
+                </g>
+              </svg>
+              <div class="donut-legend">
+                <div v-for="segment in scoreSegments" :key="segment.name" class="legend-item">
+                  <span class="legend-dot" :style="{ background: segment.color }"></span>
+                  <span class="legend-name">{{ segment.name }}</span>
+                  <span class="legend-value">{{ formatNumber(segment.value) }}</span>
                 </div>
               </div>
             </div>
@@ -147,20 +191,36 @@
           </div>
           <div class="rank-grid">
             <div>
-              <p class="dist-title">课程挂科率</p>
+              <p class="rank-title">课程挂科率</p>
               <ol class="rank-list">
-                <li v-for="item in rankings.course_fail_rate" :key="item.name">
-                  <span>{{ item.name }}</span>
-                  <strong>{{ toPercent(item.value) }}</strong>
+                <li v-for="(item, index) in rankings.course_fail_rate" :key="item.name" class="rank-item">
+                  <span class="rank-badge" :class="rankClass(index)">{{ index + 1 }}</span>
+                  <div class="rank-body">
+                    <span class="rank-name">{{ item.name }}</span>
+                    <div class="rank-progress">
+                      <span class="rank-value">{{ toPercent(item.value) }}</span>
+                      <div class="mini-progress">
+                        <span class="mini-bar" :class="riskBarClass(item.value)" :style="{ width: toPercent(item.value) }"></span>
+                      </div>
+                    </div>
+                  </div>
                 </li>
               </ol>
             </div>
             <div>
-              <p class="dist-title">班级缺勤率</p>
+              <p class="rank-title">班级缺勤率</p>
               <ol class="rank-list">
-                <li v-for="item in rankings.class_absent_rate" :key="item.name">
-                  <span>{{ item.name }}</span>
-                  <strong>{{ toPercent(item.value) }}</strong>
+                <li v-for="(item, index) in rankings.class_absent_rate" :key="item.name" class="rank-item">
+                  <span class="rank-badge" :class="rankClass(index)">{{ index + 1 }}</span>
+                  <div class="rank-body">
+                    <span class="rank-name">{{ item.name }}</span>
+                    <div class="rank-progress">
+                      <span class="rank-value">{{ toPercent(item.value) }}</span>
+                      <div class="mini-progress">
+                        <span class="mini-bar" :class="riskBarClass(item.value)" :style="{ width: toPercent(item.value) }"></span>
+                      </div>
+                    </div>
+                  </div>
                 </li>
               </ol>
             </div>
@@ -195,7 +255,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted, reactive, ref } from "vue";
+import { computed, onMounted, reactive, ref, watch } from "vue";
 import { useRouter } from "vue-router";
 
 import api from "../api/client";
@@ -204,10 +264,11 @@ import AppLayout from "../layouts/AppLayout.vue";
 type OptionItem = { value: number | string; label: string };
 type FilterOptions = { terms: string[]; colleges: OptionItem[]; majors: OptionItem[]; grades: number[] };
 type CardItem = { code: string; name: string; value: number; unit?: string | null };
-type TrendItem = { date: string; attendance_rate: number; fail_rate: number; avg_score?: number | null };
+type TrendItem = { date: string; attendance_rate: number };
 type DistributionItem = { name: string; value: number };
 type RankingItem = { name: string; value: number };
 type RiskItem = { level: string; title: string; message: string };
+type MajorItem = { id: number; major_name: string; college_id: number };
 
 const router = useRouter();
 const cards = ref<CardItem[]>([]);
@@ -222,6 +283,7 @@ const rankings = ref<{ course_fail_rate: RankingItem[]; class_absent_rate: Ranki
   class_absent_rate: [],
 });
 const filterOptions = ref<FilterOptions>({ terms: [], colleges: [], majors: [], grades: [] });
+const allMajors = ref<MajorItem[]>([]);
 const loading = ref(false);
 const error = ref("");
 
@@ -231,13 +293,60 @@ const filters = reactive({
   major_id: "",
   grade_year: "",
 });
+const distTab = ref<"college" | "score">("college");
 
 const attendance = computed(() => trends.value.map((item) => item.attendance_rate));
-const failRate = computed(() => trends.value.map((item) => item.fail_rate));
-const avgScore = computed(() => trends.value.map((item) => item.avg_score ?? 0));
+const filteredMajors = computed(() => {
+  if (!filters.college_id) {
+    return filterOptions.value.majors;
+  }
+  const collegeId = Number(filters.college_id);
+  return allMajors.value
+    .filter((item) => item.college_id === collegeId)
+    .map((item) => ({ value: item.id, label: item.major_name }));
+});
 
 const collegeMax = computed(() => Math.max(...distributions.value.college_students.map((i) => i.value), 1));
 const scoreMax = computed(() => Math.max(...distributions.value.score_band.map((i) => i.value), 1));
+const scoreColor = (name: string) => {
+  const normalized = name?.toLowerCase() || "";
+  if (normalized.includes("90") || normalized.includes("优秀") || normalized.includes("90+")) {
+    return "#22c55e";
+  }
+  if (normalized.includes("80") || normalized.includes("良好")) {
+    return "#3b82f6";
+  }
+  if (normalized.includes("60") || normalized.includes("及格")) {
+    return "#f59e0b";
+  }
+  if (normalized.includes("不及格") || normalized.includes("fail") || normalized.includes("0")) {
+    return "#ef4444";
+  }
+  return "#a855f7";
+};
+
+const scoreTotal = computed(() => distributions.value.score_band.reduce((sum, item) => sum + item.value, 0));
+const scoreSegments = computed(() => {
+  const total = scoreTotal.value;
+  if (!total) {
+    return [];
+  }
+  const radius = 42;
+  const circumference = 2 * Math.PI * radius;
+  let offset = 0;
+  return distributions.value.score_band.map((item) => {
+    const size = (item.value / total) * circumference;
+    const segment = {
+      name: item.name,
+      value: item.value,
+      color: scoreColor(item.name),
+      dasharray: `${size} ${circumference - size}`,
+      dashoffset: -offset,
+    };
+    offset += size;
+    return segment;
+  });
+});
 
 const formatNumber = (value: number) => {
   if (Number.isNaN(value)) {
@@ -278,6 +387,66 @@ const trendLine = (values: number[]) => {
     .join(" ");
 };
 
+const metricIcon = (code: string) => {
+  const normalized = code?.toLowerCase() || "";
+  if (normalized.includes("student") || normalized.includes("stu")) {
+    return "S";
+  }
+  if (normalized.includes("teacher") || normalized.includes("teach")) {
+    return "T";
+  }
+  if (normalized.includes("course") || normalized.includes("class")) {
+    return "C";
+  }
+  if (normalized.includes("risk") || normalized.includes("alert")) {
+    return "R";
+  }
+  return "K";
+};
+
+const metricAccent = (code: string) => {
+  const normalized = code?.toLowerCase() || "";
+  if (normalized.includes("student") || normalized.includes("stu")) {
+    return "#2563eb";
+  }
+  if (normalized.includes("teacher") || normalized.includes("teach")) {
+    return "#0f766e";
+  }
+  if (normalized.includes("course") || normalized.includes("class")) {
+    return "#7c3aed";
+  }
+  if (normalized.includes("risk") || normalized.includes("alert")) {
+    return "#dc2626";
+  }
+  return "#1d4ed8";
+};
+
+const metricSoft = (code: string) => {
+  const normalized = code?.toLowerCase() || "";
+  if (normalized.includes("student") || normalized.includes("stu")) {
+    return "#dbeafe";
+  }
+  if (normalized.includes("teacher") || normalized.includes("teach")) {
+    return "#ccfbf1";
+  }
+  if (normalized.includes("course") || normalized.includes("class")) {
+    return "#ede9fe";
+  }
+  if (normalized.includes("risk") || normalized.includes("alert")) {
+    return "#fee2e2";
+  }
+  return "#dbeafe";
+};
+const rankClass = (index: number) => {
+  if (index === 0) return "gold";
+  if (index === 1) return "silver";
+  if (index === 2) return "bronze";
+  return "normal";
+};
+const riskBarClass = (value: number) => {
+  return value > 0.2 ? "high" : "medium";
+};
+
 const buildParams = () => {
   const params: Record<string, any> = {};
   if (filters.term) {
@@ -314,6 +483,26 @@ const fetchOverview = async () => {
   }
 };
 
+const fetchMajors = async () => {
+  const items: MajorItem[] = [];
+  let offset = 0;
+  const limit = 200;
+  try {
+    while (true) {
+      const res = await api.get("/data/major/list", { params: { offset, limit } });
+      const data = res.data.data || [];
+      items.push(...data);
+      if (data.length < limit) {
+        break;
+      }
+      offset += limit;
+    }
+    allMajors.value = items;
+  } catch (err) {
+    allMajors.value = [];
+  }
+};
+
 const applyFilters = () => {
   fetchOverview();
 };
@@ -325,6 +514,18 @@ const resetFilters = () => {
   filters.grade_year = "";
   fetchOverview();
 };
+
+watch(
+  () => filters.college_id,
+  () => {
+    if (filters.major_id) {
+      const valid = filteredMajors.value.some((item) => String(item.value) === String(filters.major_id));
+      if (!valid) {
+        filters.major_id = "";
+      }
+    }
+  }
+);
 
 const goToData = (table: string) => {
   const query: Record<string, any> = { table };
@@ -357,5 +558,8 @@ const exportRisk = async () => {
   }
 };
 
-onMounted(fetchOverview);
+onMounted(async () => {
+  await fetchMajors();
+  await fetchOverview();
+});
 </script>

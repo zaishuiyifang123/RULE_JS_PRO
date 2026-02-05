@@ -85,20 +85,29 @@
           <tbody>
             <tr v-for="item in rows" :key="item.id">
               <td v-for="col in currentTable.columns" :key="col.key">
-                {{ item[col.key] ?? "-" }}
+                <span
+                  v-if="col.key === 'status' && item[col.key]"
+                  class="status-badge"
+                  :class="statusClass(item[col.key])"
+                >
+                  {{ item[col.key] }}
+                </span>
+                <span v-else>
+                  {{ item[col.key] ?? "-" }}
+                </span>
               </td>
               <td>
                 <div class="table-actions">
-                  <button class="btn ghost" type="button" @click="openEdit(item)">编辑</button>
+                  <button class="btn action edit" type="button" @click="openEdit(item)">编辑</button>
                   <button
                     v-if="tableKey === 'student'"
-                    class="btn ghost"
+                    class="btn action view"
                     type="button"
                     @click="openScores(item)"
                   >
                     成绩
                   </button>
-                  <button class="btn ghost" type="button" @click="removeItem(item)">删除</button>
+                  <button class="btn action delete" type="button" @click="removeItem(item)">删除</button>
                 </div>
               </td>
             </tr>
@@ -667,6 +676,20 @@ const validateForm = () => {
       }
     }
   }
+};
+
+const statusClass = (value: string) => {
+  const normalized = value?.toString().toLowerCase();
+  if (["active", "normal", "enable", "enabled", "在读", "正常"].includes(normalized)) {
+    return "ok";
+  }
+  if (["warning", "risk", "停学", "休学", "异常"].includes(normalized)) {
+    return "warn";
+  }
+  if (["inactive", "disabled", "停用", "毕业", "退学"].includes(normalized)) {
+    return "off";
+  }
+  return "default";
 };
 
 const submitForm = async () => {

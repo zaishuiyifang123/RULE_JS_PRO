@@ -195,6 +195,42 @@
     - 原因：实现 TASK009 驾驶舱增强方案
     - 阻碍因素：无
     - 状态：未确认
+  - [2026-02-05 17:37:13]
+    - 已修改：app/schemas/cockpit.py、app/services/cockpit_service.py、frontend/src/views/CockpitView.vue、frontend/src/styles/base.css
+    - 更改：专业下拉支持学院级联；趋势改为近 6 个月出勤率；风险榜单提升至 200 条且导出全量；风险清单支持滚动
+    - 原因：优化驾驶舱筛选与展示效果
+    - 阻碍因素：无
+    - 状态：未确认
+  - [2026-02-05 17:48:18]
+    - 已修改：frontend/src/styles/base.css、DEV_PLAN.md
+    - 更改：全局样式切换为现代 SaaS 风格（无衬线字体、冷灰背景、白色卡片与统一阴影/圆角、文字色阶统一）
+    - 原因：按需求重构全局 CSS 以提升现代感与一致性
+    - 阻碍因素：无
+    - 状态：未确认
+  - [2026-02-05 17:53:47]
+    - 已修改：frontend/src/views/CockpitView.vue、frontend/src/views/DataView.vue、frontend/src/styles/base.css、DEV_PLAN.md
+    - 更改：KPI 卡片改为左右布局并加入图标与底部彩色边；表格表头/行 hover/操作按钮/状态胶囊样式统一优化
+    - 原因：提升驾驶舱与数据管理的企业级视觉与可读性
+    - 阻碍因素：无
+    - 状态：未确认
+  - [2026-02-05 18:10:25]
+    - 已修改：frontend/src/views/CockpitView.vue、frontend/src/styles/base.css、DEV_PLAN.md
+    - 更改：结构分布改为 Tab 切换学院规模/成绩段；成绩段环形图与图例；风险榜单排名徽标与进度条
+    - 原因：提升结构分布与风险榜单的可读性与视觉层级
+    - 阻碍因素：无
+    - 状态：未确认
+  - [2026-02-05 18:25:11]
+    - 已修改：frontend/src/views/CockpitView.vue、DEV_PLAN.md
+    - 更改：修复风险榜单标题缺失闭合标签导致的模板编译错误
+    - 原因：确保驾驶舱页面可正常编译运行
+    - 阻碍因素：无
+    - 状态：未确认
+  - [2026-02-05 18:29:06]
+    - 已修改：frontend/src/views/CockpitView.vue、frontend/src/styles/base.css、DEV_PLAN.md
+    - 更改：高风险学生卡片与风险榜单同高，列表内部滚动
+    - 原因：对齐卡片高度并保持内容可读性
+    - 阻碍因素：无
+    - 状态：未确认
 
 
 ---

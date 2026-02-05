@@ -24,8 +24,6 @@ class MetricCard(BaseModel):
 class TrendPoint(BaseModel):
     date: str
     attendance_rate: float
-    fail_rate: float
-    avg_score: float | None = None
 
 
 class DistributionItem(BaseModel):
