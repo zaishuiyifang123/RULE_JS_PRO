@@ -461,7 +461,9 @@
 ## 7. 多 Agents 工作流设计
 
 ### 7.1 工作流总览
-意图识别 → 任务解析 → 策略评估与风险分级 → 字段清单注入 → SQL 生成 → SQL 验证 → 可解释性生成 → 发现隐藏上下文 → 返回数据 → 资产沉淀
+意图识别 → 任务解析 → BM25+Embedding 混合检索 → LLM 重排（TOP5）→ 隐藏上下文探索 → SQL 生成 → SQL 验证 → 结果返回
+
+失败回跳规则：`SQL 验证失败 -> 隐藏上下文探索 -> SQL 生成 -> SQL 验证`（受最大重试次数控制）。
 
 ### 7.2 工作流输入/输出规范
 
@@ -472,147 +474,119 @@
   "admin_id": "int",
   "message": "string",
   "history": [
-    {"role": "user", "content": "..."},
-    {"role": "assistant", "content": "..."}
+    {"role": "user", "content": "..."}
   ]
 }
 ```
+> TASK010 仅使用最近 4 条 `user` 消息做追问识别与问题合并。
 
 #### 7.2.2 意图识别节点
-- 输入：当前问题 + **前 3 条历史记录**
-- 规则：判断当前问题是否为历史问题的补充
+- 输入：当前问题 + 最近 4 条 `user` 消息
+- 规则：
+  - 意图仅允许 `chat` / `business_query`
+  - 判断当前问题是否为追问
+  - 若为追问，合并历史生成 `merged_query`
+  - 输出面向教务域的 `rewritten_query`
 - 输出：
 ```json
 {
-  "intent": "query|update|insert|other",
-  "is_domain_related": true,
+  "intent": "chat|business_query",
   "is_followup": true,
-  "optimized_query": "...",
-  "reason": "..."
+  "merged_query": "...",
+  "rewritten_query": "...",
+  "confidence": 0.91
 }
 ```
-> 若 `is_followup=false`，则 `optimized_query` 仅使用当前问题；若为补充，则融合历史记录生成优化 query。
+> 若 `is_followup=false`，`merged_query` 可等于当前问题的业务化改写结果。
 
 #### 7.2.3 任务解析节点
 - 输出：
 ```json
 {
-  "entities": ["student", "score"],
+  "intent": "business_query",
+  "entities": [{"type": "course", "value": "高等数学A"}],
   "dimensions": ["term", "class"],
   "metrics": ["avg_score"],
   "filters": [{"field": "term", "op": "=", "value": "2025-2026-1"}],
-  "operation": "aggregate|detail|update|insert"
+  "time_range": {"start": null, "end": null},
+  "operation": "aggregate|detail"
 }
 ```
 
-#### 7.2.4 策略评估与风险分级节点
+#### 7.2.4 BM25 + Embedding 混合检索节点
 - 输出：
 ```json
 {
-  "risk_level": "low|medium|high",
-  "policy_actions": ["allow", "confirm", "block"],
-  "policy_reason": "..."
+  "query": "任务解析后的检索语义",
+  "candidates": [
+    {"table": "score", "score": 0.81, "source": "bm25"},
+    {"table": "course", "score": 0.77, "source": "embedding"}
+  ],
+  "joins": ["score.course_id = course.id"]
 }
 ```
 
-#### 7.2.5 字段清单注入节点（结构化）
-- 说明：**任务解析后**，将所有与教务信息相关的表字段清单结构化注入到 SQL 生成节点。
+#### 7.2.5 LLM 重排节点（TOP5）
 - 输出结构示例：
 ```json
 {
-  "field_catalog": {
-    "tables": [
-      {
-        "table": "student",
-        "table_desc": "学生",
-        "fields": [
-          {"name": "id", "desc": "主键", "is_pk": true},
-          {"name": "student_no", "desc": "学号"},
-          {"name": "class_id", "desc": "所属班级", "is_fk": true, "ref_table": "class", "ref_field": "id"}
-        ]
-      },
-      {
-        "table": "score",
-        "table_desc": "成绩",
-        "fields": [
-          {"name": "id", "desc": "主键", "is_pk": true},
-          {"name": "score_value", "desc": "成绩"},
-          {"name": "student_id", "desc": "学生", "is_fk": true, "ref_table": "student", "ref_field": "id"}
-        ]
-      }
-    ],
-    "source": "schema_doc",
-    "version": "2026-01-23"
-  }
+  "top_tables": [
+    {"table": "score", "rank": 1, "reason": "包含成绩值与学期字段"},
+    {"table": "course", "rank": 2, "reason": "包含课程名称与课程编码"},
+    {"table": "student", "rank": 3, "reason": "支持学号与姓名过滤"},
+    {"table": "course_class", "rank": 4, "reason": "连接课程与班级关系"},
+    {"table": "class", "rank": 5, "reason": "支持班级维度聚合"}
+  ]
 }
 ```
 
-#### 7.2.6 SQL 生成节点
-- 规则：SQL 中 **所有字段必须来自字段清单**
+#### 7.2.6 隐藏上下文探索节点
 - 输出：
 ```json
 {
-  "sql": "SELECT ...",
-  "params": {"term": "2025-2026-1"},
-  "used_fields": ["student.student_no", "score.score_value"]
+  "value_mapping": {
+    "term": ["2025-2026-1"],
+    "student_status": ["在读", "休学"],
+    "course_name": ["高等数学A", "大学英语"]
+  },
+  "hints": ["term 字段使用 score.term", "status 值需与库内枚举一致"]
 }
 ```
 
-#### 7.2.7 SQL 验证节点
-- 规则：**不使用 LLM，仅执行 SQL**，无报错即通过
+#### 7.2.7 SQL 生成节点
+- 规则：只允许 CTE 分解生成（`WITH ... AS ...`），不允许直接简单查询
+- 输出：
+```json
+{
+  "sql": "WITH ... AS (...) SELECT ...",
+  "params": {"term": "2025-2026-1"},
+  "generation_mode": "cte_only",
+  "used_tables": ["score", "course", "student"],
+  "used_fields": ["score.score_value", "course.course_name", "student.real_name"]
+}
+```
+
+#### 7.2.8 SQL 验证节点
+- 规则：不使用 LLM，仅执行 SQL 做可执行性验证
 - 输出：
 ```json
 {
   "is_valid": true,
   "row_count": 123,
-  "error": null
+  "error": null,
+  "next_on_fail": "hidden_context_discovery",
+  "next_on_success": "result_return"
 }
 ```
 
-#### 7.2.8 可解释性生成节点
-- 输出：
-```json
-{
-  "field_mapping": {"avg_score": "score.score_value 平均值"},
-  "table_mapping": ["score", "student", "class"],
-  "logic_summary": "...",
-  "confidence": 0.86
-}
-```
-
-#### 7.2.9 发现隐藏上下文节点
-- 输出：
-```json
-{
-  "need_retry": false,
-  "error_summary": "...",
-  "revised_hint": "..."
-}
-```
-
-#### 7.2.10 返回数据节点
+#### 7.2.9 结果返回节点
 - 输出：
 ```json
 {
   "data": [...],
   "summary": "...",
-  "risk_level": "low|medium|high",
-  "explain": {
-    "field_mapping": {"avg_score": "score.score_value 平均值"},
-    "table_mapping": ["score", "student", "class"],
-    "logic_summary": "...",
-    "confidence": 0.86
-  }
-}
-```
-
-#### 7.2.11 资产沉淀节点
-- 输出：
-```json
-{
-  "template_saved": true,
-  "template_id": 123,
-  "template_summary": "..."
+  "rows": 123,
+  "status": "ok"
 }
 ```
 
@@ -627,10 +601,9 @@
 ```json
 {
   "session_id": "...",
-  "step": "intent|parse|policy|field_list|sql_gen|sql_validate|explain|context_rewrite|result|asset",
+  "step": "intent|task_parse|hybrid_retrieval|rerank|hidden_context|sql_gen|sql_validate|result",
   "status": "start|end|error",
   "message": "...",
-  "risk_level": "low|medium|high",
   "timestamp": "2026-01-23T12:00:00Z"
 }
 ```
@@ -674,6 +647,30 @@
 ### 8.7 智能聊天
 - POST /api/chat
 - GET /api/chat/stream (SSE)
+- POST /api/chat/intent（TASK010 意图识别节点）
+
+`POST /api/chat/intent` 当前返回结构：
+```json
+{
+  "code": 0,
+  "message": "ok",
+  "data": {
+    "session_id": "string",
+    "intent": "chat|business_query",
+    "is_followup": true,
+    "confidence": 0.91,
+    "merged_query": "合并后的问题",
+    "rewritten_query": "合并后的问题",
+    "threshold": 0.7
+  }
+}
+```
+说明：
+- 仅使用最近 4 条 `user` 消息判断追问；
+- 当前阶段固定 `rewritten_query = merged_query`（不做二次重写）；
+- `confidence < 0.7` 时降级为 `chat`；
+- 会写入 `chat_history`（user+assistant 两条）与 `workflow_log(intent_recognition)`。
+- 节点输入/输出会落盘到本地目录 `NODE_IO_LOG_DIR`（默认 `local_logs/node_io`）。
 
 ### 8.8 历史记录与模板
 - GET /api/history/session

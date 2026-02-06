@@ -23,6 +23,13 @@
         >
           数据管理
         </RouterLink>
+        <RouterLink
+          class="nav-item"
+          :class="{ 'is-active': isActive('/chat') }"
+          to="/chat"
+        >
+          智能问答
+        </RouterLink>
       </nav>
       <button class="btn ghost" type="button" @click="logout">退出</button>
     </header>

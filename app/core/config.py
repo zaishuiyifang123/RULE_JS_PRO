@@ -25,6 +25,13 @@ class Settings:
     jwt_algorithm = os.getenv("JWT_ALGORITHM", "HS256")
     access_token_expire_minutes = int(os.getenv("ACCESS_TOKEN_EXPIRE_MINUTES", "120"))
 
+    llm_provider = os.getenv("LLM_PROVIDER", "openai")
+    llm_api_key = os.getenv("LLM_API_KEY", "")
+    llm_base_url = os.getenv("LLM_BASE_URL", "")
+    llm_model_intent = os.getenv("LLM_MODEL_INTENT", "gpt-4o-mini")
+    intent_confidence_threshold = float(os.getenv("INTENT_CONFIDENCE_THRESHOLD", "0.7"))
+    node_io_log_dir = os.getenv("NODE_IO_LOG_DIR", "local_logs/node_io")
+
     @property
     def database_url(self) -> str:
         return (

@@ -1,6 +1,6 @@
 ﻿# DIRECTORY
 
-本文件描述当前仓库结构（截至 2026-01-30）。
+本文件描述当前仓库结构（截至 2026-02-06）。
 
 ```
 RULE_JS_PRO/
@@ -71,16 +71,22 @@ RULE_JS_PRO/
 │  │  ├─ auth_service.py
 │  │  ├─ cockpit_service.py
 │  │  └─ import_service.py
+│  ├─ knowledge/            Schema 知识库资产（供 Agent 检索，含 TASK010 工作流元数据）
+│  │  └─ schema_kb_core.json
 │  ├─ deps.py               依赖注入辅助函数
 │  ├─ main.py               FastAPI 工厂与路由注册
 │  └─ __init__.py
 ├─ scripts/                 辅助脚本
+│  ├─ build_schema_kb.py    从 ORM 模型构建可检索 schema 知识库（含 intent/检索/工作流配置）
+│  ├─ fill_recent_attendance.py
 │  ├─ init_admin.py
 │  ├─ init_db.py
 │  └─ generate_mock_data.py
 ├─ frontend/                Vue3 + Vite 前端
 │  ├─ src/
 │  │  ├─ api/                Axios 客户端与拦截器
+│  │  │  ├─ chat.ts
+│  │  │  └─ client.ts
 │  │  ├─ components/         前端通用组件（弹窗、分页等）
 │  │  │  ├─ DataFormModal.vue
 │  │  │  ├─ PaginationBar.vue
@@ -89,7 +95,11 @@ RULE_JS_PRO/
 │  │  ├─ router/             路由与守卫
 │  │  ├─ stores/             Pinia 登录态
 │  │  ├─ styles/             全局样式
-│  │  ├─ views/              登录页与数据页
+│  │  ├─ views/              页面视图
+│  │  │  ├─ ChatView.vue
+│  │  │  ├─ CockpitView.vue
+│  │  │  ├─ DataView.vue
+│  │  │  └─ LoginView.vue
 │  │  ├─ App.vue
 │  │  ├─ env.d.ts
 │  │  └─ main.ts

@@ -352,6 +352,24 @@ a {
   gap: 12px;
 }
 
+.trend-plot {
+  display: grid;
+  grid-template-columns: 36px 1fr;
+  gap: 8px;
+  align-items: center;
+}
+
+.trend-ylabels {
+  height: 160px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  font-size: 11px;
+  color: var(--muted);
+  text-align: right;
+  padding: 4px 0;
+}
+
 .trend-legend {
   display: flex;
   gap: 16px;
@@ -586,6 +604,12 @@ a {
   margin-bottom: 16px;
 }
 
+.rank-card {
+  height: 700px;
+  display: flex;
+  flex-direction: column;
+}
+
 .rank-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
@@ -605,6 +629,10 @@ a {
   display: grid;
   gap: 12px;
   font-size: 14px;
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  padding-right: 4px;
 }
 
 .rank-item {
@@ -624,8 +652,8 @@ a {
   justify-content: center;
   font-size: 12px;
   font-weight: 700;
-  background: #e5e7eb;
-  color: #6b7280;
+  background: #fee2e2;
+  color: #991b1b;
 }
 
 .rank-badge.gold {
@@ -704,6 +732,12 @@ a {
   min-height: 0;
   overflow-y: auto;
   padding-right: 4px;
+}
+
+.alert-card {
+  height: 700px;
+  display: flex;
+  flex-direction: column;
 }
 
 .alert-item {
@@ -963,6 +997,154 @@ a {
   background: #fff;
 }
 
+.chat-session {
+  display: inline-flex;
+  align-items: center;
+  padding: 8px 12px;
+  border-radius: 999px;
+  border: 1px solid var(--line);
+  color: var(--muted);
+  font-size: 12px;
+  background: #fff;
+}
+
+.chat-input-card {
+  display: grid;
+  gap: 12px;
+  margin-bottom: 18px;
+}
+
+.chat-label {
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.chat-textarea {
+  width: 100%;
+  min-height: 120px;
+  resize: vertical;
+  padding: 12px 14px;
+  border-radius: 12px;
+  border: 1px solid var(--line);
+  background: #fff;
+  font-size: 14px;
+  color: var(--ink);
+  line-height: 1.5;
+}
+
+.chat-actions {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.chat-result-card {
+  display: grid;
+  gap: 16px;
+  margin-bottom: 18px;
+}
+
+.chat-kv-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 12px;
+}
+
+.chat-kv {
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 10px 12px;
+  background: #fff;
+  display: grid;
+  gap: 4px;
+}
+
+.chat-kv-label {
+  font-size: 11px;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+}
+
+.chat-kv-value {
+  color: var(--ink);
+  font-weight: 600;
+  font-size: 14px;
+}
+
+.chat-block {
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 12px;
+  background: #fff;
+}
+
+.chat-block-title {
+  margin: 0 0 8px;
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.chat-block-content {
+  margin: 0;
+  color: var(--ink);
+  line-height: 1.6;
+  font-size: 14px;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.chat-history-card {
+  display: grid;
+  gap: 12px;
+}
+
+.chat-history-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  gap: 10px;
+}
+
+.chat-history-item {
+  display: grid;
+  grid-template-columns: 90px 1fr;
+  gap: 10px;
+  align-items: start;
+  padding-bottom: 10px;
+  border-bottom: 1px solid var(--line);
+}
+
+.chat-role {
+  display: inline-flex;
+  justify-content: center;
+  align-items: center;
+  border-radius: 999px;
+  font-size: 12px;
+  padding: 4px 10px;
+  border: 1px solid var(--line);
+  text-transform: uppercase;
+}
+
+.chat-role.is-user {
+  color: #1d4ed8;
+  background: #dbeafe;
+  border-color: #bfdbfe;
+}
+
+.chat-role.is-assistant {
+  color: #0f766e;
+  background: #ccfbf1;
+  border-color: #99f6e4;
+}
+
+.chat-content {
+  color: #374151;
+  font-size: 14px;
+  line-height: 1.5;
+  word-break: break-word;
+}
+
 .modal-backdrop {
   position: fixed;
   inset: 0;
@@ -1050,6 +1232,7 @@ a {
     opacity: 0;
     transform: translateY(12px);
   }
+
   to {
     opacity: 1;
     transform: translateY(0);
@@ -1060,22 +1243,31 @@ a {
   .login-shell {
     grid-template-columns: 1fr;
   }
+
   .login-panel {
     order: -1;
   }
+
   .app-header {
     grid-template-columns: 1fr;
     gap: 12px;
   }
+
   .page-header {
     flex-direction: column;
     align-items: flex-start;
     gap: 12px;
   }
+
   .header-actions {
     flex-wrap: wrap;
   }
+
   .cockpit-row {
+    grid-template-columns: 1fr;
+  }
+
+  .chat-history-item {
     grid-template-columns: 1fr;
   }
 }

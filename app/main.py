@@ -3,7 +3,7 @@ from fastapi import FastAPI, HTTPException, Request
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
 
-from app.routers import admin, auth, data, importer, metric, cockpit
+from app.routers import admin, auth, chat, data, importer, metric, cockpit
 from app.schemas.response import ErrorResponse
 
 
@@ -12,6 +12,7 @@ def create_app() -> FastAPI:
 
     app.include_router(auth.router, prefix="/api/auth", tags=["auth"])
     app.include_router(admin.router, prefix="/api/admin", tags=["admin"])
+    app.include_router(chat.router, prefix="/api/chat", tags=["chat"])
     app.include_router(data.router, prefix="/api/data", tags=["data"])
     app.include_router(importer.router, tags=["import"])
     app.include_router(metric.router, tags=["metric"])
@@ -30,6 +31,6 @@ def create_app() -> FastAPI:
     return app
 
 
-app = create_app
+app = create_app()
 if __name__ == "__main__":
     uvicorn.run(app, host="0.0.0.0", port=8000)

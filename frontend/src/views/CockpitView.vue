@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <AppLayout>
     <section class="page">
       <header class="page-header">
@@ -99,13 +99,29 @@
           </div>
           <div v-if="loading" class="table-state">正在加载趋势...</div>
           <div v-else class="trend-chart">
-            <svg viewBox="0 0 320 140" role="img" aria-label="trend">
-              <polyline :points="trendLine(attendance)" fill="none" stroke="#1f7a8c" stroke-width="3" />
-            </svg>
+            <div class="trend-plot">
+              <div class="trend-ylabels">
+                <span>100%</span>
+                <span>90%</span>
+                <span>80%</span>
+                <span>70%</span>
+                <span>60%</span>
+              </div>
+              <svg viewBox="0 0 320 140" preserveAspectRatio="none" role="img" aria-label="trend">
+                <g class="trend-yaxis">
+                  <line x1="10" y1="30" x2="310" y2="30" stroke="#e5e7eb" stroke-width="1" />
+                  <line x1="10" y1="52.5" x2="310" y2="52.5" stroke="#e5e7eb" stroke-width="1" />
+                  <line x1="10" y1="75" x2="310" y2="75" stroke="#e5e7eb" stroke-width="1" />
+                  <line x1="10" y1="97.5" x2="310" y2="97.5" stroke="#e5e7eb" stroke-width="1" />
+                  <line x1="10" y1="120" x2="310" y2="120" stroke="#e5e7eb" stroke-width="1" />
+                </g>
+                <polyline :points="trendLine(attendance)" fill="none" stroke="#1f7a8c" stroke-width="3" />
+              </svg>
+            </div>
             <div class="trend-legend">
               <span><i class="legend-dot teal"></i>出勤率</span>
             </div>
-            <div class="trend-axis">
+            <div class="trend-axis" :style="{ gridTemplateColumns: `repeat(${Math.max(trends.length, 1)}, 1fr)` }">
               <span v-for="item in trends" :key="item.date">{{ item.date.slice(5) }}</span>
             </div>
           </div>
@@ -193,8 +209,8 @@
             <div>
               <p class="rank-title">课程挂科率</p>
               <ol class="rank-list">
-                <li v-for="(item, index) in rankings.course_fail_rate" :key="item.name" class="rank-item">
-                  <span class="rank-badge" :class="rankClass(index)">{{ index + 1 }}</span>
+                <li v-for="(item, index) in sortedCourseFailRate" :key="item.name" class="rank-item">
+                  <span class="rank-badge" :class="rankClass(index)" :style="rankBadgeStyle(index)">{{ index + 1 }}</span>
                   <div class="rank-body">
                     <span class="rank-name">{{ item.name }}</span>
                     <div class="rank-progress">
@@ -210,8 +226,8 @@
             <div>
               <p class="rank-title">班级缺勤率</p>
               <ol class="rank-list">
-                <li v-for="(item, index) in rankings.class_absent_rate" :key="item.name" class="rank-item">
-                  <span class="rank-badge" :class="rankClass(index)">{{ index + 1 }}</span>
+                <li v-for="(item, index) in sortedClassAbsentRate" :key="item.name" class="rank-item">
+                  <span class="rank-badge" :class="rankClass(index)" :style="rankBadgeStyle(index)">{{ index + 1 }}</span>
                   <div class="rank-body">
                     <span class="rank-name">{{ item.name }}</span>
                     <div class="rank-progress">
@@ -231,7 +247,7 @@
           <div class="card-head">
             <div>
               <p class="table-title">高风险学生</p>
-              <p class="table-sub">挂科累积提醒</p>
+              <p class="table-sub">挂科累计提醒</p>
             </div>
             <button class="btn ghost" type="button" @click="goToData('student')">查看学生</button>
           </div>
@@ -282,6 +298,12 @@ const rankings = ref<{ course_fail_rate: RankingItem[]; class_absent_rate: Ranki
   course_fail_rate: [],
   class_absent_rate: [],
 });
+const sortedCourseFailRate = computed(() => {
+  return [...rankings.value.course_fail_rate].sort((a, b) => b.value - a.value);
+});
+const sortedClassAbsentRate = computed(() => {
+  return [...rankings.value.class_absent_rate].sort((a, b) => b.value - a.value);
+});
 const filterOptions = ref<FilterOptions>({ terms: [], colleges: [], majors: [], grades: [] });
 const allMajors = ref<MajorItem[]>([]);
 const loading = ref(false);
@@ -307,14 +329,16 @@ const filteredMajors = computed(() => {
 });
 
 const collegeMax = computed(() => Math.max(...distributions.value.college_students.map((i) => i.value), 1));
-const scoreMax = computed(() => Math.max(...distributions.value.score_band.map((i) => i.value), 1));
 const scoreColor = (name: string) => {
-  const normalized = name?.toLowerCase() || "";
-  if (normalized.includes("90") || normalized.includes("优秀") || normalized.includes("90+")) {
+  const normalized = (name || "").toLowerCase();
+  if (normalized.includes("90") || normalized.includes("优秀")) {
     return "#22c55e";
   }
   if (normalized.includes("80") || normalized.includes("良好")) {
     return "#3b82f6";
+  }
+  if (normalized.includes("70") || normalized.includes("中等")) {
+    return "#6366f1";
   }
   if (normalized.includes("60") || normalized.includes("及格")) {
     return "#f59e0b";
@@ -375,8 +399,8 @@ const trendLine = (values: number[]) => {
   if (!values.length) {
     return "";
   }
-  const max = Math.max(...values, 1);
-  const min = Math.min(...values, 0);
+  const max = 1.0;
+  const min = 0.6;
   const range = max - min || 1;
   return values
     .map((value, index) => {
@@ -437,12 +461,27 @@ const metricSoft = (code: string) => {
   }
   return "#dbeafe";
 };
+
 const rankClass = (index: number) => {
   if (index === 0) return "gold";
   if (index === 1) return "silver";
   if (index === 2) return "bronze";
   return "normal";
 };
+
+const rankBadgeStyle = (index: number) => {
+  if (index === 0) {
+    return { backgroundColor: "#dc2626", color: "#fee2e2" };
+  }
+  if (index === 1) {
+    return { backgroundColor: "#ef4444", color: "#fee2e2" };
+  }
+  if (index === 2) {
+    return { backgroundColor: "#f87171", color: "#7f1d1d" };
+  }
+  return { backgroundColor: "#fee2e2", color: "#991b1b" };
+};
+
 const riskBarClass = (value: number) => {
   return value > 0.2 ? "high" : "medium";
 };
@@ -498,7 +537,7 @@ const fetchMajors = async () => {
       offset += limit;
     }
     allMajors.value = items;
-  } catch (err) {
+  } catch {
     allMajors.value = [];
   }
 };

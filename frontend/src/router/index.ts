@@ -3,6 +3,7 @@ import { createRouter, createWebHistory } from "vue-router";
 import LoginView from "../views/LoginView.vue";
 import CockpitView from "../views/CockpitView.vue";
 import DataView from "../views/DataView.vue";
+import ChatView from "../views/ChatView.vue";
 
 const routes = [
   { path: "/", redirect: "/cockpit" },
@@ -22,6 +23,12 @@ const routes = [
     path: "/data",
     name: "data",
     component: DataView,
+    meta: { requiresAuth: true },
+  },
+  {
+    path: "/chat",
+    name: "chat",
+    component: ChatView,
     meta: { requiresAuth: true },
   },
 ];

@@ -27,10 +27,12 @@ from app.schemas.cockpit import (
     TrendPoint,
 )
 
+# 计入出勤率的考勤状态（缺勤不计入）
 PRESENT_STATUSES = {"出勤", "迟到", "早退"}
 
 
 def _apply_student_filters(query, college_id: int | None, major_id: int | None, grade_year: int | None):
+    """为已关联 Student 的查询统一附加筛选条件。"""
     if college_id:
         query = query.filter(Student.college_id == college_id)
     if major_id:
@@ -41,6 +43,7 @@ def _apply_student_filters(query, college_id: int | None, major_id: int | None, 
 
 
 def _build_filter_options(db: Session) -> FilterOptions:
+    """构建驾驶舱筛选器选项：学期/学院/专业/年级。"""
     terms = [
         row[0]
         for row in db.query(Score.term)
@@ -80,6 +83,7 @@ def _build_filter_options(db: Session) -> FilterOptions:
 def _score_stats(
     db: Session, term: str | None, college_id: int | None, major_id: int | None, grade_year: int | None
 ):
+    """返回平均成绩、挂科率、成绩记录数。"""
     fail_case = case((Score.score_value < 60, 1), else_=0)
     score_query = db.query(Score, Student).join(Student, Score.student_id == Student.id)
     score_query = score_query.filter(Score.is_deleted == False, Student.is_deleted == False)
@@ -99,6 +103,7 @@ def _score_stats(
 def _attendance_rate(
     db: Session, college_id: int | None, major_id: int | None, grade_year: int | None
 ):
+    """返回当前筛选范围内总出勤率。"""
     present_case = case((Attendance.status.in_(PRESENT_STATUSES), 1), else_=0)
     query = db.query(Attendance, Student).join(Student, Attendance.student_id == Student.id)
     query = query.filter(Attendance.is_deleted == False, Student.is_deleted == False)
@@ -112,6 +117,7 @@ def _attendance_rate(
 def _build_trends(
     db: Session, college_id: int | None, major_id: int | None, grade_year: int | None
 ):
+    """构建最近 6 个月出勤率趋势。"""
     today = date.today()
     first_of_month = today.replace(day=1)
     months = []
@@ -123,13 +129,21 @@ def _build_trends(
 
     present_case = case((Attendance.status.in_(PRESENT_STATUSES), 1), else_=0)
     query = (
-        db.query(func.date_format(Attendance.attend_date, "%Y-%m"), func.sum(present_case), func.count(Attendance.id))
+        db.query(
+            func.date_format(Attendance.attend_date, "%Y-%m"),
+            func.sum(present_case),
+            func.count(Attendance.id),
+        )
         .join(Student, Attendance.student_id == Student.id)
         .filter(Attendance.is_deleted == False, Student.is_deleted == False)
         .filter(Attendance.attend_date >= months[0])
     )
     query = _apply_student_filters(query, college_id, major_id, grade_year)
-    stats = {row[0]: (row[1] or 0, row[2] or 0) for row in query.group_by(func.date_format(Attendance.attend_date, "%Y-%m")).all()}
+    stats = {
+        row[0]: (row[1] or 0, row[2] or 0)
+        for row in query.group_by(func.date_format(Attendance.attend_date, "%Y-%m")).all()
+    }
+
     points: list[TrendPoint] = []
     for month in months:
         key = month.strftime("%Y-%m")
@@ -146,6 +160,7 @@ def build_dashboard(
     major_id: int | None,
     grade_year: int | None,
 ) -> CockpitDashboard:
+    """组装驾驶舱总览：筛选项、卡片、趋势、分布、榜单、风险。"""
     student_query = db.query(Student).filter(Student.is_deleted == False)
     student_query = _apply_student_filters(student_query, college_id, major_id, grade_year)
     student_total = student_query.count()
@@ -192,6 +207,7 @@ def build_dashboard(
         .all()
     ]
 
+    # 统一成绩段分桶，便于前端结构分布图直接消费
     band_case = case(
         (Score.score_value < 60, "不及格"),
         (Score.score_value < 70, "60-69"),
@@ -280,7 +296,7 @@ def build_dashboard(
             )
         )
 
-    dashboard = CockpitDashboard(
+    return CockpitDashboard(
         filters=_build_filter_options(db),
         cards=cards,
         trends=_build_trends(db, college_id, major_id, grade_year),
@@ -294,12 +310,12 @@ def build_dashboard(
         },
         risks=risks,
     )
-    return dashboard
 
 
 def build_risk_csv(
     db: Session, term: str | None, college_id: int | None, major_id: int | None, grade_year: int | None
 ) -> str:
+    """导出风险榜单 CSV。"""
     fail_case = case((Score.score_value < 60, 1), else_=0)
     risk_query = (
         db.query(Student.real_name, Student.student_no, func.sum(fail_case))
@@ -316,10 +332,8 @@ def build_risk_csv(
         .all()
     ):
         count = int(fail_sum or 0)
-        level = "high" if count >= 3 else "medium"
-        title = f"{name}（{student_no}）"
-        message = f"挂科 {count} 门"
-        title = title.replace(",", " ")
-        message = message.replace(",", " ")
+        level = "high" if count >= 4 else "medium"
+        title = f"{name}（{student_no}）".replace(",", " ")
+        message = f"挂科 {count} 门".replace(",", " ")
         lines.append(f"{title},{level},{message}")
     return "\n".join(lines) + "\n"
