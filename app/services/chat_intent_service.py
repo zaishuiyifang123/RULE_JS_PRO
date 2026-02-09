@@ -12,6 +12,7 @@ from sqlalchemy.orm import Session
 from app.core.config import settings
 from app.models.chat_history import ChatHistory
 from app.models.workflow_log import WorkflowLog
+from app.prompts.intent_prompts import INTENT_SYSTEM_PROMPT_FULL, build_intent_user_prompt
 from app.schemas.chat import ChatIntentRequest
 from app.services.chat_graph import run_task010_intent_graph
 
@@ -97,7 +98,7 @@ def _is_followup_fallback(message: str, history_user_messages: list[str]) -> boo
 
 
 def _intent_fallback(message: str, history_user_messages: list[str]) -> tuple[str, float]:
-    """意图兜底规则：结合最近 user 历史与当前问题判定业务查询。"""
+    """意图兜底规则：结合最近 user 历史与当前问题判断业务查询。"""
     context = " ".join([*history_user_messages[-4:], message]).strip()
     hit = sum(1 for kw in BUSINESS_KEYWORDS if kw in context)
     if hit > 0:
@@ -112,7 +113,7 @@ def _merge_query_fallback(message: str, history_user_messages: list[str], is_fol
         return message.strip()
     context = "；".join([item.strip() for item in history_user_messages if item.strip()])
     if context:
-        return f"基于历史问题“{context}”，当前追问为“{message.strip()}”"
+        return f"基于历史问题“{context}”，当前追问是“{message.strip()}”"
     return message.strip()
 
 
@@ -135,44 +136,30 @@ def _llm_intent_infer(
     if not settings.llm_api_key:
         return None
     try:
+        import httpx
         from openai import OpenAI
 
         model = model_name or settings.llm_model_intent
         kwargs = {"api_key": settings.llm_api_key}
         if settings.llm_base_url:
             kwargs["base_url"] = settings.llm_base_url
-        client = OpenAI(**kwargs)
+        with httpx.Client(trust_env=False, timeout=20.0) as http_client:
+            client = OpenAI(**kwargs, http_client=http_client)
 
-        system_prompt = (
-            "你是教务系统意图识别助手。"
-            "请严格输出 JSON，对用户问题进行意图识别与追问判断。"
-            "意图仅允许 chat 或 business_query。"
-            "只可参考最近4条user消息。"
-            "若是追问，请合并历史得到 merged_query。"
-            "confidence 必须在 0 到 1 之间。"
-        )
-        user_prompt = json.dumps(
-            {
-                "message": message,
-                "history_user_messages": history_user_messages[-4:],
-                "schema": {
-                    "intent": "chat|business_query",
-                    "is_followup": "bool",
-                    "confidence": "float(0~1)",
-                    "merged_query": "string",
-                },
-            },
-            ensure_ascii=False,
-        )
-        resp = client.responses.create(
-            model=model,
-            input=[
-                {"role": "system", "content": system_prompt},
-                {"role": "user", "content": user_prompt},
-            ],
-            temperature=0,
-        )
-        data = _extract_json_object(resp.output_text or "")
+            system_prompt = INTENT_SYSTEM_PROMPT_FULL
+            user_prompt = build_intent_user_prompt(message, history_user_messages)
+            resp = client.chat.completions.create(
+                model=model,
+                messages=[
+                    {"role": "system", "content": system_prompt},
+                    {"role": "user", "content": user_prompt},
+                ],
+                temperature=0.1,
+            )
+        output_text = ""
+        if resp.choices and resp.choices[0].message:
+            output_text = resp.choices[0].message.content or ""
+        data = _extract_json_object(output_text)
         if not data:
             return None
         return data
@@ -288,8 +275,8 @@ def _save_node_io_local(
     step_dir = root / session_id / step_name
     step_dir.mkdir(parents=True, exist_ok=True)
 
-    ts = datetime.now().strftime("%Y%m%d_%H%M%S_%f")
-    file_path = step_dir / f"{ts}_{status}.json"
+    ts = datetime.now().strftime("%Y%m%d-%H-%M-%S-%f")
+    file_path = step_dir / f"{ts}-{status}.json"
 
     payload = {
         "session_id": session_id,
@@ -318,7 +305,7 @@ def execute_task010_intent(
     threshold = settings.intent_confidence_threshold
 
     request_history = _extract_user_history(
-        [item.dict() for item in payload.history] if payload.history else None
+        [item.model_dump() for item in payload.history] if payload.history else None
     )
     db_history = _get_recent_user_messages(db, session_id, limit=4)
     # 前端已传 history 时优先使用传入历史，避免与数据库历史重复叠加。
