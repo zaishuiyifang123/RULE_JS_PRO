@@ -623,7 +623,7 @@
 - event: workflow_error
 - event: workflow_end
 
-每个事件 payload 统一格式：
+每个事件 payload 统一格式:
 ```json
 {
   "session_id": "...",
