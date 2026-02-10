@@ -9,6 +9,7 @@ from typing import Any, TypedDict
 
 from langgraph.constants import START
 from langgraph.graph import END, StateGraph
+from sqlalchemy import text
 from sqlalchemy.orm import Session
 
 from app.core.config import settings
@@ -28,6 +29,9 @@ class UnifiedChatGraphState(TypedDict):
     intent_result: dict[str, Any] | None
     parse_result: dict[str, Any] | None
     sql_result: dict[str, Any] | None
+    sql_validate_result: dict[str, Any] | None
+    hidden_context_result: dict[str, Any] | None
+    hidden_context_retry_count: int
 
 
 def execute_chat_workflow(
@@ -35,11 +39,12 @@ def execute_chat_workflow(
     admin_id: int,
     payload: ChatIntentRequest,
 ) -> dict[str, Any]:
-    """执行统一聊天工作流。"""
+    """执行统一聊天工作流（TASK010/TASK011/TASK015/TASK016）。"""
 
     ALLOWED_INTENTS = {"chat", "business_query"}
     ALLOWED_OPERATIONS = {"detail", "aggregate", "ranking", "trend"}
     ALLOWED_FILTER_OPS = {"=", "!=", ">", "<", ">=", "<=", "like", "in", "not in", "between"}
+    HIDDEN_CONTEXT_MAX_RETRY = 2
 
     def _helper_get_recent_user_messages(session_id: str, limit: int = 4) -> list[str]:
         """读取同一会话最近的 user 消息。"""
@@ -57,10 +62,10 @@ def execute_chat_workflow(
         )
         return [row.message_content for row in reversed(rows)]
 
-    def _helper_extract_json_object(text: str) -> dict[str, Any] | None:
-        """从文本中提取第一个 JSON 对象。"""
+    def _helper_extract_json_object(text_value: str) -> dict[str, Any] | None:
+        """从模型输出文本中提取 JSON。"""
 
-        match = re.search(r"\{.*\}", text, flags=re.S)
+        match = re.search(r"\{.*\}", text_value, flags=re.S)
         if not match:
             return None
         try:
@@ -69,7 +74,7 @@ def execute_chat_workflow(
             return None
 
     def _helper_safe_float(value: Any, default: float = 0.0) -> float:
-        """安全转换浮点并裁剪到 [0, 1]。"""
+        """安全转换浮点并裁剪到 [0,1]。"""
 
         try:
             number = float(value)
@@ -85,14 +90,14 @@ def execute_chat_workflow(
         result: list[str] = []
         seen: set[str] = set()
         for item in value:
-            text = str(item).strip()
-            if not text:
+            text_value = str(item).strip()
+            if not text_value:
                 continue
-            key = text.lower()
+            key = text_value.lower()
             if key in seen:
                 continue
             seen.add(key)
-            result.append(text)
+            result.append(text_value)
         return result
 
     def _helper_normalize_entities(value: Any) -> list[dict[str, str]]:
@@ -130,7 +135,7 @@ def execute_chat_workflow(
         return filters
 
     def _helper_extract_sql_fields(sql: str) -> list[str]:
-        """提取 SQL 中所有 table.field 字段并去重。"""
+        """提取 SQL 中的 table.field 并去重。"""
 
         matches = re.findall(r"\b([a-zA-Z_][a-zA-Z0-9_]*)\.([a-zA-Z_][a-zA-Z0-9_]*)\b", sql)
         result: list[str] = []
@@ -176,6 +181,31 @@ def execute_chat_workflow(
                 }
             )
         return mappings
+
+    def _helper_is_readonly_sql(sql: str) -> bool:
+        """仅允许查询 SQL。"""
+
+        stripped = sql.strip().lower()
+        if not stripped:
+            return False
+        if not (stripped.startswith("select") or stripped.startswith("with")):
+            return False
+        forbidden_tokens = [
+            "insert",
+            "update",
+            "delete",
+            "replace",
+            "alter",
+            "drop",
+            "truncate",
+            "create",
+            "grant",
+            "revoke",
+        ]
+        for token in forbidden_tokens:
+            if re.search(rf"\b{token}\b", stripped):
+                return False
+        return True
 
     def _helper_build_kb_hints() -> tuple[list[str], list[dict[str, list[str]]], list[dict[str, Any]]]:
         """构建字段白名单、字段别名提示与结构化描述提示。"""
@@ -370,6 +400,7 @@ def execute_chat_workflow(
     def _helper_sql_generation_node_logic(
         rewritten_query: str,
         parse_result: dict[str, Any],
+        hidden_context_result: dict[str, Any] | None,
         model_name: str,
     ) -> dict[str, Any]:
         """SQL 生成节点业务逻辑。"""
@@ -390,6 +421,7 @@ def execute_chat_workflow(
                 field_whitelist=field_whitelist,
                 alias_pairs=alias_pairs,
                 schema_hints=schema_hints,
+                hidden_context=hidden_context_result,
             ),
             model_name=model_name,
             timeout=30.0,
@@ -405,7 +437,7 @@ def execute_chat_workflow(
         if not sql_fields:
             raise ValueError("SQL 中未识别到 table.field 字段")
         cte_names = _helper_extract_cte_names(sql)
-        invalid_fields = []
+        invalid_fields: list[str] = []
         for field in sql_fields:
             table_name = field.split(".", 1)[0].lower()
             if table_name in cte_names:
@@ -443,6 +475,203 @@ def execute_chat_workflow(
         print("SQL 生成节点输出:")
         print(json.dumps(result, indent=2, ensure_ascii=False))
         return result
+
+    def _helper_sql_validate_node_logic(sql_result: dict[str, Any] | None) -> dict[str, Any]:
+        """SQL 验证节点：真实执行 SQL 并返回完整结果或报错。"""
+
+        sql = str((sql_result or {}).get("sql", "")).strip()
+        if not sql:
+            v_result = {
+                "is_valid": False,
+                "error": "SQL 验证缺少 sql",
+                "rows": 0,
+                "result": [],
+                "executed_sql": "",
+            }
+            print("SQL验证节点输出：")
+            print(json.dumps(v_result, indent=2, ensure_ascii=False))
+            return v_result
+
+
+        if not _helper_is_readonly_sql(sql):
+            v_result = {
+                "is_valid": False,
+                "error": "SQL 验证失败：仅允许查询语句（SELECT/WITH）",
+                "rows": 0,
+                "result": [],
+                "executed_sql": sql,
+            }
+            print("SQL验证节点输出：")
+            print(json.dumps(v_result, indent=2, ensure_ascii=False))
+            return v_result
+
+
+        try:
+            rows = db.execute(text(sql)).mappings().all()
+            result_rows = [dict(row) for row in rows]
+            v_result =  {
+                "is_valid": True,
+                "error": None,
+                "rows": len(result_rows),
+                "result": result_rows,
+                "executed_sql": sql,
+            }
+            print("SQL验证节点输出：")
+            print(json.dumps(v_result, indent=2, ensure_ascii=False))
+            return v_result
+
+        except Exception as exc:
+            v_result = {
+                "is_valid": False,
+                "error": str(exc),
+                "rows": 0,
+                "result": [],
+                "executed_sql": sql,
+            }
+            print("SQL验证节点输出：")
+            print(json.dumps(v_result, indent=2, ensure_ascii=False))
+            return v_result
+
+    def _helper_hidden_context_node_logic(
+        rewritten_query: str,
+        parse_result: dict[str, Any] | None,
+        sql_result: dict[str, Any] | None,
+        sql_validate_result: dict[str, Any] | None,
+    ) -> dict[str, Any]:
+        """隐藏上下文探索节点：基于 SQL 报错做只读探测并产出补充上下文。"""
+
+        error_text = str((sql_validate_result or {}).get("error") or "").strip()
+        failed_sql = str((sql_result or {}).get("sql") or "").strip()
+        error_lower = error_text.lower()
+
+        error_type = "execution_error"
+        if "unknown column" in error_lower:
+            error_type = "unknown_column"
+        elif "unknown table" in error_lower:
+            error_type = "unknown_table"
+        elif "syntax" in error_lower:
+            error_type = "syntax_error"
+        elif "doesn't exist" in error_lower:
+            error_type = "object_not_found"
+
+        field_whitelist, alias_pairs, schema_hints = _helper_build_kb_hints()
+        whitelist_set = set(field_whitelist)
+
+        parse_filters = (parse_result or {}).get("filters") if isinstance(parse_result, dict) else []
+        parse_dimensions = (parse_result or {}).get("dimensions") if isinstance(parse_result, dict) else []
+        entity_mappings = (sql_result or {}).get("entity_mappings") if isinstance(sql_result, dict) else []
+
+        candidate_fields: list[str] = []
+        for item in parse_filters or []:
+            if isinstance(item, dict):
+                field = str(item.get("field", "")).strip()
+                if field in whitelist_set:
+                    candidate_fields.append(field)
+        for field in parse_dimensions or []:
+            field_text = str(field).strip()
+            if field_text in whitelist_set:
+                candidate_fields.append(field_text)
+        for mapping in entity_mappings or []:
+            if isinstance(mapping, dict):
+                field = str(mapping.get("field", "")).strip()
+                if field in whitelist_set:
+                    candidate_fields.append(field)
+
+        dedup_fields: list[str] = []
+        seen_fields: set[str] = set()
+        for field in candidate_fields:
+            key = field.lower()
+            if key in seen_fields:
+                continue
+            seen_fields.add(key)
+            dedup_fields.append(field)
+        dedup_fields = dedup_fields[:8]
+
+        probe_samples: list[dict[str, Any]] = []
+        for field in dedup_fields:
+            table_name, column_name = field.split(".", 1)
+            probe_sql = (
+                f"SELECT DISTINCT {table_name}.{column_name} AS value "
+                f"FROM {table_name} "
+                f"WHERE {table_name}.{column_name} IS NOT NULL AND {table_name}.is_deleted = 0 "
+                f"LIMIT 20"
+            )
+            try:
+                rows = db.execute(text(probe_sql)).mappings().all()
+                values = [str(row.get("value")) for row in rows if row.get("value") is not None]
+                probe_samples.append(
+                    {
+                        "field": field,
+                        "probe_sql": probe_sql,
+                        "values": values,
+                    }
+                )
+            except Exception as exc:
+                probe_samples.append(
+                    {
+                        "field": field,
+                        "probe_sql": probe_sql,
+                        "values": [],
+                        "error": str(exc),
+                    }
+                )
+
+        missing_token = ""
+        match_single = re.search(r"Unknown column '([^']+)'", error_text, flags=re.I)
+        match_tick = re.search(r"Unknown column `([^`]+)`", error_text, flags=re.I)
+        if match_single:
+            missing_token = match_single.group(1).strip()
+        elif match_tick:
+            missing_token = match_tick.group(1).strip()
+
+        alias_lookup: dict[str, list[str]] = {}
+        for alias_item in alias_pairs:
+            if isinstance(alias_item, dict):
+                for field, aliases in alias_item.items():
+                    alias_lookup[field] = [str(alias).strip().lower() for alias in aliases if str(alias).strip()]
+
+        field_candidates: list[dict[str, Any]] = []
+        if missing_token:
+            missing_suffix = missing_token.split(".")[-1].strip().lower()
+            candidates: list[str] = []
+            for field in field_whitelist:
+                field_lower = field.lower()
+                if field_lower.endswith(f".{missing_suffix}"):
+                    candidates.append(field)
+                    continue
+                aliases = alias_lookup.get(field, [])
+                if missing_suffix in aliases:
+                    candidates.append(field)
+            field_candidates.append(
+                {
+                    "missing": missing_token,
+                    "candidates": candidates[:12],
+                }
+            )
+
+        hints: list[str] = [f"error_type={error_type}"]
+        if missing_token:
+            hints.append(f"missing_token={missing_token}")
+        if dedup_fields:
+            hints.append("use_probe_samples_to_rewrite_filters_or_entities")
+        hints.append("retry_sql_generation_with_hidden_context")
+
+        hc_result = {
+            "error_type": error_type,
+            "error": error_text,
+            "failed_sql": failed_sql,
+            "rewritten_query": rewritten_query,
+            "field_candidates": field_candidates,
+            "probe_samples": probe_samples,
+            "hints": hints,
+            "kb_summary": {
+                "table_count": len(schema_hints),
+                "field_count": len(field_whitelist),
+            },
+        }
+        print("闅愯棌涓婁笅鏂囨帰绱㈣妭鐐硅緭鍑?")
+        print(json.dumps(hc_result, indent=2, ensure_ascii=False))
+        return hc_result
 
     def _helper_insert_workflow_log(
         session_id: str,
@@ -586,15 +815,18 @@ def execute_chat_workflow(
         """图中的 SQL 生成节点。"""
 
         parse_result = state.get("parse_result") or {}
+        hidden_context_result = state.get("hidden_context_result")
         rewritten_query = str((state.get("intent_result") or {}).get("rewritten_query", state["message"])).strip()
         node_input = {
             "rewritten_query": rewritten_query,
             "parse_result": parse_result,
+            "hidden_context_result": hidden_context_result,
         }
         try:
             sql_result = _helper_sql_generation_node_logic(
                 rewritten_query=rewritten_query,
                 parse_result=parse_result,
+                hidden_context_result=hidden_context_result,
                 model_name=state["model_name"],
             )
             _helper_node_logger("sql_generation", node_input, sql_result, "success", None)
@@ -602,6 +834,66 @@ def execute_chat_workflow(
         except Exception as exc:
             _helper_node_logger("sql_generation", node_input, None, "failed", str(exc))
             raise
+
+    def _helper_sql_validate_node(state: UnifiedChatGraphState) -> UnifiedChatGraphState:
+        """图中的 SQL 验证节点。"""
+
+        node_input = {"sql_result": state.get("sql_result")}
+        validate_result = _helper_sql_validate_node_logic(sql_result=state.get("sql_result"))
+        status = "success" if validate_result.get("is_valid") else "failed"
+        _helper_node_logger("sql_validate", node_input, validate_result, status, validate_result.get("error"))
+        return {**state, "sql_validate_result": validate_result}
+
+    def _helper_hidden_context_node(state: UnifiedChatGraphState) -> UnifiedChatGraphState:
+        current_retry_count = int(state.get("hidden_context_retry_count") or 0)
+        rewritten_query = str((state.get("intent_result") or {}).get("rewritten_query", state["message"])).strip()
+        parse_result = state.get("parse_result")
+        sql_result = state.get("sql_result")
+        sql_validate_result = state.get("sql_validate_result")
+        node_input = {
+            "rewritten_query": rewritten_query,
+            "parse_result": parse_result,
+            "sql_result": sql_result,
+            "sql_validate_result": sql_validate_result,
+            "hidden_context_retry_count": current_retry_count,
+        }
+        try:
+            hidden_context_result = _helper_hidden_context_node_logic(
+                rewritten_query=rewritten_query,
+                parse_result=parse_result,
+                sql_result=sql_result,
+                sql_validate_result=sql_validate_result,
+            )
+            next_retry_count = current_retry_count + 1
+            hidden_context_result["retry_count"] = next_retry_count
+            _helper_node_logger("hidden_context", node_input, hidden_context_result, "success", None)
+            _helper_insert_workflow_log(
+                session_id=session_id,
+                step_name="hidden_context",
+                input_json=node_input,
+                output_json=hidden_context_result,
+                status="success",
+                error_message=None,
+            )
+            return {
+                **state,
+                "hidden_context_result": hidden_context_result,
+                "hidden_context_retry_count": next_retry_count,
+            }
+        except Exception as exc:
+            _helper_node_logger("hidden_context", node_input, None, "failed", str(exc))
+            _helper_insert_workflow_log(
+                session_id=session_id,
+                step_name="hidden_context",
+                input_json=node_input,
+                output_json=None,
+                status="failed",
+                error_message=str(exc),
+            )
+            raise
+
+    def _helper_result_return_node(state: UnifiedChatGraphState) -> UnifiedChatGraphState:
+        return state
 
     def _helper_build_graph():
         """构建统一工作流图。"""
@@ -611,20 +903,49 @@ def execute_chat_workflow(
             intent = str(intent_result.get("intent", "chat")).strip().lower()
             if intent == "business_query":
                 return "task_parse"
-            return "end"
+            return "result_return"
+
+        def _helper_route_after_sql_validate(state: UnifiedChatGraphState) -> str:
+            validate_result = state.get("sql_validate_result") or {}
+            if bool(validate_result.get("is_valid")):
+                return "result_return"
+            retry_count = int(state.get("hidden_context_retry_count") or 0)
+            if retry_count >= HIDDEN_CONTEXT_MAX_RETRY:
+                return "result_return"
+            return "hidden_context"
+
+        def _helper_route_after_hidden_context(state: UnifiedChatGraphState) -> str:
+            retry_count = int(state.get("hidden_context_retry_count") or 0)
+            if retry_count > HIDDEN_CONTEXT_MAX_RETRY:
+                return "result_return"
+            return "sql_generation"
 
         graph = StateGraph(UnifiedChatGraphState)
         graph.add_node("intent_recognition", _helper_intent_node)
         graph.add_node("task_parse", _helper_task_parse_node)
         graph.add_node("sql_generation", _helper_sql_generation_node)
+        graph.add_node("sql_validate", _helper_sql_validate_node)
+        graph.add_node("hidden_context", _helper_hidden_context_node)
+        graph.add_node("result_return", _helper_result_return_node)
         graph.add_edge(START, "intent_recognition")
         graph.add_conditional_edges(
             "intent_recognition",
             _helper_route_after_intent,
-            {"task_parse": "task_parse", "end": END},
+            {"task_parse": "task_parse", "result_return": "result_return"},
         )
         graph.add_edge("task_parse", "sql_generation")
-        graph.add_edge("sql_generation", END)
+        graph.add_edge("sql_generation", "sql_validate")
+        graph.add_conditional_edges(
+            "sql_validate",
+            _helper_route_after_sql_validate,
+            {"hidden_context": "hidden_context", "result_return": "result_return"},
+        )
+        graph.add_conditional_edges(
+            "hidden_context",
+            _helper_route_after_hidden_context,
+            {"sql_generation": "sql_generation", "result_return": "result_return"},
+        )
+        graph.add_edge("result_return", END)
         return graph.compile()
 
     session_id = payload.session_id or uuid.uuid4().hex[:16]
@@ -645,6 +966,9 @@ def execute_chat_workflow(
         "intent_result": None,
         "parse_result": None,
         "sql_result": None,
+        "sql_validate_result": None,
+        "hidden_context_result": None,
+        "hidden_context_retry_count": 0,
     }
     input_json = {
         "message": payload.message,
@@ -658,6 +982,9 @@ def execute_chat_workflow(
         intent_result = graph_output.get("intent_result") or {}
         parse_result = graph_output.get("parse_result")
         sql_result = graph_output.get("sql_result")
+        sql_validate_result = graph_output.get("sql_validate_result")
+        hidden_context_result = graph_output.get("hidden_context_result")
+        hidden_context_retry_count = int(graph_output.get("hidden_context_retry_count") or 0)
 
         skipped = parse_result is None
         result = {
@@ -670,6 +997,9 @@ def execute_chat_workflow(
             "reason": "intent_is_chat" if skipped else None,
             "task": parse_result,
             "sql_result": sql_result,
+            "sql_validate_result": sql_validate_result,
+            "hidden_context_result": hidden_context_result,
+            "hidden_context_retry_count": hidden_context_retry_count,
         }
 
         _helper_insert_chat_history(
@@ -703,6 +1033,14 @@ def execute_chat_workflow(
                 status="success",
                 error_message=None,
             )
+            _helper_insert_workflow_log(
+                session_id=session_id,
+                step_name="sql_validate",
+                input_json={"sql_result": sql_result},
+                output_json=sql_validate_result,
+                status="success" if (sql_validate_result or {}).get("is_valid") else "failed",
+                error_message=(sql_validate_result or {}).get("error"),
+            )
         db.commit()
         return result
     except Exception as exc:
@@ -727,6 +1065,22 @@ def execute_chat_workflow(
             _helper_insert_workflow_log(
                 session_id=session_id,
                 step_name="sql_generation",
+                input_json={"message": payload.message},
+                output_json=None,
+                status="failed",
+                error_message=str(exc),
+            )
+            _helper_insert_workflow_log(
+                session_id=session_id,
+                step_name="sql_validate",
+                input_json={"message": payload.message},
+                output_json=None,
+                status="failed",
+                error_message=str(exc),
+            )
+            _helper_insert_workflow_log(
+                session_id=session_id,
+                step_name="hidden_context",
                 input_json={"message": payload.message},
                 output_json=None,
                 status="failed",

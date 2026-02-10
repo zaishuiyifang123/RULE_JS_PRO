@@ -52,6 +52,25 @@ export type ChatData = {
     }>;
     sql_fields: string[];
   } | null;
+  sql_validate_result: {
+    is_valid: boolean;
+    error: string | null;
+    rows: number;
+    result: Array<Record<string, unknown>>;
+    executed_sql: string;
+  } | null;
+  hidden_context_result: {
+    error_type: string;
+    error: string;
+    failed_sql: string;
+    rewritten_query: string;
+    field_candidates: Array<Record<string, unknown>>;
+    probe_samples: Array<Record<string, unknown>>;
+    hints: string[];
+    kb_summary: Record<string, unknown>;
+    retry_count: number;
+  } | null;
+  hidden_context_retry_count: number;
 };
 
 export type ChatResponse = {

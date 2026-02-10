@@ -452,18 +452,33 @@
 
 ### TASK016 LangGraph-SQL 验证与失败回跳节点
 - 版本：2.0
-- 状态：计划中
+- 状态：已完成
 - 子任务：
-  - 执行 SQL 验证（语法与可执行性）
-  - 验证失败时路由回隐藏上下文探索节点
-  - 成功时进入结果返回节点
+  - 执行 SQL 验证（真实数据库执行）
+  - 验证结果写入 State（是否成功、错误信息、执行 SQL、全量结果集）
+  - SQL 报错进入隐藏上下文探索并回跳 SQL 生成
 - AI 编程助手提示词：
   "你是 SQL 验证助手。请用 LangGraph 实现验证节点：验证失败则跳转到隐藏上下文探索并触发重试，验证成功则继续结果返回。"
 - 验收标准：
-  - 失败回跳链路可稳定触发
-  - 成功链路可稳定进入返回节点
+  - SQL 可真实执行并返回结果或报错
+  - 仅允许只读 SQL（SELECT/WITH）
+  - SQL 报错不抛 500，而是写入 `sql_validate_result`
+  - 隐藏上下文回跳链路可稳定触发，且最多 2 次
 - 注意事项：
-  - 需限制重试次数并保留错误上下文
+  - 隐藏上下文探索仅允许只读探测 SQL
+- 任务进度：
+  - [2026-02-10 14:40:00]
+    - 已修改：app/services/chat_graph.py、app/schemas/chat.py、frontend/src/api/chat.ts、frontend/src/views/ChatView.vue、README.md、DEV_PLAN.md
+    - 更改：在统一 LangGraph 中新增 `sql_validate` 节点并接在 `sql_generation` 之后；执行真实数据库查询并仅允许 `SELECT/WITH`；将验证结果写入 `sql_validate_result`（`is_valid/error/rows/result/executed_sql`）；接口响应与前端展示同步新增 `sql_validate_result`
+    - 原因：完成 TASK016 的 SQL 验证阶段
+    - 阻碍因素：无
+    - 状态：成功
+  - [2026-02-10 17:20:00]
+    - 已修改：app/services/chat_graph.py、app/prompts/sql_generation_prompts.py、app/schemas/chat.py、frontend/src/api/chat.ts、frontend/src/views/ChatView.vue、README.md、DEV_PLAN.md
+    - 更改：新增 `hidden_context` 节点与 `result_return` 占位节点；`sql_validate` 增加条件分流（成功进入 `result_return`，失败进入 `hidden_context`）；`hidden_context` 产出 `hidden_context_result` 并更新 `hidden_context_retry_count`；失败回跳 `sql_generation`，最大回跳 2 次；前后端与文档同步新增隐藏上下文字段
+    - 原因：完成 TASK016 的“验证失败回跳隐藏上下文探索”闭环
+    - 阻碍因素：无
+    - 状态：成功
 
 ### TASK017 LangGraph-结果返回节点
 - 版本：2.0

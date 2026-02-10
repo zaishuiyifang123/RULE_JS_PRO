@@ -44,6 +44,7 @@ def build_sql_generation_user_prompt(
     field_whitelist: list[str],
     alias_pairs: list[dict[str, list[str]]],
     schema_hints: list[dict[str, Any]],
+    hidden_context: dict[str, Any] | None = None,
 ) -> str:
     payload: dict[str, Any] = {
         "rewritten_query": rewritten_query,
@@ -51,6 +52,7 @@ def build_sql_generation_user_prompt(
         "kb_field_whitelist": field_whitelist,
         "alias_hints": alias_pairs,
         "kb_schema_hints": schema_hints,
+        "hidden_context": hidden_context,
         "output_schema": {
             "sql": "WITH ... SELECT ...",
             "entity_mappings": [

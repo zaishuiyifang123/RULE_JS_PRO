@@ -1,0 +1,63 @@
+{
+  "session_id": "3775a825ef6f4b7f",
+  "admin_id": 1,
+  "step_name": "sql_validate",
+  "status": "success",
+  "error_message": null,
+  "timestamp": "2026-02-10T17:55:33",
+  "input": {
+    "sql_result": {
+      "sql": "WITH base AS (SELECT class.class_name, score.score_value FROM score JOIN course_class ON score.course_class_id = course_class.id JOIN class ON course_class.class_id = class.id WHERE score.term = '2025-2026-1' AND score.is_deleted = 0 AND course_class.is_deleted = 0 AND class.is_deleted = 0) SELECT base.class_name, AVG(base.score_value) AS avg_score FROM base GROUP BY base.class_name ORDER BY avg_score DESC LIMIT 5",
+      "entity_mappings": [
+        {
+          "type": "term",
+          "value": "2025-2026-1",
+          "field": "score.term",
+          "reason": "根据字段描述“学期（如 2025-2026-1）”及别名“学期”“学年学期”映射"
+        }
+      ],
+      "sql_fields": [
+        "class.class_name",
+        "score.score_value",
+        "score.course_class_id",
+        "course_class.id",
+        "course_class.class_id",
+        "class.id",
+        "score.term",
+        "score.is_deleted",
+        "course_class.is_deleted",
+        "class.is_deleted",
+        "base.class_name",
+        "base.score_value"
+      ]
+    }
+  },
+  "output": {
+    "is_valid": true,
+    "error": null,
+    "rows": 5,
+    "result": [
+      {
+        "class_name": "2023级工商管理33班",
+        "avg_score": 77.18525624886537
+      },
+      {
+        "class_name": "2022级信息安全22班",
+        "avg_score": 77.06250015894572
+      },
+      {
+        "class_name": "2024级日语1班",
+        "avg_score": 76.9522436704391
+      },
+      {
+        "class_name": "2024级数据科学与大数据技术21班",
+        "avg_score": 76.81249993886703
+      },
+      {
+        "class_name": "2023级人工智能4班",
+        "avg_score": 76.70786152245863
+      }
+    ],
+    "executed_sql": "WITH base AS (SELECT class.class_name, score.score_value FROM score JOIN course_class ON score.course_class_id = course_class.id JOIN class ON course_class.class_id = class.id WHERE score.term = '2025-2026-1' AND score.is_deleted = 0 AND course_class.is_deleted = 0 AND class.is_deleted = 0) SELECT base.class_name, AVG(base.score_value) AS avg_score FROM base GROUP BY base.class_name ORDER BY avg_score DESC LIMIT 5"
+  }
+}

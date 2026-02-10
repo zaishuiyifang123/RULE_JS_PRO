@@ -461,10 +461,12 @@
 ## 7. 多 Agents 工作流设计
 
 ### 7.1 工作流总览
-当前实现链路：`intent_recognition -> task_parse(条件执行) -> sql_generation(条件执行) -> end`
+当前实现链路：`intent_recognition -> task_parse(条件执行) -> sql_generation(条件执行) -> sql_validate(条件分流) -> hidden_context(失败回跳) -> sql_generation... -> result_return -> end`
 
-- 当 `intent=chat` 时：跳过 `task_parse`，直接结束并返回。
-- 当 `intent=business_query` 时：进入 `task_parse`，再进入 `sql_generation`。
+- 当 `intent=chat` 时：跳过 `task_parse`，直接进入 `result_return`。
+- 当 `intent=business_query` 时：进入 `task_parse -> sql_generation -> sql_validate`。
+- 当 `sql_validate_result.is_valid=false` 且隐藏上下文重试次数 `< 2` 时：进入 `hidden_context`，然后回到 `sql_generation` 重试。
+- 当 `sql_validate_result.is_valid=true` 或隐藏上下文重试次数已达上限时：进入 `result_return`。
 - 上下文来源：统一从数据库 `chat_history` 按 `session_id` 读取最近 4 条 `user` 消息。
 - 当前实现不包含兜底规则：意图识别、任务解析、SQL 生成均依赖 LLM，缺少配置或输出不合法会直接报错。
 
@@ -665,20 +667,48 @@
         {"type": "grade", "value": "2022级", "field": "student.enroll_year", "reason": "年级映射"}
       ],
       "sql_fields": ["student.enroll_year", "student.gender"]
-    }
+    },
+    "sql_validate_result": {
+      "is_valid": true,
+      "error": null,
+      "rows": 10,
+      "result": [
+        {"class_name": "2022级软件工程1班", "student_count": 32}
+      ],
+      "executed_sql": "WITH ... SELECT ..."
+    },
+    "hidden_context_result": {
+      "error_type": "unknown_column",
+      "error": "Unknown column 'base.teacher_name' in 'field list'",
+      "failed_sql": "WITH ...",
+      "rewritten_query": "查询2025-2026-1学期各课程的授课教师姓名和选课人数",
+      "field_candidates": [
+        {"missing": "base.teacher_name", "candidates": ["teacher.real_name"]}
+      ],
+      "probe_samples": [
+        {"field": "teacher.real_name", "values": ["张三", "李四"]}
+      ],
+      "hints": ["error_type=unknown_column", "retry_sql_generation_with_hidden_context"],
+      "kb_summary": {"table_count": 10, "field_count": 120},
+      "retry_count": 1
+    },
+    "hidden_context_retry_count": 1
   }
 }
 ```
 说明：
 - 前端请求体仅包含 `session_id/message/model_name`，不再包含 `history`；
 - 历史上下文统一由后端从数据库读取最近 4 条 `user` 消息；
-- `intent=chat` 时 `skipped=true` 且 `task=null` 且 `sql_result=null`，不会进入任务解析和 SQL 生成节点；
+- `intent=chat` 时 `skipped=true` 且 `task=null` 且 `sql_result=null` 且 `sql_validate_result=null`；
 - `filters.field` 仅允许知识库白名单字段（`table.field`）；
 - SQL 节点会做静态自检：`WITH` 校验、真实表字段白名单校验（CTE 名字段跳过）、关键实体映射覆盖校验；
+- SQL 验证节点会真实执行 SQL，仅允许 `SELECT/WITH` 只读语句，返回全量结果集或数据库报错；
+- 隐藏上下文节点会在 SQL 报错时执行只读探测 SQL（例如 `SELECT DISTINCT ... LIMIT`）并返回修复上下文；
+- 隐藏上下文回跳上限为 2 次，超过后不再回跳，直接返回当前状态；
 - 意图识别、任务解析、SQL 生成均无兜底分支：LLM 不可用或输出非法会直接报错；
-- 会写入 `chat_history`（user+assistant 两条）与 `workflow_log(intent_recognition/task_parse/sql_generation)`；
+- 会写入 `chat_history`（user+assistant 两条）与 `workflow_log(intent_recognition/task_parse/sql_generation/sql_validate/hidden_context)`；
 - 节点输入输出会落盘到 `NODE_IO_LOG_DIR/<session_id>/<step_name>/`；
-- TASK010/TASK011/TASK015 在同一张 LangGraph 中执行（节点：`intent_recognition`、`task_parse`、`sql_generation`），统一实现位于 `app/services/chat_graph.py`。
+- TASK010/TASK011/TASK015/TASK016 在同一张 LangGraph 中执行（节点：`intent_recognition`、`task_parse`、`sql_generation`、`sql_validate`、`hidden_context`、`result_return`），统一实现位于 `app/services/chat_graph.py`。
 
 ### 8.8 历史记录与模板
 - GET /api/history/session

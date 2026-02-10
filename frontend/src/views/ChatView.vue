@@ -64,6 +64,18 @@
           <p class="chat-block-title">sql_result</p>
           <pre class="chat-json">{{ formatJson(result.sql_result) }}</pre>
         </div>
+        <div class="chat-block">
+          <p class="chat-block-title">sql_validate_result</p>
+          <pre class="chat-json">{{ formatJson(result.sql_validate_result) }}</pre>
+        </div>
+        <div class="chat-block">
+          <p class="chat-block-title">hidden_context_retry_count</p>
+          <p class="chat-block-content">{{ result.hidden_context_retry_count }}</p>
+        </div>
+        <div class="chat-block">
+          <p class="chat-block-title">hidden_context_result</p>
+          <pre class="chat-json">{{ formatJson(result.hidden_context_result) }}</pre>
+        </div>
       </section>
 
       <section class="card chat-history-card" v-if="timeline.length">
