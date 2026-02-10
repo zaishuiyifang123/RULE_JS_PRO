@@ -629,6 +629,7 @@
 - POST /api/chat
 - GET /api/chat/stream (SSE)
 - POST /api/chat/intent（TASK010 意图识别节点）
+- POST /api/chat/parse（TASK010 + TASK011，输出结构化任务）
 
 `POST /api/chat/intent` 当前返回结构：
 ```json
@@ -652,6 +653,38 @@
 - `confidence < 0.7` 时降级为 `chat`；
 - 会写入 `chat_history`（user+assistant 两条）与 `workflow_log(intent_recognition)`。
 - 节点输入/输出会落盘到本地目录 `NODE_IO_LOG_DIR`（默认 `local_logs/node_io`）。
+
+`POST /api/chat/parse` 当前返回结构：
+```json
+{
+  "code": 0,
+  "message": "ok",
+  "data": {
+    "session_id": "string",
+    "intent": "chat|business_query",
+    "is_followup": true,
+    "merged_query": "合并后的问题",
+    "rewritten_query": "合并后的问题",
+    "skipped": false,
+    "reason": null,
+    "task": {
+      "intent": "business_query",
+      "entities": [{"type": "grade", "value": "2022级"}],
+      "dimensions": ["class.class_name"],
+      "metrics": ["count"],
+      "filters": [{"field": "student.gender", "op": "=", "value": "男"}],
+      "time_range": {"start": null, "end": null},
+      "operation": "aggregate",
+      "confidence": 0.82
+    }
+  }
+}
+```
+说明：
+- `intent=chat` 时 `skipped=true` 且 `task=null`，不会进入任务解析节点；
+- `filters.field` 仅允许知识库白名单字段（`table.field`）；
+- 会新增 `workflow_log(task_parse)`，并将节点 I/O 落盘到 `NODE_IO_LOG_DIR/<session_id>/task_parse/`。
+- TASK010/TASK011 执行实现统一集中在 `app/services/chat_graph.py`。
 
 ### 8.8 历史记录与模板
 - GET /api/history/session
