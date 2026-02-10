@@ -480,6 +480,12 @@
     - 阻碍因素：无
     - 状态：成功
 
+  - [2026-02-10 18:10:00]
+    - Modified: app/services/chat_graph.py, app/schemas/chat.py, frontend/src/api/chat.ts, README.md, DEV_PLAN.md
+    - Change: sql_validate adds empty_result/zero_metric_result; route after sql_validate now enters hidden_context for SQL error or empty result or zero key metric (business_query only, max retries=2)
+    - Reason: avoid false-success when SQL executes but semantic value mismatches DB and returns empty/zero
+    - Blockers: none
+    - Status: success
 ### TASK017 LangGraph-结果返回节点
 - 版本：2.0
 - 状态：计划中

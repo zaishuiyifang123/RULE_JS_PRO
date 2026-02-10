@@ -675,7 +675,9 @@
       "result": [
         {"class_name": "2022级软件工程1班", "student_count": 32}
       ],
-      "executed_sql": "WITH ... SELECT ..."
+      "executed_sql": "WITH ... SELECT ...",
+      "empty_result": false,
+      "zero_metric_result": false
     },
     "hidden_context_result": {
       "error_type": "unknown_column",

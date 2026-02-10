@@ -57,11 +57,13 @@ class TaskParseResult(BaseModel):
 
 
 class SqlValidateResult(BaseModel):
-    is_valid: bool = Field(..., description="SQL 是否执行成功")
-    error: str | None = Field(default=None, description="SQL 执行错误信息（成功时为空）")
-    rows: int = Field(default=0, ge=0, description="SQL 返回行数")
-    result: list[dict[str, Any]] = Field(default_factory=list, description="SQL 全量结果集")
-    executed_sql: str = Field(..., description="实际执行的 SQL 文本")
+    is_valid: bool = Field(..., description="SQL ??????")
+    error: str | None = Field(default=None, description="SQL ?????????????")
+    rows: int = Field(default=0, ge=0, description="SQL ????")
+    result: list[dict[str, Any]] = Field(default_factory=list, description="SQL ?????")
+    executed_sql: str = Field(..., description="????? SQL ??")
+    empty_result: bool = Field(default=False, description="?????")
+    zero_metric_result: bool = Field(default=False, description="???????0")
 
 
 class HiddenContextResult(BaseModel):

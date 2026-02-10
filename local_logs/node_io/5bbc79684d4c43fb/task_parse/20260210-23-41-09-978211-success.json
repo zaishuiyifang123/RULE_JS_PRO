@@ -1,0 +1,62 @@
+{
+  "session_id": "5bbc79684d4c43fb",
+  "admin_id": 2,
+  "step_name": "task_parse",
+  "status": "success",
+  "error_message": null,
+  "timestamp": "2026-02-10T23:41:09",
+  "input": {
+    "intent_result": {
+      "intent": "business_query",
+      "is_followup": true,
+      "confidence": 0.95,
+      "merged_query": "2022级总学生人数是多少？2023级女生人数是多少？",
+      "rewritten_query": "2022级总学生人数是多少？2023级女生人数是多少？",
+      "threshold": 0.7
+    }
+  },
+  "output": {
+    "intent": "business_query",
+    "entities": [
+      {
+        "type": "grade",
+        "value": "2022级"
+      },
+      {
+        "type": "grade",
+        "value": "2023级"
+      },
+      {
+        "type": "gender",
+        "value": "女生"
+      }
+    ],
+    "dimensions": [],
+    "metrics": [
+      "count"
+    ],
+    "filters": [
+      {
+        "field": "student.enroll_year",
+        "op": "=",
+        "value": 2022
+      },
+      {
+        "field": "student.enroll_year",
+        "op": "=",
+        "value": 2023
+      },
+      {
+        "field": "student.gender",
+        "op": "=",
+        "value": "女"
+      }
+    ],
+    "time_range": {
+      "start": null,
+      "end": null
+    },
+    "operation": "aggregate",
+    "confidence": 0.95
+  }
+}

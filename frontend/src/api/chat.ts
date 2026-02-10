@@ -58,6 +58,8 @@ export type ChatData = {
     rows: number;
     result: Array<Record<string, unknown>>;
     executed_sql: string;
+    empty_result: boolean;
+    zero_metric_result: boolean;
   } | null;
   hidden_context_result: {
     error_type: string;

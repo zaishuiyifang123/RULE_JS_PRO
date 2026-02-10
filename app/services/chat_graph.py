@@ -47,7 +47,7 @@ def execute_chat_workflow(
     HIDDEN_CONTEXT_MAX_RETRY = 2
 
     def _helper_get_recent_user_messages(session_id: str, limit: int = 4) -> list[str]:
-        """读取同一会话最近的 user 消息。"""
+        """读取同一会话最近的用户消息。"""
 
         rows = (
             db.query(ChatHistory)
@@ -101,7 +101,7 @@ def execute_chat_workflow(
         return result
 
     def _helper_normalize_entities(value: Any) -> list[dict[str, str]]:
-        """标准化 entities。"""
+        """标准化实体列表。"""
 
         if not isinstance(value, list):
             return []
@@ -117,7 +117,14 @@ def execute_chat_workflow(
         return entities
 
     def _helper_normalize_filters(value: Any, whitelist: set[str]) -> list[dict[str, Any]]:
-        """标准化 filters 并校验字段白名单。"""
+        """标准化过滤条件并校验字段白名单。"""
+
+        def _helper_normalize_filter_value(raw_value: Any) -> Any:
+            if isinstance(raw_value, str):
+                return raw_value.strip()
+            if isinstance(raw_value, list):
+                return [item.strip() if isinstance(item, str) else item for item in raw_value]
+            return raw_value
 
         if not isinstance(value, list):
             return []
@@ -131,11 +138,27 @@ def execute_chat_workflow(
             op = str(item.get("op", "=")).strip().lower() or "="
             if op not in ALLOWED_FILTER_OPS:
                 continue
-            filters.append({"field": field, "op": op, "value": item.get("value")})
+            filters.append({"field": field, "op": op, "value": _helper_normalize_filter_value(item.get("value"))})
         return filters
 
+    def _helper_trim_sql_fields_and_values(sql: str) -> str:
+        """清理 SQL 字段与字符串字面值两端空格。"""
+
+        normalized_sql = re.sub(
+            r"\b([a-zA-Z_][a-zA-Z0-9_]*)\s*\.\s*([a-zA-Z_][a-zA-Z0-9_]*)\b",
+            r"\1.\2",
+            sql,
+        )
+
+        def _helper_trim_quoted_value(match: re.Match[str]) -> str:
+            raw_value = match.group(1)
+            return f"'{raw_value.strip()}'"
+
+        normalized_sql = re.sub(r"'((?:''|[^'])*)'", _helper_trim_quoted_value, normalized_sql)
+        return normalized_sql
+
     def _helper_extract_sql_fields(sql: str) -> list[str]:
-        """提取 SQL 中的 table.field 并去重。"""
+        """提取 SQL 中的表字段引用并去重。"""
 
         matches = re.findall(r"\b([a-zA-Z_][a-zA-Z0-9_]*)\.([a-zA-Z_][a-zA-Z0-9_]*)\b", sql)
         result: list[str] = []
@@ -156,7 +179,7 @@ def execute_chat_workflow(
         return {name.lower() for name in names}
 
     def _helper_normalize_entity_mappings(value: Any, whitelist: set[str]) -> list[dict[str, str]]:
-        """标准化 entity_mappings 并校验字段白名单。"""
+        """标准化实体映射并校验字段白名单。"""
 
         if not isinstance(value, list):
             return []
@@ -428,6 +451,7 @@ def execute_chat_workflow(
         )
 
         sql = str(llm_output.get("sql", "")).strip()
+        sql = _helper_trim_sql_fields_and_values(sql)
         if not sql:
             raise ValueError("SQL 生成缺少 sql 字段")
         if not re.search(r"^\s*with\b", sql, flags=re.I):
@@ -477,49 +501,90 @@ def execute_chat_workflow(
         return result
 
     def _helper_sql_validate_node_logic(sql_result: dict[str, Any] | None) -> dict[str, Any]:
-        """SQL 验证节点：真实执行 SQL 并返回完整结果或报错。"""
+        """SQL 校验节点业务逻辑：执行 SQL 并返回结果或错误信息。"""
+
+        def _helper_extract_metric_aliases(sql_text: str) -> list[str]:
+            aliases = re.findall(r"(?is)\bas\s+([a-zA-Z_][a-zA-Z0-9_]*)", sql_text)
+            keywords = (
+                "count", "sum", "avg", "total", "num", "cnt",
+                "ren_shu", "shu_liang", "zong_shu", "he_ji", "ping_jun", "jun_zhi",
+                "ratio", "rate", "percent",
+            )
+            result: list[str] = []
+            seen: set[str] = set()
+            for alias in aliases:
+                alias_text = alias.strip()
+                alias_key = alias_text.lower()
+                if not alias_key or alias_key in seen:
+                    continue
+                if any(keyword in alias_key for keyword in keywords):
+                    seen.add(alias_key)
+                    result.append(alias_text)
+            return result
+
+        def _helper_has_zero_metric(result_rows: list[dict[str, Any]], metric_aliases: list[str]) -> bool:
+            if not result_rows or not metric_aliases:
+                return False
+            first_row = result_rows[0] if isinstance(result_rows[0], dict) else {}
+            for alias in metric_aliases:
+                if alias not in first_row:
+                    continue
+                value = first_row.get(alias)
+                try:
+                    if float(value) == 0.0:
+                        return True
+                except Exception:
+                    continue
+            return False
 
         sql = str((sql_result or {}).get("sql", "")).strip()
+        sql = _helper_trim_sql_fields_and_values(sql)
         if not sql:
             v_result = {
                 "is_valid": False,
-                "error": "SQL 验证缺少 sql",
+                "error": "sql_validate_missing_sql",
                 "rows": 0,
                 "result": [],
                 "executed_sql": "",
+                "empty_result": False,
+                "zero_metric_result": False,
             }
-            print("SQL验证节点输出：")
+            print("SQL验证节点输出:")
             print(json.dumps(v_result, indent=2, ensure_ascii=False))
             return v_result
-
 
         if not _helper_is_readonly_sql(sql):
             v_result = {
                 "is_valid": False,
-                "error": "SQL 验证失败：仅允许查询语句（SELECT/WITH）",
+                "error": "sql_validate_readonly_violation",
                 "rows": 0,
                 "result": [],
                 "executed_sql": sql,
+                "empty_result": False,
+                "zero_metric_result": False,
             }
-            print("SQL验证节点输出：")
+            print("SQL验证节点输出:")
             print(json.dumps(v_result, indent=2, ensure_ascii=False))
             return v_result
-
 
         try:
             rows = db.execute(text(sql)).mappings().all()
             result_rows = [dict(row) for row in rows]
-            v_result =  {
+            metric_aliases = _helper_extract_metric_aliases(sql)
+            empty_result = len(result_rows) == 0
+            zero_metric_result = _helper_has_zero_metric(result_rows, metric_aliases)
+            v_result = {
                 "is_valid": True,
                 "error": None,
                 "rows": len(result_rows),
                 "result": result_rows,
                 "executed_sql": sql,
+                "empty_result": empty_result,
+                "zero_metric_result": zero_metric_result,
             }
-            print("SQL验证节点输出：")
+            print("SQL验证节点输出:")
             print(json.dumps(v_result, indent=2, ensure_ascii=False))
             return v_result
-
         except Exception as exc:
             v_result = {
                 "is_valid": False,
@@ -527,8 +592,10 @@ def execute_chat_workflow(
                 "rows": 0,
                 "result": [],
                 "executed_sql": sql,
+                "empty_result": False,
+                "zero_metric_result": False,
             }
-            print("SQL验证节点输出：")
+            print("SQL验证节点输出:")
             print(json.dumps(v_result, indent=2, ensure_ascii=False))
             return v_result
 
@@ -669,7 +736,7 @@ def execute_chat_workflow(
                 "field_count": len(field_whitelist),
             },
         }
-        print("闅愯棌涓婁笅鏂囨帰绱㈣妭鐐硅緭鍑?")
+        print("隐藏上下文探索节点输出:")
         print(json.dumps(hc_result, indent=2, ensure_ascii=False))
         return hc_result
 
@@ -704,7 +771,7 @@ def execute_chat_workflow(
         rewritten_query: str,
         model_name: str,
     ) -> None:
-        """插入一轮 user + assistant 会话。"""
+        """插入一轮用户与助手会话。"""
 
         db.add(
             ChatHistory(
@@ -845,6 +912,8 @@ def execute_chat_workflow(
         return {**state, "sql_validate_result": validate_result}
 
     def _helper_hidden_context_node(state: UnifiedChatGraphState) -> UnifiedChatGraphState:
+        """图中的 隐藏上下文 探索节点。"""
+
         current_retry_count = int(state.get("hidden_context_retry_count") or 0)
         rewritten_query = str((state.get("intent_result") or {}).get("rewritten_query", state["message"])).strip()
         parse_result = state.get("parse_result")
@@ -906,13 +975,21 @@ def execute_chat_workflow(
             return "result_return"
 
         def _helper_route_after_sql_validate(state: UnifiedChatGraphState) -> str:
+            intent = str((state.get("intent_result") or {}).get("intent", "chat")).strip().lower()
             validate_result = state.get("sql_validate_result") or {}
-            if bool(validate_result.get("is_valid")):
-                return "result_return"
             retry_count = int(state.get("hidden_context_retry_count") or 0)
+
+            if intent != "business_query":
+                return "result_return"
             if retry_count >= HIDDEN_CONTEXT_MAX_RETRY:
                 return "result_return"
-            return "hidden_context"
+
+            is_valid = bool(validate_result.get("is_valid"))
+            empty_result = bool(validate_result.get("empty_result"))
+            zero_metric_result = bool(validate_result.get("zero_metric_result"))
+            if (not is_valid) or empty_result or zero_metric_result:
+                return "hidden_context"
+            return "result_return"
 
         def _helper_route_after_hidden_context(state: UnifiedChatGraphState) -> str:
             retry_count = int(state.get("hidden_context_retry_count") or 0)
