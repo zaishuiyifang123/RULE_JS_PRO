@@ -1,48 +1,45 @@
-<template>
+﻿<template>
   <div class="login-shell">
-    <section class="login-card">
-      <div class="login-title">
-        <h1>教务驾驶舱</h1>
-        <p>管理员登录入口</p>
-      </div>
+    <section class="login">
+      <h2>用户登录</h2>
       <form class="login-form" @submit.prevent="submit">
-        <label class="field">
-          <span>账号</span>
+        <div class="login_box">
           <input
             v-model.trim="username"
             type="text"
             name="username"
-            placeholder="请输入管理员账号"
+            required
+            placeholder=" "
             autocomplete="username"
+            :class="{ 'is-invalid': !!error }"
+            :aria-invalid="Boolean(error)"
           />
-        </label>
-        <label class="field">
-          <span>密码</span>
+          <label>用户名</label>
+        </div>
+        <div class="login_box">
           <input
             v-model.trim="password"
             type="password"
             name="password"
-            placeholder="请输入密码"
+            required
+            placeholder=" "
             autocomplete="current-password"
+            :class="{ 'is-invalid': !!error }"
+            :aria-invalid="Boolean(error)"
           />
-        </label>
-        <p v-if="error" class="error-text">{{ error }}</p>
-        <button class="btn primary" type="submit" :disabled="loading">
-          {{ loading ? "登录中..." : "登录" }}
+          <label>密码</label>
+        </div>
+        <p v-if="error" class="error-text login-error">{{ error }}</p>
+        <p v-if="loading" class="login-status">正在验证身份，请稍候...</p>
+        <button class="login-submit" type="submit" :disabled="loading">
+          <span class="login-submit-line line-1"></span>
+          <span class="login-submit-line line-2"></span>
+          <span class="login-submit-line line-3"></span>
+          <span class="login-submit-line line-4"></span>
+          <span class="login-submit-text">{{ loading ? "登录中..." : "登录" }}</span>
         </button>
       </form>
-      <p class="login-footnote">登录后可访问数据管理与基础指标视图。</p>
     </section>
-    <aside class="login-panel">
-      <div class="panel-card">
-        <p class="panel-title">今日概览</p>
-        <p class="panel-number">20,000+</p>
-        <p class="panel-sub">学生规模 · 全量数据可追溯</p>
-      </div>
-      <div class="panel-note">
-        统一口径 · 风险预警 · 可解释查询
-      </div>
-    </aside>
   </div>
 </template>
 
@@ -68,6 +65,7 @@ const submit = async () => {
     error.value = "请填写账号和密码";
     return;
   }
+
   loading.value = true;
   try {
     const res = await api.post("/auth/login", {

@@ -18,7 +18,19 @@
           <aside class="card chat-sidebar" :class="{ 'is-open': showSessionPanel }">
             <div class="chat-sidebar-head">
               <p class="chat-sidebar-title">历史会话</p>
-              <button class="btn primary" type="button" @click="startNewSession" :disabled="sending">新会话</button>
+              <div class="chat-sidebar-head-actions">
+                <button class="btn primary" type="button" @click="startNewSession" :disabled="sending || clearingSessions">
+                  新会话
+                </button>
+                <button
+                  class="btn ghost chat-clear-btn"
+                  type="button"
+                  @click="clearAllSessions"
+                  :disabled="sending || clearingSessions || !sessions.length"
+                >
+                  {{ clearingSessions ? "清空中..." : "一键清空" }}
+                </button>
+              </div>
             </div>
             <div class="chat-sidebar-search">
               <label class="chat-search-label" for="chat-session-keyword">搜索会话</label>
@@ -32,17 +44,29 @@
               />
             </div>
             <div ref="sessionListRef" class="chat-session-list" @scroll.passive="handleSessionScroll">
-              <button
+              <div
                 v-for="session in filteredSessions"
                 :key="session.session_id"
                 class="chat-session-item"
                 :class="{ 'is-active': session.session_id === activeSessionId }"
-                type="button"
-                @click="openSession(session.session_id)"
               >
-                <span class="chat-session-preview">{{ resolveSessionPreview(session) }}</span>
-                <span class="chat-session-time">{{ formatSessionTime(session.last_active_at) }}</span>
-              </button>
+                <button
+                  class="chat-session-open"
+                  type="button"
+                  @click="openSession(session.session_id)"
+                >
+                  <span class="chat-session-preview">{{ resolveSessionPreview(session) }}</span>
+                  <span class="chat-session-time">{{ formatSessionTime(session.last_active_at) }}</span>
+                </button>
+                <button
+                  class="chat-session-remove"
+                  type="button"
+                  @click.stop="removeSession(session.session_id)"
+                  :disabled="sending || clearingSessions || sessionActionLoadingId === session.session_id"
+                >
+                  {{ sessionActionLoadingId === session.session_id ? "删除中..." : "删除" }}
+                </button>
+              </div>
               <p v-if="sessionsLoading && !sessions.length" class="chat-side-tip">加载会话中...</p>
               <p v-else-if="!sessionsLoading && !sessions.length" class="chat-side-tip">暂无历史会话</p>
               <p v-else-if="!sessionsLoading && sessions.length && !filteredSessions.length" class="chat-side-tip">
@@ -137,6 +161,8 @@ import { computed, nextTick, onMounted, ref } from "vue";
 
 import AppLayout from "../layouts/AppLayout.vue";
 import {
+  clearChatSessions,
+  deleteChatSession,
   getChatSessionMessages,
   getChatSessions,
   postChatStream,
@@ -163,6 +189,8 @@ const composerRef = ref<HTMLTextAreaElement | null>(null);
 
 const sessions = ref<ChatSessionItem[]>([]);
 const sessionKeyword = ref("");
+const sessionActionLoadingId = ref("");
+const clearingSessions = ref(false);
 const sessionsLoading = ref(false);
 const sessionsLoadingMore = ref(false);
 const sessionsHasMore = ref(true);
@@ -459,7 +487,26 @@ const submitMessage = async () => {
       }
     );
     activeSessionId.value = resp.data.session_id;
-    await appendAssistantTyping(assistantIndex, resp.data.summary || "");
+    let finalReply = String(resp.data.assistant_reply || resp.data.summary || "");
+    if (resp.data.download_url) {
+      const rawUrl = String(resp.data.download_url);
+      let absoluteUrl = rawUrl;
+      try {
+        absoluteUrl = new URL(rawUrl, window.location.origin).toString();
+      } catch {
+        absoluteUrl = rawUrl;
+      }
+      const token = localStorage.getItem("edu_token");
+      const secureUrl = token
+        ? `${absoluteUrl}${absoluteUrl.includes("?") ? "&" : "?"}token=${encodeURIComponent(token)}`
+        : absoluteUrl;
+      if (finalReply.includes(rawUrl)) {
+        finalReply = finalReply.replace(rawUrl, secureUrl);
+      } else if (!finalReply.includes(secureUrl)) {
+        finalReply = `${finalReply}\n\n下载链接：${secureUrl}`;
+      }
+    }
+    await appendAssistantTyping(assistantIndex, finalReply);
     await refreshSessions();
     await nextTick();
     scrollToMessageBottom();
@@ -489,6 +536,55 @@ const handleMessageScroll = () => {
 
 const toggleSessionPanel = () => {
   showSessionPanel.value = !showSessionPanel.value;
+};
+
+const removeSession = async (sessionId: string) => {
+  if (!sessionId || clearingSessions.value || sessionActionLoadingId.value) {
+    return;
+  }
+  const target = sessions.value.find((item) => item.session_id === sessionId);
+  const preview = target ? resolveSessionPreview(target) : sessionId;
+  const ok = window.confirm(`确认删除会话“${preview}”及其全部消息？`);
+  if (!ok) {
+    return;
+  }
+  sessionActionLoadingId.value = sessionId;
+  sessionError.value = "";
+  try {
+    await deleteChatSession(sessionId);
+    if (activeSessionId.value === sessionId) {
+      startNewSession();
+    }
+    await refreshSessions();
+  } catch (err: any) {
+    sessionError.value = err?.message ?? err?.response?.data?.message ?? "删除会话失败";
+  } finally {
+    sessionActionLoadingId.value = "";
+  }
+};
+
+const clearAllSessions = async () => {
+  if (clearingSessions.value || sessionActionLoadingId.value) {
+    return;
+  }
+  const ok = window.confirm("确认一键清空全部历史会话？该操作不可恢复。");
+  if (!ok) {
+    return;
+  }
+  clearingSessions.value = true;
+  sessionError.value = "";
+  try {
+    await clearChatSessions();
+    startNewSession();
+    sessions.value = [];
+    sessionsHasMore.value = false;
+    sessionOffset.value = 0;
+    sessionKeyword.value = "";
+  } catch (err: any) {
+    sessionError.value = err?.message ?? err?.response?.data?.message ?? "清空会话失败";
+  } finally {
+    clearingSessions.value = false;
+  }
 };
 
 const handleSessionKeywordInput = (value: string) => {

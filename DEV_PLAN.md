@@ -1,562 +1,160 @@
-﻿# 教务驾驶舱系统 DEV_PLAN
+# 教务驾驶舱系统 DEV_PLAN（同步版）
 
-> 版本规划遵循 1.0 / 2.0 / 3.0 分阶段推进。1.0 为最小可行版本（MVP），仅覆盖“数据底座 + 最小驾驶舱视图”。
+最后同步时间：2026-02-11  
+同步依据：当前仓库源码（后端 `app/`、前端 `frontend/src/`、脚本 `scripts/`）
+
+## 状态说明
+
+- `计划中`：尚未开始或仅有方案
+- `开发中`：部分完成，仍有功能缺口
+- `完成`：代码已落地并可在当前项目中运行
+- `暂缓`：明确不进入当前主链路
 
 ---
 
 ## 版本 1.0（MVP）
 
 ### TASK001 管理员认证与基础框架
-- 版本：1.0
 - 状态：完成
-- 子任务：
-  - 创建后端基础目录结构
-  - 初始化 FastAPI 应用
-  - 创建管理员表与基础模型
-  - 登录/登出接口
-  - JWT 认证中间件
-- AI 编程助手提示词：
-  "你是一个严谨的后端工程助手。请为 FastAPI 项目创建基础结构，包含 main.py、routers、models、schemas、services、config 模块。实现管理员登录/登出接口，使用 JWT 认证。确保密码采用安全哈希算法，接口具备输入校验与错误处理，并使用 MySQL 8.0.25。输出完成后，给出目录树与关键代码说明。"
-- 验收标准：
-  - 能成功启动 FastAPI
-  - 管理员登录成功返回 token
-  - 无 token 访问受保护接口会返回 401
-- 注意事项：
-  - 密码必须使用哈希存储，不得明文
-  - 统一错误响应格式
+- 结果对齐：
+  - FastAPI 主应用、路由注册、统一异常响应已实现
+  - JWT 登录鉴权链路已实现（`/api/auth/login`、`get_current_admin`）
 
 ### TASK002 数据库初始化与基础表
-- 版本：1.0
 - 状态：完成
-- 子任务：
-  - 建立 MySQL 连接层
-  - 创建基础表（admin、college、major、class、student、teacher、course）
-  - 设计 ORM 或 SQL schema
-  - 增加审计字段
-- AI 编程助手提示词：
-  "你是数据库与后端助手。请基于 MySQL 8.0.25 创建教务驾驶舱系统的核心表结构，字段使用下划线命名，包含审计字段。提供建表 SQL 及说明，并在 FastAPI 中建立数据库连接层。"
-- 验收标准：
-  - 所有基础表可创建
-  - 能执行简单查询
-- 注意事项：
-  - 字段描述需保持一致性
-  - 合理设置索引
+- 结果对齐：
+  - SQLAlchemy 会话层与模型层已完成
+  - 核心基础表已落地（admin/college/major/class/student/teacher/course）
 
 ### TASK003 基础 CRUD 接口
-- 版本：1.0
 - 状态：完成
-- 子任务：
-  - 为基础表生成 CRUD 接口
-  - 支持分页与条件过滤
-  - 错误统一处理
-- AI 编程助手提示词：
-  "你是 API 开发助手。请为教务驾驶舱系统基础表实现 CRUD 接口，提供分页与条件筛选能力，使用统一响应格式。要求安全校验与输入验证。"
-- 验收标准：
-  - CRUD 接口可用
-  - 分页可用
-- 注意事项：
-  - 过滤条件避免 SQL 注入
+- 结果对齐：
+  - `/api/data/{table}` 通用 CRUD 已实现
+  - 支持分页、字段过滤、关键词模糊搜索、排序、软删除
 
 ### TASK004 批量导入功能
-- 版本：1.0
 - 状态：完成
-- 子任务：
-  - CSV/Excel 导入接口
-  - 数据校验与错误返回
-  - 导入日志记录
-- AI 编程助手提示词：
-  "你是数据导入助手。请实现教务驾驶舱系统批量导入功能，支持 CSV/Excel，导入时需要字段校验与错误报告，失败行需返回具体原因。"
-- 验收标准：
-  - 可成功导入学生/教师/课程数据
-  - 导入错误可回显
-- 注意事项：
-  - 导入过程需事务支持
+- 结果对齐：
+  - `/api/import/{table}` 已实现 CSV/XLSX 导入
+  - 当前导入白名单：student/teacher/course
+  - 导入日志 `import_log` 已落库
 
 ### TASK005 前端基础界面
-- 版本：1.0
 - 状态：完成
-- 子任务：
-  - Vue3 + Vite 初始化
-  - 登录页
-  - 数据管理页
-  - 基础路由与权限校验
-- AI 编程助手提示词：
-  "你是前端助手。请用 Vue3 + Vite 搭建基础项目，包含登录页与数据管理页，完成路由权限控制。要求页面布局清晰，支持响应式。"
-- 验收标准：
-  - 可正常访问登录页
-  - 登录后进入数据管理页
-- 注意事项：
-  - 前后端接口需对齐
+- 结果对齐：
+  - 登录页、路由守卫、基础布局已实现
+  - 页面入口：`/login`、`/cockpit`、`/data`、`/chat`
 
 ### TASK006 最小驾驶舱视图
-- 版本：1.0
 - 状态：完成
-- 子任务：
-  - 指标定义表与快照表（最小集）
-  - 驾驶舱总览接口
-  - 首页视图：指标卡片 + 趋势折线 + 预警列表
-  - 前端驾驶舱页面（展示指标卡片/趋势/预警）
-- AI 编程助手提示词：
-  "你是教务驾驶舱助手。请实现最小驾驶舱视图，包含核心指标卡片、趋势折线与预警列表。提供指标定义与快照数据结构，以及驾驶舱总览接口。"
-- 验收标准：
-  - 驾驶舱首页可展示核心指标与趋势
-  - 预警列表能显示阈值异常
-- 注意事项：
-  - 指标口径需文档化
-  - 预警规则可先固定阈值
+- 结果对齐：
+  - `/api/cockpit/overview` 已提供指标、趋势、分布、榜单、风险清单
+  - 前端驾驶舱页面已展示并可联动筛选
 
 ### TASK007 数据库全量落地与模拟数据
-- 版本：1.0
-- 状态：计划中
-- 子任务：
-  - 全量实现 README.md 中的数据库表结构（含指标、预警、审计、日志等）
-  - 更新 init_db.py 以创建全部表
-  - 生成可重复执行的模拟数据脚本（规模尽可能严格）
-  - 生成完整关联数据（学院-专业-班级-学生、教师-课程-教学班、选课-成绩-考勤）
-- AI 编程助手提示词：
-  "你是数据库与数据工程助手。请完整实现 README.md 中的数据库表结构，并基于指定规模生成可重复执行的模拟数据（教师 1100+、学生 20000+、专业 64、每专业约 6 班），数据需真实格式且以中国学生为主。提供 init_db 建表与数据生成脚本。"
-- 验收标准：
-  - 全部表结构可创建
-  - 数据规模满足要求（尽可能严格）
-  - 关联关系完整且合理
-  - 可重复执行数据脚本（支持清空后再生成）
-- 注意事项：
-  - 学校统一为“三峡科技MOCK大学”体系
-  - 个人信息为真实格式但完全虚构
+- 状态：完成
+- 结果对齐：
+  - `scripts/init_db.py` 已创建全量模型对应表
+  - `scripts/generate_mock_data.py` 已生成大规模模拟数据
+  - 数据规模逻辑：教师 1100、学生 20000、专业 64、每专业 6 班
 
 ### TASK008 核心表数据管理（切换 + 搜索筛选 + 分页 + CRUD）
-- 版本：1.0
 - 状态：完成
-- 子任务：
-  - 核心表切换：student、teacher、college、major、class、course
-  - 通用搜索与筛选（支持字段键值与关键字）
-  - 分页控件（页码、上一页/下一页、每页条数）
-  - 弹窗式新增/编辑/删除
-  - 对接后端 data CRUD 接口并完善错误提示
-- AI 编程助手提示词：
-  "你是前端工程助手。请为教务驾驶舱系统数据管理页实现核心表切换、通用搜索筛选、分页、弹窗式增删改查，接口对接现有 /api/data。风格沿用现有简约页面。"
-- 验收标准：
-  - 可切换核心表并展示数据
-  - 搜索筛选与分页可用
-  - CRUD 弹窗正常工作
-  - 错误提示清晰
-- 注意事项：
-  - 只覆盖核心表
-  - 与现有样式保持一致
-- 任务进度：
-  - [2026-01-30 13:16:34]
-    - 已修改：frontend/src/views/DataView.vue、frontend/src/components/DataFormModal.vue、frontend/src/components/PaginationBar.vue、frontend/src/styles/base.css、DIRECTORY.md
-    - 更改：数据管理页支持核心表切换、通用筛选、分页与 CRUD 弹窗；补充对应组件与样式
-    - 原因：落实 TASK008 的前端交互与数据管理需求
-    - 阻碍因素：无
-    - 状态：未确认
-  - [2026-01-30 13:47:57]
-    - 已修改：frontend/src/styles/base.css、DEV_PLAN.md、app/routers/data.py、frontend/src/views/DataView.vue、frontend/src/components/ScoreListModal.vue、DIRECTORY.md
-    - 更改：弹窗支持滚动；2.0/3.0 任务编号顺延；新增学生成绩接口与成绩弹窗；班主任姓名/学院名称等名称映射展示
-    - 原因：满足编辑过长滚动与表格字段展示、学生成绩查看需求
-    - 阻碍因素：无
-    - 状态：未确认
-  - [2026-01-30 13:52:40]
-    - 已修改：frontend/src/views/DataView.vue
-    - 更改：名称映射改为分页拉取，避免超出限制导致映射为空
-    - 原因：修复班级/专业/学院等字段显示为空的问题
-    - 阻碍因素：无
-    - 状态：未确认
-  - [2026-01-30 13:55:54]
-    - 已修改：DEV_PLAN.md
-    - 更改：TASK008 状态更新为完成
-    - 原因：你已确认功能正常
-    - 阻碍因素：无
-    - 状态：成功
+- 结果对齐：
+  - 数据表切换、筛选、分页、弹窗 CRUD 已完成
+  - 学生“成绩明细”弹窗与后端接口已实现
 
 ### TASK009 驾驶舱增强（筛选 + 对比 + 导出 + 风险榜单）
-- 版本：1.0
-- 状态：开发中
-- 子任务：
-  - 增加学期/学院/专业/年级筛选器并联动全局数据
-  - 扩展指标卡片（规模、质量、风险）
-  - 增加分布图与排行榜（学院规模、成绩分布、挂科/缺勤榜单）
-  - 增加高风险清单与导出按钮（CSV）
-  - 支持点击下钻到数据管理页并带筛选条件
-- AI 编程助手提示词：
-  "你是驾驶舱前后端助手。请为教务驾驶舱增加筛选联动、多指标对比、分布图、排行榜与风险清单导出。要求与现有页面风格一致，并支持下钻到数据管理页。"
-- 验收标准：
-  - 筛选条件变化会联动更新驾驶舱数据
-  - 指标卡片、分布图、排行榜与风险清单正常显示
-  - 导出按钮可生成 CSV
-  - 下钻跳转可用
-- 注意事项：
-  - 先保证核心指标与榜单正确，再优化视觉
-  - 避免过度复杂的图表依赖
-- 任务进度：
-  - [2026-01-30 17:52:03]
-    - 已修改：DEV_PLAN.md、app/schemas/cockpit.py、app/services/cockpit_service.py、app/routers/cockpit.py、frontend/src/views/CockpitView.vue、frontend/src/styles/base.css、frontend/src/views/DataView.vue、DIRECTORY.md
-    - 更改：驾驶舱筛选联动、多指标/分布/榜单/风险清单与导出能力落地；数据管理页支持下钻携带筛选
-    - 原因：实现 TASK009 驾驶舱增强方案
-    - 阻碍因素：无
-    - 状态：未确认
-  - [2026-02-05 17:37:13]
-    - 已修改：app/schemas/cockpit.py、app/services/cockpit_service.py、frontend/src/views/CockpitView.vue、frontend/src/styles/base.css
-    - 更改：专业下拉支持学院级联；趋势改为近 6 个月出勤率；风险榜单提升至 200 条且导出全量；风险清单支持滚动
-    - 原因：优化驾驶舱筛选与展示效果
-    - 阻碍因素：无
-    - 状态：未确认
-  - [2026-02-05 17:48:18]
-    - 已修改：frontend/src/styles/base.css、DEV_PLAN.md
-    - 更改：全局样式切换为现代 SaaS 风格（无衬线字体、冷灰背景、白色卡片与统一阴影/圆角、文字色阶统一）
-    - 原因：按需求重构全局 CSS 以提升现代感与一致性
-    - 阻碍因素：无
-    - 状态：未确认
-  - [2026-02-05 17:53:47]
-    - 已修改：frontend/src/views/CockpitView.vue、frontend/src/views/DataView.vue、frontend/src/styles/base.css、DEV_PLAN.md
-    - 更改：KPI 卡片改为左右布局并加入图标与底部彩色边；表格表头/行 hover/操作按钮/状态胶囊样式统一优化
-    - 原因：提升驾驶舱与数据管理的企业级视觉与可读性
-    - 阻碍因素：无
-    - 状态：未确认
-  - [2026-02-05 18:10:25]
-    - 已修改：frontend/src/views/CockpitView.vue、frontend/src/styles/base.css、DEV_PLAN.md
-    - 更改：结构分布改为 Tab 切换学院规模/成绩段；成绩段环形图与图例；风险榜单排名徽标与进度条
-    - 原因：提升结构分布与风险榜单的可读性与视觉层级
-    - 阻碍因素：无
-    - 状态：未确认
-  - [2026-02-05 18:25:11]
-    - 已修改：frontend/src/views/CockpitView.vue、DEV_PLAN.md
-    - 更改：修复风险榜单标题缺失闭合标签导致的模板编译错误
-    - 原因：确保驾驶舱页面可正常编译运行
-    - 阻碍因素：无
-    - 状态：未确认
-  - [2026-02-05 18:29:06]
-    - 已修改：frontend/src/views/CockpitView.vue、frontend/src/styles/base.css、DEV_PLAN.md
-    - 更改：高风险学生卡片与风险榜单同高，列表内部滚动
-    - 原因：对齐卡片高度并保持内容可读性
-    - 阻碍因素：无
-    - 状态：未确认
-  - [2026-02-06 09:21:57]
-    - 已修改：frontend/src/views/CockpitView.vue、frontend/src/styles/base.css、DEV_PLAN.md
-    - 更改：风险榜单与高风险学生卡片固定高度 507px；榜单序号圆圈改为红色梯度
-    - 原因：对齐视觉与危险感表达
-    - 阻碍因素：无
-    - 状态：未确认
-  - [2026-02-06 09:31:19]
-    - 已修改：frontend/src/views/CockpitView.vue、DEV_PLAN.md
-    - 更改：风险榜单按数值从高到低排序显示
-    - 原因：确保榜单排名逻辑与展示一致
-    - 阻碍因素：无
-    - 状态：未确认
-  - [2026-02-06 09:45:00]
-    - 已修改：scripts/fill_recent_attendance.py、DEV_PLAN.md
-    - 更改：补齐最近 6 个月考勤数据（每月 2000 条，覆盖重建）
-    - 原因：保证趋势图有连续月份数据用于演示
-    - 阻碍因素：无
-    - 状态：未确认
-  - [2026-02-06 09:53:45]
-    - 已修改：scripts/fill_recent_attendance.py、DEV_PLAN.md
-    - 更改：按月目标出勤率 85%~95% 生成最近 6 个月考勤数据（每月 2000 条，覆盖重建）
-    - 原因：让趋势图呈现月度波动效果
-    - 阻碍因素：无
-    - 状态：未确认
-  - [2026-02-06 10:10:34]
-    - 已修改：frontend/src/views/CockpitView.vue、DEV_PLAN.md
-    - 更改：趋势图 SVG 禁用保持宽高比并按数据长度生成轴标签列数
-    - 原因：确保折线覆盖 6 个月并与月份对齐
-    - 阻碍因素：无
-    - 状态：未确认
-  - [2026-02-06 10:14:50]
-    - 已修改：frontend/src/views/CockpitView.vue、DEV_PLAN.md
-    - 更改：趋势折线图增加每月出勤率数值标注
-    - 原因：提升趋势图可读性
-    - 阻碍因素：无
-    - 状态：未确认
-  - [2026-02-06 10:32:39]
-    - 已修改：scripts/fill_recent_attendance.py、frontend/src/views/CockpitView.vue、DEV_PLAN.md
-    - 更改：趋势数据出勤率范围调整为 70%~95%；趋势图改为 y 轴刻度展示（60%~100%）并移除点位标注
-    - 原因：按要求统一趋势数据区间并提升可读性
-    - 阻碍因素：无
-    - 状态：未确认
-  - [2026-02-06 10:39:23]
-    - 已修改：frontend/src/views/CockpitView.vue、frontend/src/styles/base.css、DEV_PLAN.md
-    - 更改：y 轴刻度改为 HTML 叠层显示，避免 SVG 拉伸导致变形
-    - 原因：修复趋势图刻度文字变形问题
-    - 阻碍因素：无
-    - 状态：未确认
-  - [2026-02-06 10:48:22]
-    - 已修改：frontend/src/views/CockpitView.vue、DEV_PLAN.md
-    - 更改：重写驾驶舱视图模板并修复损坏标签/乱码文案；保留趋势图 y 轴刻度与既有交互逻辑
-    - 原因：修复模板编译失败（缺失闭合标签与结构错位）并清理乱码
-    - 阻碍因素：无
-    - 状态：成功
-  - [2026-02-06 12:54:42]
-    - 已修改：app/services/cockpit_service.py、DEV_PLAN.md
-    - 更改：为驾驶舱服务核心流程补充中文注释，并修复文件内损坏字符串以恢复可读与可运行状态
-    - 原因：提升后续维护可读性并避免编码损坏导致运行风险
-    - 阻碍因素：无
-    - 状态：成功
-  - [2026-02-06 13:59:02]
-    - 已修改：DEV_PLAN.md
-    - 更改：修正 2.0/3.0 阶段任务序号重复与顺延错误，统一为 TASK010~TASK017
-    - 原因：保证任务编号连续且唯一，避免执行与追踪歧义
-    - 阻碍因素：无
-    - 状态：成功
-
+- 状态：完成
+- 结果对齐：
+  - 学期/学院/专业/年级筛选已实现并联动
+  - 风险清单导出 `/api/cockpit/risk/export` 已实现
+  - 支持下钻跳转到数据管理页并携带筛选
 
 ---
 
 ## 版本 2.0（智能流程）
 
-
 ### TASK010 LangGraph-意图识别节点
-- 版本：2.0
-- 状态：已完成
-- 子任务：
-  - 使用 LLM 识别用户意图：`chat` / `business_query`
-  - 基于最近 4 段用户问题判断：补充追问 / 新对话
-  - 若为补充追问，合并历史上下文生成新的查询问题
-  - 对用户问题进行业务化改写（教务系统导向）
-- AI 编程助手提示词：
-  "你是教务系统查询理解助手。请用 LangGraph 实现意图识别节点：输出 intent、is_followup、merged_query、rewritten_query、confidence。意图仅限 chat 或 business_query；需要根据最近 4 段用户问题判断是否追问，并在追问时合并历史。"
-- 验收标准：
-  - 能稳定区分闲聊与业务查询
-  - 能输出追问判断与合并后的查询文本
-- 注意事项：
-  - 提示词需明确教务领域导向
-- 任务进度：
-  - [2026-02-06 16:59:31]
-    - 已修改：scripts/build_schema_kb.py、app/knowledge/schema_kb_core.json、README.md、DIRECTORY.md、DEV_PLAN.md
-    - 更改：知识库与文档对齐 TASK010；意图统一为 chat/business_query；工作流改为“意图识别→任务解析→混合检索→LLM重排TOP5→隐藏上下文→SQL生成→SQL验证→结果返回”，并保留 SQL 验证失败回跳隐藏上下文
-    - 原因：统一 schema 知识库与 README 工作流口径，支撑后续按节点逐步实现
-    - 阻碍因素：无
-    - 状态：未确认
-  - [2026-02-06 17:08:41]
-    - 已修改：scripts/build_schema_kb.py、app/knowledge/schema_kb_core.json、README.md、DEV_PLAN.md
-    - 更改：将 SQL 生成口径收紧为 CTE-only；模板 SQL 全部改为 CTE 分解，不再使用简单查询
-    - 原因：按要求确保 SQL 生成策略统一为 CTE 分解
-    - 阻碍因素：无
-    - 状态：未确认
-  - [2026-02-06 17:24:32]
-    - 已修改：requirements.txt、app/core/config.py、app/schemas/chat.py、app/services/chat_graph.py、app/services/chat_intent_service.py、app/routers/chat.py、app/routers/__init__.py、app/main.py、README.md、DEV_PLAN.md
-    - 更改：落地 TASK010 可运行骨架（LangGraph 单节点意图识别）；支持最近4条user消息、intent=chat/business_query、confidence阈值0.7、rewritten_query=merged_query，并按约定入库 chat_history/workflow_log
-    - 原因：按确认口径实现 TASK010 第一节点并打通接口入口
-    - 阻碍因素：无
-    - 状态：未确认
-  - [2026-02-06 17:42:23]
-    - 已修改：frontend/src/api/chat.ts、frontend/src/views/ChatView.vue、frontend/src/layouts/AppLayout.vue、frontend/src/router/index.ts、frontend/src/styles/base.css、DEV_PLAN.md
-    - 更改：新增前端智能问答页（/chat），对接 /api/chat/intent，展示 intent/is_followup/confidence/merged_query/rewritten_query，并支持本地会话与最近4条user消息传递
-    - 原因：补齐 TASK010 对应的最小前端可视化与交互入口
-    - 阻碍因素：无
-    - 状态：未确认
-  - [2026-02-06 17:52:50]
-    - 已修改：app/core/config.py、app/services/chat_graph.py、app/services/chat_intent_service.py、README.md、DEV_PLAN.md
-    - 更改：增加节点输入/输出本地落盘能力；每次 intent_recognition 执行会写 JSON 到 NODE_IO_LOG_DIR（默认 local_logs/node_io）
-    - 原因：满足“把节点输入和输出都保存到本地”的要求
-    - 阻碍因素：无
-    - 状态：未确认
-  - [2026-02-06 17:57:23]
-    - 已修改：app/services/chat_intent_service.py、DEV_PLAN.md
-    - 更改：修复意图识别历史重复叠加与模型名误导；前端传入 history 时不再叠加数据库历史，未配置 LLM key 时 model_name 置空，并改为结合历史语义做兜底意图识别
-    - 原因：修复“女生呢”场景误判和日志输入异常
-    - 阻碍因素：无
-    - 状态：未确认
-  - [2026-02-10 11:20:00]
-    - 已修改：app/services/chat_graph.py、app/routers/chat.py、app/schemas/chat.py、frontend/src/api/chat.ts、frontend/src/views/ChatView.vue、README.md、DEV_PLAN.md
-    - 更改：工作流统一为单入口 `/api/chat`；前端不再传 `history`，上下文统一从数据库读取最近 4 条 user 消息；TASK010/TASK011 合并在同一张图中执行（intent_recognition -> task_parse 条件边）；移除兜底逻辑，未配置 LLM 或模型输出非法时直接抛错；前端与返回结构（skipped/reason/task）完成对齐
-    - 原因：对齐当前代码实现与接口契约，避免文档与实际行为不一致
-    - 阻碍因素：无
-    - 状态：成功
-- 当前口径说明：
-  - 历史进度中出现的 `/api/chat/intent`、前端传 `history` 仅代表当时阶段方案，当前已统一为 `/api/chat` + 后端数据库读取上下文。
+- 状态：完成
+- 结果对齐：
+  - 意图限定 `chat` / `business_query`
+  - 读取最近 4 条 user 历史消息参与识别
+  - confidence 阈值控制保留（低于阈值降级 chat）
 
 ### TASK011 LangGraph-任务解析节点
-- 版本：2.0
-- 状态：已完成
-- 子任务：
-  - 将改写后的查询解析为结构化任务
-  - 提取实体、指标、维度、过滤条件、时间范围
-  - 输出标准化任务对象供 SQL 生成节点直接消费
-- AI 编程助手提示词：
-  "你是教务查询任务解析助手。请用 LangGraph 实现任务解析节点，将用户问题解析为结构化任务对象，包含实体、指标、维度、过滤条件和时间范围。"
-- 验收标准：
-  - 结构化输出字段完整且稳定
-- 注意事项：
-  - 与 SQL 生成节点字段映射结构保持一致
-  - intent=chat 时直接结束，不进入 task_parse 节点
-- 任务进度：
-  - [2026-02-10 11:25:00]
-    - 已修改：app/services/chat_graph.py、app/prompts/task_parse_prompts.py、app/knowledge/schema_kb_core.json、README.md、DEV_PLAN.md
-    - 更改：任务解析输出结构固定为 entities/dimensions/metrics/filters/time_range/operation/confidence；`filters.field` 严格校验知识库白名单；`alias_hints` 升级为“字段->多别名列表”；提示词补充 alias 映射规则与完整输出示例；task_parse 在 intent=chat 时跳过
-    - 原因：确保 TASK011 输出可稳定供后续 SQL 生成节点消费，并与知识库映射策略一致
-    - 阻碍因素：无
-    - 状态：成功
+- 状态：完成
+- 结果对齐：
+  - 输出结构化任务：entities/dimensions/metrics/filters/time_range/operation/confidence
+  - `filters.field` 严格按知识库字段白名单过滤
 
 ### TASK012 LangGraph-混合检索节点（暂缓）
-- 版本：2.0
 - 状态：暂缓
-- 子任务：
-  - 当前阶段不进入主链路
-  - 预留后续扩展（当 schema 规模明显增大时启用）
-- AI 编程助手提示词：
-  "当前阶段该节点暂缓，不在主链路实现。"
-- 验收标准：
-  - 文档口径与主流程一致，不触发该节点
-- 注意事项：
-  - 代码中不应依赖该节点输入
+- 结果对齐：
+  - 当前主链路未包含该节点
 
 ### TASK013 LangGraph-LLM 重排节点（TOP5，暂缓）
-- 版本：2.0
 - 状态：暂缓
-- 子任务：
-  - 当前阶段不进入主链路
-  - 预留后续扩展
-- AI 编程助手提示词：
-  "当前阶段该节点暂缓，不在主链路实现。"
-- 验收标准：
-  - 文档口径与主流程一致，不触发该节点
-- 注意事项：
-  - 代码中不应依赖该节点输入
+- 结果对齐：
+  - 当前主链路未包含该节点
 
 ### TASK014 LangGraph-隐藏上下文探索节点
-- 版本：2.0
-- 状态：计划中
-- 子任务：
-  - 读取数据库实际存储值（如 term/status/课程名等）
-  - 建立“问题词 -> 库内值”映射
-  - 在 SQL 验证失败后提供补充上下文并回填重试
-- AI 编程助手提示词：
-  "你是数据库隐藏上下文助手。请用 LangGraph 实现隐藏上下文探索节点，获取数据库中的真实取值并建立实体映射，供 SQL 生成与纠错使用。"
-- 验收标准：
-  - SQL 验证失败后可稳定返回补充映射并触发重试
-- 注意事项：
-  - 不进入主链路，仅失败回跳触发
+- 状态：完成
+- 结果对齐：
+  - `hidden_context` 节点已实现
+  - SQL 失败/空结果/零指标时触发只读探测并回跳 SQL 生成
+  - 最大重试次数 2
 
 ### TASK015 LangGraph-SQL 生成节点
-- 版本：2.0
-- 状态：已完成
-- 子任务：
-  - 基于任务解析结果与知识库（表/字段描述+字段别名）生成 SQL
-  - 统一输出 `sql_result`（sql + entity_mappings + sql_fields）
-  - 记录实体到 SQL 字段映射依据
-- AI 编程助手提示词：
-  "你是教务 SQL 生成助手。请用 LangGraph 实现 SQL 生成节点，基于任务解析与知识库字段描述完成实体到字段映射，生成可执行 SQL。"
-- 验收标准：
-  - 生成 SQL 必须为 CTE 分解
-  - 生成字段必须带表名前缀（table.field）
-  - 生成字段必须来自知识库白名单字段
-- 注意事项：
-  - 映射失败字段不得进入 SQL 结果
-- 任务进度：
-  - [2026-02-10 12:15:00]
-    - 已修改：app/prompts/sql_generation_prompts.py、app/services/chat_graph.py、app/schemas/chat.py、frontend/src/api/chat.ts、frontend/src/views/ChatView.vue、README.md、DEV_PLAN.md
-    - 更改：在统一 LangGraph 中新增 `sql_generation` 节点（链路为 intent_recognition -> task_parse -> sql_generation）；State 新增 `sql_result` 字段并由 SQL 节点增量更新（结构为 sql + entity_mappings + sql_fields）；SQL 生成使用 MySQL 8 + WITH 约束；输入增加 `kb_schema_hints`（表描述+字段描述）；新增静态自检（WITH 校验、真实表字段白名单校验、CTE 名字段跳过白名单、entities 全量映射校验）；关键实体映射失败直接抛错；接口与前端展示补充 `sql_result`
-    - 原因：完成 TASK015，并与“单图多节点 + 严格字段白名单 + 关键实体强约束”口径保持一致
-    - 阻碍因素：无
-    - 状态：成功
+- 状态：完成
+- 结果对齐：
+  - SQL 生成强约束：CTE-only、字段白名单、实体映射完整性校验
+  - 输出 `sql/entity_mappings/sql_fields`
 
 ### TASK016 LangGraph-SQL 验证与失败回跳节点
-- 版本：2.0
-- 状态：已完成
-- 子任务：
-  - 执行 SQL 验证（真实数据库执行）
-  - 验证结果写入 State（是否成功、错误信息、执行 SQL、全量结果集）
-  - SQL 报错进入隐藏上下文探索并回跳 SQL 生成
-- AI 编程助手提示词：
-  "你是 SQL 验证助手。请用 LangGraph 实现验证节点：验证失败则跳转到隐藏上下文探索并触发重试，验证成功则继续结果返回。"
-- 验收标准：
-  - SQL 可真实执行并返回结果或报错
-  - 仅允许只读 SQL（SELECT/WITH）
-  - SQL 报错不抛 500，而是写入 `sql_validate_result`
-  - 隐藏上下文回跳链路可稳定触发，且最多 2 次
-- 注意事项：
-  - 隐藏上下文探索仅允许只读探测 SQL
-- 任务进度：
-  - [2026-02-10 14:40:00]
-    - 已修改：app/services/chat_graph.py、app/schemas/chat.py、frontend/src/api/chat.ts、frontend/src/views/ChatView.vue、README.md、DEV_PLAN.md
-    - 更改：在统一 LangGraph 中新增 `sql_validate` 节点并接在 `sql_generation` 之后；执行真实数据库查询并仅允许 `SELECT/WITH`；将验证结果写入 `sql_validate_result`（`is_valid/error/rows/result/executed_sql`）；接口响应与前端展示同步新增 `sql_validate_result`
-    - 原因：完成 TASK016 的 SQL 验证阶段
-    - 阻碍因素：无
-    - 状态：成功
-  - [2026-02-10 17:20:00]
-    - 已修改：app/services/chat_graph.py、app/prompts/sql_generation_prompts.py、app/schemas/chat.py、frontend/src/api/chat.ts、frontend/src/views/ChatView.vue、README.md、DEV_PLAN.md
-    - 更改：新增 `hidden_context` 节点与 `result_return` 占位节点；`sql_validate` 增加条件分流（成功进入 `result_return`，失败进入 `hidden_context`）；`hidden_context` 产出 `hidden_context_result` 并更新 `hidden_context_retry_count`；失败回跳 `sql_generation`，最大回跳 2 次；前后端与文档同步新增隐藏上下文字段
-    - 原因：完成 TASK016 的“验证失败回跳隐藏上下文探索”闭环
-    - 阻碍因素：无
-    - 状态：成功
+- 状态：完成
+- 结果对齐：
+  - SQL 真执行校验，仅允许 `SELECT/WITH`
+  - 输出 `sql_validate_result`（含 `empty_result`/`zero_metric_result`）
+  - 失败分支已与 `hidden_context` 回跳闭环联通
 
-  - [2026-02-10 18:10:00]
-    - Modified: app/services/chat_graph.py, app/schemas/chat.py, frontend/src/api/chat.ts, README.md, DEV_PLAN.md
-    - Change: sql_validate adds empty_result/zero_metric_result; route after sql_validate now enters hidden_context for SQL error or empty result or zero key metric (business_query only, max retries=2)
-    - Reason: avoid false-success when SQL executes but semantic value mismatches DB and returns empty/zero
-    - Blockers: none
-    - Status: success
 ### TASK017 LangGraph-结果返回节点
-- 版本：2.0
-- 状态：计划中
-- 子任务：
-  - 返回查询结果数据
-  - 输出简洁业务化解释
-  - 统一响应结构（供后续 API 接入）
-- AI 编程助手提示词：
-  "你是查询结果输出助手。请用 LangGraph 实现结果返回节点，输出结构化结果与简洁业务说明。"
-- 验收标准：
-  - 响应结构稳定可被前端/API 直接消费
-- 注意事项：
-  - 保持返回格式简洁且可扩展
+- 状态：完成
+- 结果对齐：
+  - `result_return` 节点已实现
+  - 输出统一结构：`final_status/reason_code/summary/assistant_reply/download_url`
+  - 大结果自动导出 CSV，并提供下载地址
 
 ---
 
 ## 版本 3.0（可视化与知识资产）
 
 ### TASK018 工作流可视化
-- 版本：3.0
 - 状态：计划中
-- 子任务：
-  - 工作流日志结构优化
-  - 节点级回放视图
-  - 错误定位与提示
-- AI 编程助手提示词：
-  "你是工作流可视化助手。请实现工作流执行可视化，支持节点级回放、输入输出查看与错误定位。"
-- 验收标准：
-  - 可回放工作流
-  - 节点状态清晰
-- 注意事项：
-  - 需兼容长会话记录
+- 当前差距：
+  - 尚无独立工作流可视化页面（节点级回放未实现）
 
 ### TASK019 历史记录与知识资产
-- 版本：3.0
-- 状态：计划中
-- 子任务：
-  - 聊天历史存储
-  - 查询模板抽取
-  - 模板库管理
-- AI 编程助手提示词：
-  "你是日志与知识资产助手。请实现历史记录保存与查询模板沉淀，支持模板库管理与检索。"
-- 验收标准：
-  - 可查询历史记录
-  - 模板可复用
-- 注意事项：
-  - 注意存储规模与分页
+- 状态：开发中
+- 已有基础：
+  - chat_history/workflow_log/sql_log 已落库
+  - 会话列表、会话消息查询、会话删除/清空 API 已实现
+- 未完成项：
+  - 查询模板抽取与模板库管理尚未落地
 
 ### TASK020 安全与审计增强
-- 版本：3.0
 - 状态：计划中
-- 子任务：
-  - 登录安全策略
-  - 操作日志审计
-  - 限流与风控
-- AI 编程助手提示词：
-  "你是安全与审计助手。请为教务驾驶舱系统加入安全增强机制，包括登录失败限制、操作日志审计、API 限流与敏感操作二次确认。"
-- 验收标准：
-  - 登录失败会触发限制
-  - 审计日志可查询
-- 注意事项：
-  - 不能影响正常使用
+- 当前差距：
+  - 登录失败限制、限流、敏感操作二次确认未完成
+  - audit 相关查询与治理能力未形成闭环
 
 ---
 
-## 任务编号与状态说明
-- 计划中
-- 测试单元编写中
-- 开发中
-- 完成
+## 本次同步更新记录
 
----
-
-以上为 DEV_PLAN 详细任务安排。
+- [2026-02-11]
+  - 已修改：`README.md`、`DEV_PLAN.md`
+  - 更改：按当前源码重建文档口径，修正任务状态并补充实际接口/工作流行为
+  - 原因：用户要求“读取整个项目代码，同步更新 README 及 DEV_PLAN”
+  - 阻碍因素：无
+  - 状态：成功

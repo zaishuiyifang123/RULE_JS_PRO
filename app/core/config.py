@@ -31,6 +31,7 @@ class Settings:
     llm_model_intent = os.getenv("LLM_MODEL_INTENT", "qwen-plus")
     intent_confidence_threshold = float(os.getenv("INTENT_CONFIDENCE_THRESHOLD", "0.7"))
     node_io_log_dir = os.getenv("NODE_IO_LOG_DIR", "local_logs/node_io")
+    chat_export_dir = os.getenv("CHAT_EXPORT_DIR", "local_logs/chat_exports")
     _raw_chat_stream_mode = os.getenv("CHAT_STREAM_MODE", "stream").strip().lower()
     chat_stream_mode = _raw_chat_stream_mode if _raw_chat_stream_mode in {"stream", "sync"} else "stream"
     chat_stream_workflow_start_message = "收到！让我帮您查一查 🔍"

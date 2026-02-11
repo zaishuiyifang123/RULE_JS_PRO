@@ -1,4 +1,4 @@
-﻿import csv
+import csv
 import io
 from datetime import date, datetime
 from typing import Any
@@ -21,46 +21,95 @@ ALLOWED_TABLES = {
 EXCLUDED_COLUMNS = {"id", "created_at", "updated_at", "created_by", "updated_by", "is_deleted"}
 
 
-# 解析 CSV（首行为表头）
-def _parse_csv(content: bytes) -> list[tuple[int, dict[str, Any]]]:
-    text = content.decode("utf-8-sig")
-    reader = csv.DictReader(io.StringIO(text))
-    rows: list[tuple[int, dict[str, Any]]] = []
-    for idx, row in enumerate(reader, start=2):
-        if not row:
-            continue
-        if all(value is None or str(value).strip() == "" for value in row.values()):
-            continue
-        rows.append((idx, row))
-    return rows
+# 执行导入（校验失败不落库）
+def import_data(
+    table_name: str,
+    filename: str,
+    content: bytes,
+    db: Session,
+    admin_id: int,
+) -> dict[str, Any]:
+    def _helper_parse_bool(value: Any) -> bool:
+        if isinstance(value, bool):
+            return value
+        if isinstance(value, (int, float)):
+            return bool(value)
+        if isinstance(value, str):
+            return value.strip().lower() in {"1", "true", "yes"}
+        return False
 
+    def _helper_convert_value(column: Any, value: Any) -> Any:
+        if isinstance(value, str) and value.strip() == "":
+            return None
 
-# 解析 XLSX（首行为表头）
-def _parse_xlsx(content: bytes) -> list[tuple[int, dict[str, Any]]]:
-    wb = load_workbook(io.BytesIO(content), data_only=True)
-    sheet = wb.active
-    rows = list(sheet.iter_rows(values_only=True))
-    if not rows:
-        return []
+        try:
+            python_type = column.type.python_type
+        except (NotImplementedError, AttributeError):
+            return value
 
-    headers = [str(cell).strip() if cell is not None else "" for cell in rows[0]]
-    parsed: list[tuple[int, dict[str, Any]]] = []
-    for idx, row in enumerate(rows[1:], start=2):
-        if row is None:
-            continue
-        if all(cell is None or str(cell).strip() == "" for cell in row):
-            continue
-        row_dict = {}
-        for col_idx, header in enumerate(headers):
-            if not header:
+        if python_type is bool:
+            return _helper_parse_bool(value)
+        if python_type is int:
+            return int(value)
+        if python_type is float:
+            return float(value)
+        if python_type is date:
+            if isinstance(value, datetime):
+                return value.date()
+            if isinstance(value, date):
+                return value
+            if isinstance(value, str):
+                return date.fromisoformat(value)
+        if python_type is datetime:
+            if isinstance(value, datetime):
+                return value
+            if isinstance(value, str):
+                return datetime.fromisoformat(value)
+        if python_type is str:
+            return str(value)
+        return python_type(value)
+
+    if table_name not in ALLOWED_TABLES:
+        raise HTTPException(status_code=400, detail="Invalid table for import")
+
+    if not content:
+        raise HTTPException(status_code=400, detail="Empty file")
+
+    ext = (filename or "").lower()
+    if ext.endswith(".csv"):
+        text = content.decode("utf-8-sig")
+        reader = csv.DictReader(io.StringIO(text))
+        rows: list[tuple[int, dict[str, Any]]] = []
+        for idx, row in enumerate(reader, start=2):
+            if not row:
                 continue
-            row_dict[header] = row[col_idx] if col_idx < len(row) else None
-        parsed.append((idx, row_dict))
-    return parsed
+            if all(value is None or str(value).strip() == "" for value in row.values()):
+                continue
+            rows.append((idx, row))
+    elif ext.endswith(".xlsx"):
+        wb = load_workbook(io.BytesIO(content), data_only=True)
+        sheet = wb.active
+        sheet_rows = list(sheet.iter_rows(values_only=True))
+        if not sheet_rows:
+            rows = []
+        else:
+            headers = [str(cell).strip() if cell is not None else "" for cell in sheet_rows[0]]
+            rows = []
+            for idx, row in enumerate(sheet_rows[1:], start=2):
+                if row is None:
+                    continue
+                if all(cell is None or str(cell).strip() == "" for cell in row):
+                    continue
+                row_dict: dict[str, Any] = {}
+                for col_idx, header in enumerate(headers):
+                    if not header:
+                        continue
+                    row_dict[header] = row[col_idx] if col_idx < len(row) else None
+                rows.append((idx, row_dict))
+    else:
+        raise HTTPException(status_code=400, detail="Only CSV or XLSX is supported")
 
-
-# 获取允许字段与必填字段
-def _get_field_info(model) -> tuple[dict[str, Any], set[str]]:
+    model = ALLOWED_TABLES[table_name]
     allowed: dict[str, Any] = {}
     required: set[str] = set()
     for column in model.__table__.columns:
@@ -75,60 +124,9 @@ def _get_field_info(model) -> tuple[dict[str, Any], set[str]]:
             and not is_autoincrement_pk
         ):
             required.add(column.name)
-    return allowed, required
 
-
-# 将布尔值统一解析
-def _parse_bool(value: Any) -> bool:
-    if isinstance(value, bool):
-        return value
-    if isinstance(value, (int, float)):
-        return bool(value)
-    if isinstance(value, str):
-        return value.strip().lower() in {"1", "true", "yes"}
-    return False
-
-
-# 按字段类型进行转换
-def _convert_value(column, value: Any):
-    if isinstance(value, str) and value.strip() == "":
-        return None
-
-    try:
-        python_type = column.type.python_type
-    except (NotImplementedError, AttributeError):
-        return value
-
-    if python_type is bool:
-        return _parse_bool(value)
-    if python_type is int:
-        return int(value)
-    if python_type is float:
-        return float(value)
-    if python_type is date:
-        if isinstance(value, datetime):
-            return value.date()
-        if isinstance(value, date):
-            return value
-        if isinstance(value, str):
-            return date.fromisoformat(value)
-    if python_type is datetime:
-        if isinstance(value, datetime):
-            return value
-        if isinstance(value, str):
-            return datetime.fromisoformat(value)
-    if python_type is str:
-        return str(value)
-
-    return python_type(value)
-
-
-# 校验并组装待入库数据
-def _validate_rows(rows: list[tuple[int, dict[str, Any]]], model, admin_id: int):
-    allowed, required = _get_field_info(model)
     errors: list[dict[str, Any]] = []
     records: list[dict[str, Any]] = []
-
     for row_index, row in rows:
         row_errors: list[dict[str, Any]] = []
         data: dict[str, Any] = {}
@@ -145,7 +143,7 @@ def _validate_rows(rows: list[tuple[int, dict[str, Any]]], model, admin_id: int)
             if raw is None or (isinstance(raw, str) and raw.strip() == ""):
                 continue
             try:
-                data[field] = _convert_value(column, raw)
+                data[field] = _helper_convert_value(column, raw)
             except Exception:
                 row_errors.append({"row": row_index, "field": field, "message": "invalid type"})
 
@@ -158,38 +156,8 @@ def _validate_rows(rows: list[tuple[int, dict[str, Any]]], model, admin_id: int)
         data["is_deleted"] = False
         records.append(data)
 
-    return records, errors
-
-
-# 执行导入（校验失败不落库）
-def import_data(
-    table_name: str,
-    filename: str,
-    content: bytes,
-    db: Session,
-    admin_id: int,
-) -> dict[str, Any]:
-    if table_name not in ALLOWED_TABLES:
-        raise HTTPException(status_code=400, detail="Invalid table for import")
-
-    if not content:
-        raise HTTPException(status_code=400, detail="Empty file")
-
-    ext = (filename or "").lower()
-    if ext.endswith(".csv"):
-        rows = _parse_csv(content)
-    elif ext.endswith(".xlsx"):
-        rows = _parse_xlsx(content)
-    else:
-        raise HTTPException(status_code=400, detail="Only CSV or XLSX is supported")
-
-    model = ALLOWED_TABLES[table_name]
-    records, errors = _validate_rows(rows, model, admin_id)
-    records: list[dict[str, Any]]
-    errors: list[dict[str, Any]]
-
     total_rows = len(rows)
-    failed_rows = len({e["row"] for e in errors})
+    failed_rows = len({error["row"] for error in errors})
     success_rows = total_rows - failed_rows
 
     if errors:
@@ -257,3 +225,4 @@ def import_data(
         },
         "errors": [],
     }
+

@@ -89,6 +89,8 @@ class ChatParseData(BaseModel):
     final_status: Literal["success", "partial_success", "failed"] = Field(..., description="最终状态")
     reason_code: str | None = Field(default=None, description="最终原因码")
     summary: str = Field(..., description="结果总结描述")
+    assistant_reply: str | None = Field(default=None, description="面向用户的最终回复文本（可含明细）")
+    download_url: str | None = Field(default=None, description="明细文件下载链接（超大结果时）")
     task: TaskParseResult | None = Field(default=None, description="结构化任务结果")
     sql_result: dict[str, Any] | None = Field(default=None, description="SQL 生成节点输出")
     sql_validate_result: SqlValidateResult | None = Field(default=None, description="SQL 验证节点输出")

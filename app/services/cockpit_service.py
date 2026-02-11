@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from datetime import date, timedelta
+from typing import Any
 
 from sqlalchemy import case, desc, func
 from sqlalchemy.orm import Session
@@ -31,19 +32,24 @@ from app.schemas.cockpit import (
 PRESENT_STATUSES = {"出勤", "迟到", "早退"}
 
 
-def _apply_student_filters(query, college_id: int | None, major_id: int | None, grade_year: int | None):
-    """为已关联 Student 的查询统一附加筛选条件。"""
-    if college_id:
-        query = query.filter(Student.college_id == college_id)
-    if major_id:
-        query = query.filter(Student.major_id == major_id)
-    if grade_year:
-        query = query.filter(Student.enroll_year == grade_year)
-    return query
+def build_dashboard(
+    db: Session,
+    term: str | None,
+    college_id: int | None,
+    major_id: int | None,
+    grade_year: int | None,
+) -> CockpitDashboard:
+    """组装驾驶舱总览：筛选项、卡片、趋势、分布、榜单、风险。"""
 
+    def _helper_apply_student_filters(query: Any) -> Any:
+        if college_id:
+            query = query.filter(Student.college_id == college_id)
+        if major_id:
+            query = query.filter(Student.major_id == major_id)
+        if grade_year:
+            query = query.filter(Student.enroll_year == grade_year)
+        return query
 
-def _build_filter_options(db: Session) -> FilterOptions:
-    """构建驾驶舱筛选器选项：学期/学院/专业/年级。"""
     terms = [
         row[0]
         for row in db.query(Score.term)
@@ -72,97 +78,15 @@ def _build_filter_options(db: Session) -> FilterOptions:
         .order_by(Student.enroll_year.desc())
         .all()
     ]
-    return FilterOptions(
+    filter_options = FilterOptions(
         terms=terms,
         colleges=[OptionItem(value=item.id, label=item.college_name) for item in colleges],
         majors=[OptionItem(value=item.id, label=item.major_name) for item in majors],
         grades=[item for item in grades if item is not None],
     )
 
-
-def _score_stats(
-    db: Session, term: str | None, college_id: int | None, major_id: int | None, grade_year: int | None
-):
-    """返回平均成绩、挂科率、成绩记录数。"""
-    fail_case = case((Score.score_value < 60, 1), else_=0)
-    score_query = db.query(Score, Student).join(Student, Score.student_id == Student.id)
-    score_query = score_query.filter(Score.is_deleted == False, Student.is_deleted == False)
-    score_query = _apply_student_filters(score_query, college_id, major_id, grade_year)
-    if term:
-        score_query = score_query.filter(Score.term == term)
-    avg_score, fail_sum, total = score_query.with_entities(
-        func.avg(Score.score_value), func.sum(fail_case), func.count(Score.id)
-    ).one()
-    total = total or 0
-    fail_sum = fail_sum or 0
-    avg_score = float(avg_score) if avg_score is not None else 0.0
-    fail_rate = float(fail_sum / total) if total else 0.0
-    return avg_score, fail_rate, total
-
-
-def _attendance_rate(
-    db: Session, college_id: int | None, major_id: int | None, grade_year: int | None
-):
-    """返回当前筛选范围内总出勤率。"""
-    present_case = case((Attendance.status.in_(PRESENT_STATUSES), 1), else_=0)
-    query = db.query(Attendance, Student).join(Student, Attendance.student_id == Student.id)
-    query = query.filter(Attendance.is_deleted == False, Student.is_deleted == False)
-    query = _apply_student_filters(query, college_id, major_id, grade_year)
-    present_sum, total = query.with_entities(func.sum(present_case), func.count(Attendance.id)).one()
-    total = total or 0
-    present_sum = present_sum or 0
-    return float(present_sum / total) if total else 0.0
-
-
-def _build_trends(
-    db: Session, college_id: int | None, major_id: int | None, grade_year: int | None
-):
-    """构建最近 6 个月出勤率趋势。"""
-    today = date.today()
-    first_of_month = today.replace(day=1)
-    months = []
-    cursor = first_of_month
-    for _ in range(6):
-        months.append(cursor)
-        cursor = (cursor - timedelta(days=1)).replace(day=1)
-    months = list(reversed(months))
-
-    present_case = case((Attendance.status.in_(PRESENT_STATUSES), 1), else_=0)
-    query = (
-        db.query(
-            func.date_format(Attendance.attend_date, "%Y-%m"),
-            func.sum(present_case),
-            func.count(Attendance.id),
-        )
-        .join(Student, Attendance.student_id == Student.id)
-        .filter(Attendance.is_deleted == False, Student.is_deleted == False)
-        .filter(Attendance.attend_date >= months[0])
-    )
-    query = _apply_student_filters(query, college_id, major_id, grade_year)
-    stats = {
-        row[0]: (row[1] or 0, row[2] or 0)
-        for row in query.group_by(func.date_format(Attendance.attend_date, "%Y-%m")).all()
-    }
-
-    points: list[TrendPoint] = []
-    for month in months:
-        key = month.strftime("%Y-%m")
-        present_sum, total = stats.get(key, (0, 0))
-        attendance_rate = float(present_sum / total) if total else 0.0
-        points.append(TrendPoint(date=key, attendance_rate=attendance_rate))
-    return points
-
-
-def build_dashboard(
-    db: Session,
-    term: str | None,
-    college_id: int | None,
-    major_id: int | None,
-    grade_year: int | None,
-) -> CockpitDashboard:
-    """组装驾驶舱总览：筛选项、卡片、趋势、分布、榜单、风险。"""
     student_query = db.query(Student).filter(Student.is_deleted == False)
-    student_query = _apply_student_filters(student_query, college_id, major_id, grade_year)
+    student_query = _helper_apply_student_filters(student_query)
     student_total = student_query.count()
 
     teacher_query = db.query(Teacher).filter(Teacher.is_deleted == False)
@@ -177,11 +101,33 @@ def build_dashboard(
 
     enroll_query = db.query(Enroll, Student).join(Student, Enroll.student_id == Student.id)
     enroll_query = enroll_query.filter(Enroll.is_deleted == False, Student.is_deleted == False)
-    enroll_query = _apply_student_filters(enroll_query, college_id, major_id, grade_year)
+    enroll_query = _helper_apply_student_filters(enroll_query)
     enroll_total = enroll_query.count()
 
-    avg_score, fail_rate, _ = _score_stats(db, term, college_id, major_id, grade_year)
-    attendance_rate = _attendance_rate(db, college_id, major_id, grade_year)
+    fail_case = case((Score.score_value < 60, 1), else_=0)
+    score_query = db.query(Score, Student).join(Student, Score.student_id == Student.id)
+    score_query = score_query.filter(Score.is_deleted == False, Student.is_deleted == False)
+    score_query = _helper_apply_student_filters(score_query)
+    if term:
+        score_query = score_query.filter(Score.term == term)
+    avg_score, fail_sum, score_total = score_query.with_entities(
+        func.avg(Score.score_value), func.sum(fail_case), func.count(Score.id)
+    ).one()
+    score_total = score_total or 0
+    fail_sum = fail_sum or 0
+    avg_score = float(avg_score) if avg_score is not None else 0.0
+    fail_rate = float(fail_sum / score_total) if score_total else 0.0
+
+    present_case = case((Attendance.status.in_(PRESENT_STATUSES), 1), else_=0)
+    attendance_query = db.query(Attendance, Student).join(Student, Attendance.student_id == Student.id)
+    attendance_query = attendance_query.filter(Attendance.is_deleted == False, Student.is_deleted == False)
+    attendance_query = _helper_apply_student_filters(attendance_query)
+    present_sum, attendance_total = attendance_query.with_entities(
+        func.sum(present_case), func.count(Attendance.id)
+    ).one()
+    attendance_total = attendance_total or 0
+    present_sum = present_sum or 0
+    attendance_rate = float(present_sum / attendance_total) if attendance_total else 0.0
 
     cards = [
         MetricCard(code="student_total", name="学生总数", value=float(student_total)),
@@ -193,12 +139,43 @@ def build_dashboard(
         MetricCard(code="fail_rate", name="挂科率", value=float(fail_rate), unit="ratio"),
     ]
 
+    today = date.today()
+    first_of_month = today.replace(day=1)
+    months = []
+    cursor = first_of_month
+    for _ in range(6):
+        months.append(cursor)
+        cursor = (cursor - timedelta(days=1)).replace(day=1)
+    months = list(reversed(months))
+
+    trend_query = (
+        db.query(
+            func.date_format(Attendance.attend_date, "%Y-%m"),
+            func.sum(present_case),
+            func.count(Attendance.id),
+        )
+        .join(Student, Attendance.student_id == Student.id)
+        .filter(Attendance.is_deleted == False, Student.is_deleted == False)
+        .filter(Attendance.attend_date >= months[0])
+    )
+    trend_query = _helper_apply_student_filters(trend_query)
+    trend_stats = {
+        row[0]: (row[1] or 0, row[2] or 0)
+        for row in trend_query.group_by(func.date_format(Attendance.attend_date, "%Y-%m")).all()
+    }
+    trends: list[TrendPoint] = []
+    for month in months:
+        key = month.strftime("%Y-%m")
+        month_present_sum, month_total = trend_stats.get(key, (0, 0))
+        month_rate = float(month_present_sum / month_total) if month_total else 0.0
+        trends.append(TrendPoint(date=key, attendance_rate=month_rate))
+
     college_dist_query = (
         db.query(College.college_name, func.count(Student.id))
         .join(Student, Student.college_id == College.id)
         .filter(College.is_deleted == False, Student.is_deleted == False)
     )
-    college_dist_query = _apply_student_filters(college_dist_query, college_id, major_id, grade_year)
+    college_dist_query = _helper_apply_student_filters(college_dist_query)
     college_dist = [
         DistributionItem(name=row[0], value=float(row[1]))
         for row in college_dist_query.group_by(College.id)
@@ -219,7 +196,7 @@ def build_dashboard(
         Student, Score.student_id == Student.id
     )
     score_band_query = score_band_query.filter(Score.is_deleted == False, Student.is_deleted == False)
-    score_band_query = _apply_student_filters(score_band_query, college_id, major_id, grade_year)
+    score_band_query = _helper_apply_student_filters(score_band_query)
     if term:
         score_band_query = score_band_query.filter(Score.term == term)
     score_band = [
@@ -227,25 +204,24 @@ def build_dashboard(
         for row in score_band_query.group_by(band_case).all()
     ]
 
-    fail_case = case((Score.score_value < 60, 1), else_=0)
     course_rank_query = (
         db.query(Course.course_name, func.sum(fail_case), func.count(Score.id))
         .join(Score, Score.course_id == Course.id)
         .join(Student, Score.student_id == Student.id)
         .filter(Course.is_deleted == False, Score.is_deleted == False, Student.is_deleted == False)
     )
-    course_rank_query = _apply_student_filters(course_rank_query, college_id, major_id, grade_year)
+    course_rank_query = _helper_apply_student_filters(course_rank_query)
     if term:
         course_rank_query = course_rank_query.filter(Score.term == term)
     course_rankings = []
-    for name, fail_sum, total in (
+    for name, course_fail_sum, course_total in (
         course_rank_query.group_by(Course.id)
         .order_by(desc(func.sum(fail_case)))
         .limit(6)
         .all()
     ):
-        total = total or 1
-        value = float((fail_sum or 0) / total)
+        course_total = course_total or 1
+        value = float((course_fail_sum or 0) / course_total)
         course_rankings.append(RankingItem(name=name, value=value))
 
     absent_case = case((Attendance.status == "缺勤", 1), else_=0)
@@ -259,16 +235,16 @@ def build_dashboard(
             Attendance.is_deleted == False,
         )
     )
-    class_rank_query = _apply_student_filters(class_rank_query, college_id, major_id, grade_year)
+    class_rank_query = _helper_apply_student_filters(class_rank_query)
     class_rankings = []
-    for name, absent_sum, total in (
+    for name, absent_sum, class_total in (
         class_rank_query.group_by(ClassModel.id)
         .order_by(desc(func.sum(absent_case)))
         .limit(6)
         .all()
     ):
-        total = total or 1
-        value = float((absent_sum or 0) / total)
+        class_total = class_total or 1
+        value = float((absent_sum or 0) / class_total)
         class_rankings.append(RankingItem(name=name, value=value))
 
     risk_query = (
@@ -276,17 +252,17 @@ def build_dashboard(
         .join(Score, Score.student_id == Student.id)
         .filter(Student.is_deleted == False, Score.is_deleted == False)
     )
-    risk_query = _apply_student_filters(risk_query, college_id, major_id, grade_year)
+    risk_query = _helper_apply_student_filters(risk_query)
     if term:
         risk_query = risk_query.filter(Score.term == term)
     risks = []
-    for name, student_no, fail_sum in (
+    for name, student_no, risk_fail_sum in (
         risk_query.group_by(Student.id)
         .order_by(desc(func.sum(fail_case)))
         .limit(200)
         .all()
     ):
-        count = int(fail_sum or 0)
+        count = int(risk_fail_sum or 0)
         if count >= 5:
             level = "high"
         elif count >= 2:
@@ -302,9 +278,9 @@ def build_dashboard(
         )
 
     return CockpitDashboard(
-        filters=_build_filter_options(db),
+        filters=filter_options,
         cards=cards,
-        trends=_build_trends(db, college_id, major_id, grade_year),
+        trends=trends,
         distributions={
             "college_students": college_dist,
             "score_band": score_band,
@@ -321,15 +297,22 @@ def build_risk_csv(
     db: Session, term: str | None, college_id: int | None, major_id: int | None, grade_year: int | None
 ) -> str:
     """导出风险榜单 CSV。"""
+
     fail_case = case((Score.score_value < 60, 1), else_=0)
     risk_query = (
         db.query(Student.real_name, Student.student_no, func.sum(fail_case))
         .join(Score, Score.student_id == Student.id)
         .filter(Student.is_deleted == False, Score.is_deleted == False)
     )
-    risk_query = _apply_student_filters(risk_query, college_id, major_id, grade_year)
+    if college_id:
+        risk_query = risk_query.filter(Student.college_id == college_id)
+    if major_id:
+        risk_query = risk_query.filter(Student.major_id == major_id)
+    if grade_year:
+        risk_query = risk_query.filter(Student.enroll_year == grade_year)
     if term:
         risk_query = risk_query.filter(Score.term == term)
+
     lines = ["name,level,message"]
     for name, student_no, fail_sum in (
         risk_query.group_by(Student.id)
@@ -347,3 +330,4 @@ def build_risk_csv(
         message = f"挂科 {count} 门".replace(",", " ")
         lines.append(f"{title},{level},{message}")
     return "\n".join(lines) + "\n"
+

@@ -44,6 +44,8 @@ export type ChatData = {
   final_status: "success" | "partial_success" | "failed";
   reason_code: string | null;
   summary: string;
+  assistant_reply?: string | null;
+  download_url?: string | null;
   task: TaskParseResult | null;
   sql_result: {
     sql: string;
@@ -138,6 +140,15 @@ export type ChatSessionMessageListResponse = {
   meta: ChatListMeta;
 };
 
+export type ChatSessionMutationResponse = {
+  code: number;
+  message: string;
+  data: {
+    deleted: number;
+    session_id?: string;
+  };
+};
+
 function buildFallbackChatResponse(sessionId: string, summary: string): ChatResponse {
   return {
     code: 0,
@@ -153,6 +164,8 @@ function buildFallbackChatResponse(sessionId: string, summary: string): ChatResp
       final_status: "success",
       reason_code: null,
       summary,
+      assistant_reply: summary,
+      download_url: null,
       task: null,
       sql_result: null,
       sql_validate_result: null,
@@ -353,5 +366,15 @@ export async function getChatSessionMessages(
   params: { offset: number; limit: number }
 ): Promise<ChatSessionMessageListResponse> {
   const response = await api.get<ChatSessionMessageListResponse>(`/chat/sessions/${sessionId}/messages`, { params });
+  return response.data;
+}
+
+export async function deleteChatSession(sessionId: string): Promise<ChatSessionMutationResponse> {
+  const response = await api.delete<ChatSessionMutationResponse>(`/chat/sessions/${encodeURIComponent(sessionId)}`);
+  return response.data;
+}
+
+export async function clearChatSessions(): Promise<ChatSessionMutationResponse> {
+  const response = await api.delete<ChatSessionMutationResponse>("/chat/sessions");
   return response.data;
 }

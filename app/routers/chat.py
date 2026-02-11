@@ -1,15 +1,19 @@
-from fastapi import APIRouter, Depends, Query
+from pathlib import Path
+
+from fastapi import APIRouter, Depends, HTTPException, Query, Request, status
 from fastapi.encoders import jsonable_encoder
-from fastapi.responses import StreamingResponse
+from fastapi.responses import FileResponse, StreamingResponse
 from sqlalchemy import func
 from sqlalchemy.orm import Session
 
 from app.core.config import settings
+from app.core.security import decode_access_token
 from app.db.session import SessionLocal
 from app.deps import get_current_admin, get_db
+from app.models.admin import Admin
 from app.models.chat_history import ChatHistory
 from app.schemas.chat import ChatIntentRequest, ChatParseData, ChatParseResponse
-from app.schemas.response import ListResponse, Meta
+from app.schemas.response import ListResponse, Meta, OkResponse
 from app.services.chat_graph import execute_chat_workflow
 from app.services.chat_stream_service import generate_chat_stream
 
@@ -147,4 +151,96 @@ def list_chat_session_messages(
     return ListResponse(
         data=jsonable_encoder(data),
         meta=Meta(offset=offset, limit=limit, total=total),
+    )
+
+
+@router.delete("/sessions/{session_id}", response_model=OkResponse)
+def delete_chat_session(
+    session_id: str,
+    db: Session = Depends(get_db),
+    current_admin=Depends(get_current_admin),
+):
+    filters = (
+        ChatHistory.admin_id == current_admin.id,
+        ChatHistory.session_id == session_id,
+        ChatHistory.is_deleted.is_(False),
+    )
+    exists = db.query(ChatHistory.id).filter(*filters).first()
+    if not exists:
+        raise HTTPException(status_code=404, detail="Session not found")
+
+    deleted = (
+        db.query(ChatHistory)
+        .filter(*filters)
+        .update(
+            {
+                ChatHistory.is_deleted: True,
+                ChatHistory.updated_by: current_admin.id,
+                ChatHistory.updated_at: func.now(),
+            },
+            synchronize_session=False,
+        )
+    )
+    db.commit()
+    return OkResponse(data={"session_id": session_id, "deleted": int(deleted)})
+
+
+@router.delete("/sessions", response_model=OkResponse)
+def clear_chat_sessions(
+    db: Session = Depends(get_db),
+    current_admin=Depends(get_current_admin),
+):
+    deleted = (
+        db.query(ChatHistory)
+        .filter(
+            ChatHistory.admin_id == current_admin.id,
+            ChatHistory.is_deleted.is_(False),
+        )
+        .update(
+            {
+                ChatHistory.is_deleted: True,
+                ChatHistory.updated_by: current_admin.id,
+                ChatHistory.updated_at: func.now(),
+            },
+            synchronize_session=False,
+        )
+    )
+    db.commit()
+    return OkResponse(data={"deleted": int(deleted)})
+
+
+@router.get("/downloads/{file_name}")
+def download_chat_export(
+    file_name: str,
+    request: Request,
+    token: str | None = Query(default=None),
+    db: Session = Depends(get_db),
+):
+    bearer_token = ""
+    auth_header = request.headers.get("Authorization", "")
+    if auth_header.lower().startswith("bearer "):
+        bearer_token = auth_header.split(" ", 1)[1].strip()
+    token_value = bearer_token or (token or "").strip()
+    admin_id = decode_access_token(token_value) if token_value else None
+    if not admin_id:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid token")
+    current_admin = db.query(Admin).filter(Admin.id == int(admin_id), Admin.is_deleted == False).first()
+    if not current_admin:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid token")
+
+    safe_name = Path(file_name).name
+    if safe_name != file_name or not safe_name.lower().endswith(".csv"):
+        raise HTTPException(status_code=400, detail="Invalid file name")
+    expected_prefix = f"admin_{current_admin.id}_"
+    if not safe_name.startswith(expected_prefix):
+        raise HTTPException(status_code=403, detail="No permission to download this file")
+
+    file_path = Path(settings.chat_export_dir) / safe_name
+    if not file_path.exists() or not file_path.is_file():
+        raise HTTPException(status_code=404, detail="File not found")
+
+    return FileResponse(
+        path=file_path,
+        media_type="text/csv; charset=utf-8",
+        filename=safe_name,
     )

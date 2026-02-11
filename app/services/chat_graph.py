@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import csv
 import json
 import re
 import uuid
@@ -1277,6 +1278,53 @@ def execute_chat_workflow(
         merged_query = str(intent_payload.get("merged_query", message)).strip()
         rewritten_query = str(intent_payload.get("rewritten_query", message)).strip()
         skipped = parse_result is None
+        operation = str((parse_result or {}).get("operation") or "").strip().lower()
+        deduplicated_row_count = 0
+
+        # Guardrail: de-duplicate list-style rows to avoid one student appearing many times due to joins.
+        if isinstance(sql_validate_result, dict):
+            payload_rows = sql_validate_result.get("result")
+            if isinstance(payload_rows, list) and payload_rows and operation in {"detail", "ranking"}:
+                unique_rows: list[Any] = []
+                seen_keys: set[str] = set()
+                seen_indexes: dict[str, int] = {}
+                for row in payload_rows:
+                    if isinstance(row, dict) and row.get("student_no") is not None:
+                        row_key = (
+                            f"student::{str(row.get('student_no', ''))}::"
+                            f"{str(row.get('real_name', ''))}"
+                        )
+                    else:
+                        try:
+                            row_key = f"row::{json.dumps(row, ensure_ascii=False, sort_keys=True, default=str)}"
+                        except Exception:
+                            row_key = f"row::{str(row)}"
+                    if row_key in seen_keys:
+                        row_index = seen_indexes.get(row_key)
+                        if (
+                                row_index is not None
+                                and isinstance(row, dict)
+                                and isinstance(unique_rows[row_index], dict)
+                        ):
+                            incoming_reason = str(row.get("reason") or "").strip()
+                            if incoming_reason:
+                                existing_reason = str(unique_rows[row_index].get("reason") or "").strip()
+                                if incoming_reason not in existing_reason:
+                                    if existing_reason:
+                                        unique_rows[row_index]["reason"] = f"{existing_reason}；{incoming_reason}"
+                                    else:
+                                        unique_rows[row_index]["reason"] = incoming_reason
+                        continue
+                    seen_keys.add(row_key)
+                    seen_indexes[row_key] = len(unique_rows)
+                    unique_rows.append(row)
+                deduplicated_row_count = len(payload_rows) - len(unique_rows)
+                if deduplicated_row_count > 0:
+                    normalized_validate = dict(sql_validate_result)
+                    normalized_validate["result"] = unique_rows
+                    normalized_validate["rows"] = len(unique_rows)
+                    normalized_validate["empty_result"] = len(unique_rows) == 0
+                    sql_validate_result = normalized_validate
 
         final_status = "failed"
         reason_code: str | None = None
@@ -1345,6 +1393,68 @@ def execute_chat_workflow(
                 summary = "SQL校验结果缺失，当前无法确认查询结果，请稍后重试。"
             else:
                 summary = "查询未成功完成，请稍后重试。"
+        assistant_reply = summary
+        download_url: str | None = None
+        if final_status == "success" and intent == "business_query":
+            result_rows: list[Any] = []
+            if isinstance(sql_validate_result, dict):
+                payload_rows = sql_validate_result.get("result")
+                if isinstance(payload_rows, list):
+                    result_rows = payload_rows
+            if result_rows:
+                max_detail_rows = 10
+                detail_lines: list[str] = [summary, "", "详细信息："]
+                for index, row in enumerate(result_rows[:max_detail_rows], start=1):
+                    if not isinstance(row, dict):
+                        detail_lines.append(f"{index}. {row}")
+                        continue
+                    row_pairs: list[str] = []
+                    for field_name, field_value in row.items():
+                        row_pairs.append(f"{field_name}={field_value}")
+                    detail_lines.append(f"{index}. {'，'.join(row_pairs)}")
+                if len(result_rows) > max_detail_rows:
+                    try:
+                        export_dir = Path(settings.chat_export_dir)
+                        export_dir.mkdir(parents=True, exist_ok=True)
+                        timestamp = datetime.now().strftime("%Y%m%d%H%M%S")
+                        export_name = f"admin_{admin_id}_session_{session_id}_{timestamp}_{uuid.uuid4().hex[:8]}.csv"
+                        export_path = export_dir / export_name
+                        normalized_rows: list[dict[str, Any]] = []
+                        for item in result_rows:
+                            if isinstance(item, dict):
+                                normalized_rows.append(item)
+                            else:
+                                normalized_rows.append({"value": item})
+                        fieldnames: list[str] = []
+                        seen_fields: set[str] = set()
+                        for row in normalized_rows:
+                            for key in row.keys():
+                                if key not in seen_fields:
+                                    seen_fields.add(key)
+                                    fieldnames.append(key)
+                        if not fieldnames:
+                            fieldnames = ["value"]
+                        with export_path.open("w", encoding="utf-8-sig", newline="") as fp:
+                            writer = csv.DictWriter(fp, fieldnames=fieldnames)
+                            writer.writeheader()
+                            for row in normalized_rows:
+                                writer.writerow({field: row.get(field, "") for field in fieldnames})
+                        download_url = f"/api/chat/downloads/{export_name}"
+                    except Exception:
+                        download_url = None
+                    detail_lines.append(
+                        f"数据共 {len(result_rows)} 行，当前仅展示前 {max_detail_rows} 行。"
+                    )
+                    if deduplicated_row_count > 0:
+                        detail_lines.append(f"已自动去重 {deduplicated_row_count} 条重复记录。")
+                    if download_url:
+                        detail_lines.append("数据量过多，请下载完整 CSV 查看：")
+                        detail_lines.append(download_url)
+                    else:
+                        detail_lines.append("数据量过多，CSV 导出失败，请稍后重试。")
+                elif deduplicated_row_count > 0:
+                    detail_lines.append(f"已自动去重 {deduplicated_row_count} 条重复记录。")
+                assistant_reply = "\n".join(detail_lines)
         result = {
             "session_id": session_id,
             "intent": intent,
@@ -1356,6 +1466,8 @@ def execute_chat_workflow(
             "final_status": final_status,
             "reason_code": reason_code,
             "summary": summary,
+            "assistant_reply": assistant_reply,
+            "download_url": download_url,
             "task": parse_result,
             "sql_result": sql_result,
             "sql_validate_result": sql_validate_result,
@@ -1540,7 +1652,7 @@ def execute_chat_workflow(
         _helper_insert_chat_history(
             session_id=session_id,
             user_message=payload.message,
-            assistant_message=result["summary"],
+            assistant_message=str(result.get("assistant_reply") or result.get("summary") or ""),
             model_name=model_name,
         )
         _helper_insert_workflow_log(
