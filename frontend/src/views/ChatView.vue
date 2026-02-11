@@ -18,24 +18,38 @@
           <aside class="card chat-sidebar" :class="{ 'is-open': showSessionPanel }">
             <div class="chat-sidebar-head">
               <p class="chat-sidebar-title">历史会话</p>
-              <button class="btn ghost" type="button" @click="startNewSession" :disabled="sending">新会话</button>
+              <button class="btn primary" type="button" @click="startNewSession" :disabled="sending">新会话</button>
+            </div>
+            <div class="chat-sidebar-search">
+              <label class="chat-search-label" for="chat-session-keyword">搜索会话</label>
+              <input
+                id="chat-session-keyword"
+                :value="sessionKeyword"
+                class="chat-search-input"
+                type="text"
+                placeholder="按标题或时间筛选"
+                @input="onSessionKeywordInput"
+              />
             </div>
             <div ref="sessionListRef" class="chat-session-list" @scroll.passive="handleSessionScroll">
               <button
-                v-for="session in sessions"
+                v-for="session in filteredSessions"
                 :key="session.session_id"
                 class="chat-session-item"
                 :class="{ 'is-active': session.session_id === activeSessionId }"
                 type="button"
                 @click="openSession(session.session_id)"
               >
-                <span class="chat-session-preview">{{ session.preview || "空会话" }}</span>
+                <span class="chat-session-preview">{{ resolveSessionPreview(session) }}</span>
                 <span class="chat-session-time">{{ formatSessionTime(session.last_active_at) }}</span>
               </button>
               <p v-if="sessionsLoading && !sessions.length" class="chat-side-tip">加载会话中...</p>
               <p v-else-if="!sessionsLoading && !sessions.length" class="chat-side-tip">暂无历史会话</p>
+              <p v-else-if="!sessionsLoading && sessions.length && !filteredSessions.length" class="chat-side-tip">
+                没有匹配的会话
+              </p>
               <p v-if="sessionsLoadingMore" class="chat-side-tip">加载更多会话...</p>
-              <p v-else-if="!sessionsHasMore && sessions.length" class="chat-side-tip">没有更多会话了</p>
+              <p v-else-if="!sessionsHasMore && filteredSessions.length" class="chat-side-tip">没有更多会话了</p>
               <p v-if="sessionError" class="error-text chat-side-error">{{ sessionError }}</p>
             </div>
           </aside>
@@ -43,11 +57,21 @@
           <section class="card chat-main">
             <div class="chat-main-head">
               <span class="chat-session">会话: {{ activeSessionId || "未选择" }}</span>
-              <button class="btn ghost" type="button" @click="startNewSession" :disabled="sending">新会话</button>
             </div>
 
             <div v-if="!activeSessionId && !timeline.length" class="chat-empty">
               <p>请选择左侧会话，或点击“新会话”开始对话。</p>
+              <div class="chat-quick-prompts">
+                <button
+                  v-for="prompt in quickPrompts"
+                  :key="prompt"
+                  class="chat-prompt-btn"
+                  type="button"
+                  @click="applyQuickPrompt(prompt)"
+                >
+                  {{ prompt }}
+                </button>
+              </div>
             </div>
 
             <div
@@ -74,22 +98,27 @@
                       {{ statusLine }}
                     </p>
                   </div>
-                  <p v-if="item.content" class="chat-msg-content">{{ item.content }}</p>
+                  <p class="chat-msg-content">{{ item.content }}</p>
                 </div>
               </div>
               <p v-if="activeSessionId && !timeline.length && !messagesLoading" class="chat-load-tip">该会话暂无消息</p>
               <p v-if="!messagesHasOlder && timeline.length" class="chat-load-tip">已显示最近消息</p>
             </div>
 
-            <section class="chat-composer">
+            <section class="chat-composer" :class="{ 'is-focused': isComposerFocused }">
               <label class="chat-label" for="chat-message">输入问题</label>
               <textarea
                 id="chat-message"
+                ref="composerRef"
                 v-model="message"
                 class="chat-textarea"
                 placeholder="输入问题后发送，未选会话将自动创建新会话"
+                @keydown="handleComposerKeydown"
+                @focus="isComposerFocused = true"
+                @blur="isComposerFocused = false"
               />
               <div class="chat-actions">
+                <p class="chat-shortcut-tip">Enter 发送，Shift + Enter 换行</p>
                 <button class="btn primary" type="button" @click="submitMessage" :disabled="sending || !message.trim()">
                   {{ sending ? "发送中..." : "发送" }}
                 </button>
@@ -104,7 +133,7 @@
 </template>
 
 <script setup lang="ts">
-import { nextTick, onMounted, ref } from "vue";
+import { computed, nextTick, onMounted, ref } from "vue";
 
 import AppLayout from "../layouts/AppLayout.vue";
 import {
@@ -130,8 +159,10 @@ const MESSAGE_PAGE_SIZE = 20;
 const showSessionPanel = ref(false);
 const sessionListRef = ref<HTMLElement | null>(null);
 const messageListRef = ref<HTMLElement | null>(null);
+const composerRef = ref<HTMLTextAreaElement | null>(null);
 
 const sessions = ref<ChatSessionItem[]>([]);
+const sessionKeyword = ref("");
 const sessionsLoading = ref(false);
 const sessionsLoadingMore = ref(false);
 const sessionsHasMore = ref(true);
@@ -148,11 +179,36 @@ const messageStartOffset = ref(0);
 const message = ref("");
 const sending = ref(false);
 const error = ref("");
+const isComposerFocused = ref(false);
+const quickPrompts = ref([
+  "查询本周学生出勤异常情况",
+  "对比各年级最近一次考试表现",
+  "列出需要重点关注的学生",
+]);
 
 let localMessageSeed = 0;
 const buildLocalId = (prefix: string) => `${prefix}-${Date.now()}-${++localMessageSeed}`;
 
 const wait = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+
+const resolveSessionPreview = (session: ChatSessionItem): string => {
+  const preview = (session.preview || "").trim();
+  if (preview) return preview;
+  const timeText = formatSessionTime(session.last_active_at);
+  return timeText ? `会话 ${timeText}` : "空会话";
+};
+
+const filteredSessions = computed(() => {
+  const keyword = sessionKeyword.value.trim().toLowerCase();
+  if (!keyword) {
+    return sessions.value;
+  }
+  return sessions.value.filter((session) => {
+    const preview = resolveSessionPreview(session).toLowerCase();
+    const timeText = formatSessionTime(session.last_active_at).toLowerCase();
+    return preview.includes(keyword) || timeText.includes(keyword);
+  });
+});
 
 const getAssistantMessageByIndex = (assistantIndex: number): TimelineMessage | null => {
   const message = timeline.value[assistantIndex];
@@ -165,7 +221,6 @@ const getAssistantMessageByIndex = (assistantIndex: number): TimelineMessage | n
 const appendAssistantTyping = async (assistantIndex: number, text: string) => {
   const assistantMessage = getAssistantMessageByIndex(assistantIndex);
   if (!assistantMessage) return;
-  assistantMessage.content = "";
   const stepSize = 2;
   for (let index = 0; index < text.length; index += stepSize) {
     const liveMessage = getAssistantMessageByIndex(assistantIndex);
@@ -215,6 +270,12 @@ const scrollToMessageBottom = () => {
   el.scrollTop = el.scrollHeight;
 };
 
+const focusComposer = () => {
+  void nextTick(() => {
+    composerRef.value?.focus();
+  });
+};
+
 const loadMoreSessions = async () => {
   if (!sessionsHasMore.value) return;
   if (sessionsLoading.value || sessionsLoadingMore.value) return;
@@ -248,11 +309,24 @@ const loadMoreSessions = async () => {
 };
 
 const refreshSessions = async () => {
-  sessions.value = [];
+  sessionsLoading.value = true;
+  sessionsLoadingMore.value = false;
   sessionsHasMore.value = true;
   sessionOffset.value = 0;
   sessionError.value = "";
-  await loadMoreSessions();
+  try {
+    const resp = await getChatSessions({
+      offset: 0,
+      limit: SESSION_PAGE_SIZE,
+    });
+    sessions.value = resp.data;
+    sessionOffset.value = resp.data.length;
+    sessionsHasMore.value = sessionOffset.value < resp.meta.total;
+  } catch (err: any) {
+    sessionError.value = err?.message ?? err?.response?.data?.message ?? "Failed to load sessions";
+  } finally {
+    sessionsLoading.value = false;
+  }
 };
 
 const mapMessages = (rows: ChatSessionMessageItem[]): TimelineMessage[] => {
@@ -350,6 +424,7 @@ const startNewSession = () => {
   if (window.innerWidth <= 960) {
     showSessionPanel.value = false;
   }
+  focusComposer();
 };
 
 const submitMessage = async () => {
@@ -414,6 +489,30 @@ const handleMessageScroll = () => {
 
 const toggleSessionPanel = () => {
   showSessionPanel.value = !showSessionPanel.value;
+};
+
+const handleSessionKeywordInput = (value: string) => {
+  sessionKeyword.value = value;
+};
+
+const onSessionKeywordInput = (event: Event) => {
+  const target = event.target as HTMLInputElement | null;
+  handleSessionKeywordInput(target?.value || "");
+};
+
+const handleComposerKeydown = (event: KeyboardEvent) => {
+  if (event.key !== "Enter" || event.shiftKey) {
+    return;
+  }
+  event.preventDefault();
+  if (!sending.value && message.value.trim()) {
+    void submitMessage();
+  }
+};
+
+const applyQuickPrompt = (prompt: string) => {
+  message.value = prompt;
+  focusComposer();
 };
 
 onMounted(() => {

@@ -12,6 +12,7 @@
         <RouterLink
           class="nav-item"
           :class="{ 'is-active': isActive('/cockpit') }"
+          :aria-current="isActive('/cockpit') ? 'page' : undefined"
           to="/cockpit"
         >
           驾驶舱
@@ -19,6 +20,7 @@
         <RouterLink
           class="nav-item"
           :class="{ 'is-active': isActive('/data') }"
+          :aria-current="isActive('/data') ? 'page' : undefined"
           to="/data"
         >
           数据管理
@@ -26,6 +28,7 @@
         <RouterLink
           class="nav-item"
           :class="{ 'is-active': isActive('/chat') }"
+          :aria-current="isActive('/chat') ? 'page' : undefined"
           to="/chat"
         >
           智能问答
