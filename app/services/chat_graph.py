@@ -5,7 +5,7 @@ import re
 import uuid
 from datetime import datetime
 from pathlib import Path
-from typing import Any, TypedDict
+from typing import Any, Callable, TypedDict
 
 from langgraph.constants import START
 from langgraph.graph import END, StateGraph
@@ -40,8 +40,9 @@ def execute_chat_workflow(
         db: Session,
         admin_id: int,
         payload: ChatIntentRequest,
+        on_step_event: Callable[[str, str, str | None], None] | None = None,
 ) -> dict[str, Any]:
-    """作用：执行统一聊天工作流（TASK010/TASK011/TASK015/TASK016）。
+    """作用：执行统一聊天工作流。
     
     输入参数：
     - db: Session。
@@ -56,6 +57,14 @@ def execute_chat_workflow(
     ALLOWED_OPERATIONS = {"detail", "aggregate", "ranking", "trend"}
     ALLOWED_FILTER_OPS = {"=", "!=", ">", "<", ">=", "<=", "like", "in", "not in", "between"}
     HIDDEN_CONTEXT_MAX_RETRY = 2
+
+    def _helper_emit_step_event(step_name: str, status: str, error_message: str | None = None) -> None:
+        if not on_step_event:
+            return
+        try:
+            on_step_event(step_name, status, error_message)
+        except Exception:
+            return
 
     def _helper_get_recent_user_messages(session_id: str, limit: int = 4) -> list[str]:
         """作用：读取同一会话最近的用户消息。
@@ -812,25 +821,15 @@ def execute_chat_workflow(
         field_whitelist, alias_pairs, schema_hints = _helper_build_kb_hints()
         whitelist_set = set(field_whitelist)
 
-        parse_filters = (parse_result or {}).get("filters") if isinstance(parse_result, dict) else []
-        parse_dimensions = (parse_result or {}).get("dimensions") if isinstance(parse_result, dict) else []
-        entity_mappings = (sql_result or {}).get("entity_mappings") if isinstance(sql_result, dict) else []
-
+        sql_fields = (sql_result or {}).get("sql_fields") if isinstance(sql_result, dict) else []
         candidate_fields: list[str] = []
-        for item in parse_filters or []:
-            if isinstance(item, dict):
-                field = str(item.get("field", "")).strip()
-                if field in whitelist_set:
-                    candidate_fields.append(field)
-        for field in parse_dimensions or []:
-            field_text = str(field).strip()
-            if field_text in whitelist_set:
-                candidate_fields.append(field_text)
-        for mapping in entity_mappings or []:
-            if isinstance(mapping, dict):
-                field = str(mapping.get("field", "")).strip()
-                if field in whitelist_set:
-                    candidate_fields.append(field)
+        if isinstance(sql_fields, list):
+            for field in sql_fields:
+                field_text = str(field).strip()
+                if not field_text:
+                    continue
+                if field_text in whitelist_set:
+                    candidate_fields.append(field_text)
 
         dedup_fields: list[str] = []
         seen_fields: set[str] = set()
@@ -840,7 +839,6 @@ def execute_chat_workflow(
                 continue
             seen_fields.add(key)
             dedup_fields.append(field)
-        dedup_fields = dedup_fields[:8]
 
         probe_samples: list[dict[str, Any]] = []
         for field in dedup_fields:
@@ -848,9 +846,10 @@ def execute_chat_workflow(
             probe_sql = (
                 f"SELECT DISTINCT {table_name}.{column_name} AS value "
                 f"FROM {table_name} "
-                f"WHERE {table_name}.{column_name} IS NOT NULL AND {table_name}.is_deleted = 0 "
-                f"LIMIT 20"
+                f"WHERE {table_name}.{column_name} IS NOT NULL AND {table_name}.is_deleted = 0"
             )
+            if table_name != "class":
+                probe_sql = f"{probe_sql} LIMIT 20"
             try:
                 rows = db.execute(text(probe_sql)).mappings().all()
                 values = [str(row.get("value")) for row in rows if row.get("value") is not None]
@@ -1092,6 +1091,7 @@ def execute_chat_workflow(
             "threshold": state["threshold"],
             "model_name": state["model_name"],
         }
+        _helper_emit_step_event("intent_recognition", "start", None)
         try:
             intent_result = _helper_intent_node_logic(
                 message=state["message"],
@@ -1100,9 +1100,11 @@ def execute_chat_workflow(
                 model_name=state["model_name"],
             )
             _helper_node_logger("intent_recognition", node_input, intent_result, "success", None)
+            _helper_emit_step_event("intent_recognition", "end", None)
             return {**state, "intent_result": intent_result}
         except Exception as exc:
             _helper_node_logger("intent_recognition", node_input, None, "failed", str(exc))
+            _helper_emit_step_event("intent_recognition", "error", str(exc))
             raise
 
     def _helper_task_parse_node(state: UnifiedChatGraphState) -> UnifiedChatGraphState:
@@ -1117,12 +1119,15 @@ def execute_chat_workflow(
 
         intent_result = state.get("intent_result") or {}
         node_input = {"intent_result": intent_result}
+        _helper_emit_step_event("task_parse", "start", None)
         try:
             parse_result = _helper_task_parse_node_logic(intent_result=intent_result, model_name=state["model_name"])
             _helper_node_logger("task_parse", node_input, parse_result, "success", None)
+            _helper_emit_step_event("task_parse", "end", None)
             return {**state, "parse_result": parse_result}
         except Exception as exc:
             _helper_node_logger("task_parse", node_input, None, "failed", str(exc))
+            _helper_emit_step_event("task_parse", "error", str(exc))
             raise
 
     def _helper_sql_generation_node(state: UnifiedChatGraphState) -> UnifiedChatGraphState:
@@ -1143,6 +1148,7 @@ def execute_chat_workflow(
             "parse_result": parse_result,
             "hidden_context_result": hidden_context_result,
         }
+        _helper_emit_step_event("sql_generation", "start", None)
         try:
             sql_result = _helper_sql_generation_node_logic(
                 rewritten_query=rewritten_query,
@@ -1151,9 +1157,11 @@ def execute_chat_workflow(
                 model_name=state["model_name"],
             )
             _helper_node_logger("sql_generation", node_input, sql_result, "success", None)
+            _helper_emit_step_event("sql_generation", "end", None)
             return {**state, "sql_result": sql_result}
         except Exception as exc:
             _helper_node_logger("sql_generation", node_input, None, "failed", str(exc))
+            _helper_emit_step_event("sql_generation", "error", str(exc))
             raise
 
     def _helper_sql_validate_node(state: UnifiedChatGraphState) -> UnifiedChatGraphState:
@@ -1167,10 +1175,16 @@ def execute_chat_workflow(
         """
 
         node_input = {"sql_result": state.get("sql_result")}
-        validate_result = _helper_sql_validate_node_logic(sql_result=state.get("sql_result"))
-        status = "success" if validate_result.get("is_valid") else "failed"
-        _helper_node_logger("sql_validate", node_input, validate_result, status, validate_result.get("error"))
-        return {**state, "sql_validate_result": validate_result}
+        _helper_emit_step_event("sql_validate", "start", None)
+        try:
+            validate_result = _helper_sql_validate_node_logic(sql_result=state.get("sql_result"))
+            status = "success" if validate_result.get("is_valid") else "failed"
+            _helper_node_logger("sql_validate", node_input, validate_result, status, validate_result.get("error"))
+            _helper_emit_step_event("sql_validate", "end", None)
+            return {**state, "sql_validate_result": validate_result}
+        except Exception as exc:
+            _helper_emit_step_event("sql_validate", "error", str(exc))
+            raise
 
     def _helper_hidden_context_node(state: UnifiedChatGraphState) -> UnifiedChatGraphState:
         """作用：图中的 隐藏上下文 探索节点。
@@ -1194,6 +1208,7 @@ def execute_chat_workflow(
             "sql_validate_result": sql_validate_result,
             "hidden_context_retry_count": current_retry_count,
         }
+        _helper_emit_step_event("hidden_context", "start", None)
         try:
             hidden_context_result = _helper_hidden_context_node_logic(
                 rewritten_query=rewritten_query,
@@ -1212,6 +1227,7 @@ def execute_chat_workflow(
                 status="success",
                 error_message=None,
             )
+            _helper_emit_step_event("hidden_context", "end", None)
             return {
                 **state,
                 "hidden_context_result": hidden_context_result,
@@ -1227,6 +1243,7 @@ def execute_chat_workflow(
                 status="failed",
                 error_message=str(exc),
             )
+            _helper_emit_step_event("hidden_context", "error", str(exc))
             raise
 
     def _helper_result_return_node_logic(
@@ -1367,6 +1384,7 @@ def execute_chat_workflow(
             "hidden_context_result": state.get("hidden_context_result"),
             "hidden_context_retry_count": int(state.get("hidden_context_retry_count") or 0),
         }
+        _helper_emit_step_event("result_return", "start", None)
         try:
             result_return_result = _helper_result_return_node_logic(
                 message=state["message"],
@@ -1379,9 +1397,11 @@ def execute_chat_workflow(
                 model_name=state["model_name"],
             )
             _helper_node_logger("result_return", node_input, result_return_result, "success", None)
+            _helper_emit_step_event("result_return", "end", None)
             return {**state, "result_return_result": result_return_result}
         except Exception as exc:
             _helper_node_logger("result_return", node_input, None, "failed", str(exc))
+            _helper_emit_step_event("result_return", "error", str(exc))
             raise
 
     def _helper_build_graph():

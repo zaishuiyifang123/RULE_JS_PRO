@@ -1,13 +1,17 @@
 from fastapi import APIRouter, Depends, Query
 from fastapi.encoders import jsonable_encoder
+from fastapi.responses import StreamingResponse
 from sqlalchemy import func
 from sqlalchemy.orm import Session
 
+from app.core.config import settings
+from app.db.session import SessionLocal
 from app.deps import get_current_admin, get_db
 from app.models.chat_history import ChatHistory
 from app.schemas.chat import ChatIntentRequest, ChatParseData, ChatParseResponse
 from app.schemas.response import ListResponse, Meta
 from app.services.chat_graph import execute_chat_workflow
+from app.services.chat_stream_service import generate_chat_stream
 
 router = APIRouter()
 
@@ -20,6 +24,28 @@ def chat_entry(
 ):
     data = execute_chat_workflow(db=db, admin_id=current_admin.id, payload=payload)
     return ChatParseResponse(data=ChatParseData(**data))
+
+
+@router.post("/stream")
+def chat_stream_entry(
+    payload: ChatIntentRequest,
+    current_admin=Depends(get_current_admin),
+):
+    if settings.chat_stream_mode == "sync":
+        db = SessionLocal()
+        try:
+            data = execute_chat_workflow(db=db, admin_id=current_admin.id, payload=payload)
+            return ChatParseResponse(data=ChatParseData(**data))
+        finally:
+            db.close()
+
+    stream_iterator = generate_chat_stream(admin_id=current_admin.id, payload=payload)
+    headers = {
+        "Cache-Control": "no-cache, no-transform",
+        "Connection": "keep-alive",
+        "X-Accel-Buffering": "no",
+    }
+    return StreamingResponse(stream_iterator, media_type="text/event-stream; charset=utf-8", headers=headers)
 
 
 @router.get("/sessions", response_model=ListResponse)

@@ -1,4 +1,4 @@
-﻿# 教务驾驶舱系统（多 Agents 工作流）蓝图
+# 教务驾驶舱系统（多 Agents 工作流）蓝图
 
 本文档作为后续开发的“项目蓝图”，指导 AI 与开发者在统一框架下推进前后端分离的教务驾驶舱系统。系统面向 **管理员**，以“监控、洞察、预警、可解释”为主线，同时保留“数据管理”能力作为底座，覆盖大规模数据（教师 1100+、学生 20000+、专业 64、每专业约 6 个班级）。
 
@@ -591,12 +591,18 @@
 ```json
 {
   "session_id": "...",
-  "step": "intent|task_parse|sql_gen|sql_validate|hidden_context|result",
+  "step": "workflow|intent_recognition|task_parse|sql_generation|sql_validate|hidden_context|result_return",
   "status": "start|end|error",
   "message": "...",
-  "timestamp": "2026-01-23T12:00:00Z"
+  "timestamp": "2026-01-23T12:00:00Z",
+  "seq": 1
 }
 ```
+
+说明：
+- `workflow_end` 事件会在 payload 中额外携带 `result`（结构与 `POST /api/chat` 的 `data` 一致）。
+- 正常步骤消息默认使用占位字符串（例如 `__STEP_INTENT_START__`），业务文案可后续替换。
+- 异常场景返回可读中文错误文案。
 
 ---
 
@@ -636,7 +642,11 @@
 
 ### 8.7 智能聊天
 - POST /api/chat
-- GET /api/chat/stream (SSE，待实现)
+- POST /api/chat/stream（SSE，已实现）
+
+`POST /api/chat/stream` 行为：
+- 当 `CHAT_STREAM_MODE=stream` 时返回 `text/event-stream`。
+- 当 `CHAT_STREAM_MODE=sync` 时返回 JSON，结构与 `POST /api/chat` 完全一致。
 
 `POST /api/chat` 当前返回结构：
 ```json
@@ -764,6 +774,9 @@
 - 模型 API Key
 - SSE 开关
 - 日志等级
+
+当前环境变量实现中可直接使用：
+- `CHAT_STREAM_MODE=stream|sync`（默认 `stream`）
 
 示例结构：
 ```yaml

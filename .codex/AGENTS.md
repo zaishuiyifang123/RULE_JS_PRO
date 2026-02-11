@@ -574,6 +574,18 @@ MUST NOT 在业务流程中间穿插嵌套函数定义
 
 业务代码应自上而下连续展开，不被实现细节打断
 
+Rule 6：线程 target 例外（仅限并发框架要求）
+
+当且仅当并发框架（如 threading.Thread / asyncio.create_task 等）要求传入可调用对象时：
+
+允许创建一次性嵌套函数作为 target
+
+MUST 使用 _helper 前缀命名（例如 _helper_worker）
+
+MUST 仍定义在当前业务函数内部且位于函数开头
+
+MUST NOT 将该 target 提升为模块级函数
+
 3️⃣ 正例（符合规范 ✅）
 正例 1：需要复用 → 使用嵌套 _helper
 def create_order(user, items):

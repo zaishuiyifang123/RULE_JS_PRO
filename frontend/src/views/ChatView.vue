@@ -60,11 +60,22 @@
               <p v-if="messagesLoading && !timeline.length" class="chat-load-tip">加载消息中...</p>
               <div
                 v-for="item in timeline"
-                :key="item.id ? `msg-${item.id}` : `tmp-${item.role}-${item.content}`"
+                :key="item.local_id"
                 class="chat-msg-row"
                 :class="item.role === 'user' ? 'is-user' : 'is-assistant'"
               >
-                <div class="chat-msg-bubble">{{ item.content }}</div>
+                <div class="chat-msg-bubble">
+                  <div v-if="item.role === 'assistant' && item.statusLines?.length" class="chat-msg-status-list">
+                    <p
+                      v-for="(statusLine, statusIndex) in item.statusLines"
+                      :key="`status-${statusIndex}-${statusLine}`"
+                      class="chat-msg-status"
+                    >
+                      {{ statusLine }}
+                    </p>
+                  </div>
+                  <p v-if="item.content" class="chat-msg-content">{{ item.content }}</p>
+                </div>
               </div>
               <p v-if="activeSessionId && !timeline.length && !messagesLoading" class="chat-load-tip">该会话暂无消息</p>
               <p v-if="!messagesHasOlder && timeline.length" class="chat-load-tip">已显示最近消息</p>
@@ -99,16 +110,18 @@ import AppLayout from "../layouts/AppLayout.vue";
 import {
   getChatSessionMessages,
   getChatSessions,
-  postChat,
+  postChatStream,
   type ChatSessionItem,
   type ChatSessionMessageItem,
 } from "../api/chat";
 
 type TimelineMessage = {
+  local_id: string;
   id?: number;
   role: "user" | "assistant";
   content: string;
   created_at?: string;
+  statusLines?: string[];
 };
 
 const SESSION_PAGE_SIZE = 20;
@@ -135,6 +148,55 @@ const messageStartOffset = ref(0);
 const message = ref("");
 const sending = ref(false);
 const error = ref("");
+
+let localMessageSeed = 0;
+const buildLocalId = (prefix: string) => `${prefix}-${Date.now()}-${++localMessageSeed}`;
+
+const wait = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+
+const getAssistantMessageByIndex = (assistantIndex: number): TimelineMessage | null => {
+  const message = timeline.value[assistantIndex];
+  if (!message || message.role !== "assistant") {
+    return null;
+  }
+  return message;
+};
+
+const appendAssistantTyping = async (assistantIndex: number, text: string) => {
+  const assistantMessage = getAssistantMessageByIndex(assistantIndex);
+  if (!assistantMessage) return;
+  assistantMessage.content = "";
+  const stepSize = 2;
+  for (let index = 0; index < text.length; index += stepSize) {
+    const liveMessage = getAssistantMessageByIndex(assistantIndex);
+    if (!liveMessage) return;
+    liveMessage.content += text.slice(index, index + stepSize);
+    if (index % 8 === 0) {
+      await nextTick();
+      scrollToMessageBottom();
+    }
+    await wait(16);
+  }
+  await nextTick();
+  scrollToMessageBottom();
+};
+
+const appendAssistantStatus = async (assistantIndex: number, statusText: string) => {
+  const assistantMessage = getAssistantMessageByIndex(assistantIndex);
+  if (!assistantMessage) return;
+  const text = statusText.trim();
+  if (!text) return;
+  if (!assistantMessage.statusLines) {
+    assistantMessage.statusLines = [];
+  }
+  const lastStatus = assistantMessage.statusLines[assistantMessage.statusLines.length - 1];
+  if (lastStatus === text) {
+    return;
+  }
+  assistantMessage.statusLines.push(text);
+  await nextTick();
+  scrollToMessageBottom();
+};
 
 const formatSessionTime = (value: string): string => {
   if (!value) return "";
@@ -178,7 +240,7 @@ const loadMoreSessions = async () => {
     sessionOffset.value += resp.data.length;
     sessionsHasMore.value = sessionOffset.value < resp.meta.total;
   } catch (err: any) {
-    sessionError.value = err?.response?.data?.message ?? "加载会话失败";
+    sessionError.value = err?.message ?? err?.response?.data?.message ?? "Failed to load sessions";
   } finally {
     sessionsLoading.value = false;
     sessionsLoadingMore.value = false;
@@ -195,6 +257,7 @@ const refreshSessions = async () => {
 
 const mapMessages = (rows: ChatSessionMessageItem[]): TimelineMessage[] => {
   return rows.map((item) => ({
+    local_id: item.id ? `msg-${item.id}` : buildLocalId("msg"),
     id: item.id,
     role: item.role === "assistant" ? "assistant" : "user",
     content: item.content,
@@ -227,7 +290,7 @@ const loadSessionMessages = async (sessionId: string) => {
     await nextTick();
     scrollToMessageBottom();
   } catch (err: any) {
-    error.value = err?.response?.data?.message ?? "加载会话消息失败";
+    error.value = err?.message ?? err?.response?.data?.message ?? "Failed to load messages";
   } finally {
     messagesLoading.value = false;
   }
@@ -260,7 +323,7 @@ const loadOlderMessages = async () => {
       container.scrollTop = container.scrollHeight - prevHeight + prevTop;
     }
   } catch (err: any) {
-    error.value = err?.response?.data?.message ?? "加载更早消息失败";
+    error.value = err?.message ?? err?.response?.data?.message ?? "Failed to load older messages";
   } finally {
     messagesLoadingMore.value = false;
   }
@@ -294,20 +357,40 @@ const submitMessage = async () => {
   if (!text) return;
   sending.value = true;
   error.value = "";
+  timeline.value.push({ local_id: buildLocalId("tmp-user"), role: "user", content: text });
+  const assistantMessage: TimelineMessage = {
+    local_id: buildLocalId("tmp-assistant"),
+    role: "assistant",
+    content: "",
+    statusLines: [],
+  };
+  const assistantIndex = timeline.value.length;
+  timeline.value.push(assistantMessage);
+  message.value = "";
+  await nextTick();
+  scrollToMessageBottom();
   try {
-    const resp = await postChat({
-      session_id: activeSessionId.value || undefined,
-      message: text,
-    });
+    const resp = await postChatStream(
+      {
+        session_id: activeSessionId.value || undefined,
+        message: text,
+      },
+      {
+        onEvent: (_event, data) => {
+          if (data.message) {
+            void appendAssistantStatus(assistantIndex, data.message);
+          }
+        },
+      }
+    );
     activeSessionId.value = resp.data.session_id;
-    timeline.value.push({ role: "user", content: text });
-    timeline.value.push({ role: "assistant", content: resp.data.summary });
-    message.value = "";
+    await appendAssistantTyping(assistantIndex, resp.data.summary || "");
     await refreshSessions();
     await nextTick();
     scrollToMessageBottom();
   } catch (err: any) {
-    error.value = err?.response?.data?.message ?? "请求失败";
+    error.value = err?.message ?? err?.response?.data?.message ?? "Request failed";
+    void appendAssistantStatus(assistantIndex, error.value || "请求失败");
   } finally {
     sending.value = false;
   }

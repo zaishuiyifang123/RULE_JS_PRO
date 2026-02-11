@@ -84,6 +84,27 @@ export type ChatResponse = {
   data: ChatData;
 };
 
+export type ChatStreamEventName =
+  | "workflow_start"
+  | "step_start"
+  | "step_end"
+  | "workflow_error"
+  | "workflow_end";
+
+export type ChatStreamEventData = {
+  session_id: string;
+  step: string;
+  status: "start" | "end" | "error";
+  message: string;
+  timestamp: string;
+  seq: number;
+  result?: ChatData;
+};
+
+export type PostChatStreamOptions = {
+  onEvent?: (event: ChatStreamEventName, data: ChatStreamEventData) => void;
+};
+
 export type ChatListMeta = {
   offset: number;
   limit: number;
@@ -117,9 +138,206 @@ export type ChatSessionMessageListResponse = {
   meta: ChatListMeta;
 };
 
+function buildFallbackChatResponse(sessionId: string, summary: string): ChatResponse {
+  return {
+    code: 0,
+    message: "ok",
+    data: {
+      session_id: sessionId,
+      intent: "chat",
+      is_followup: false,
+      merged_query: "",
+      rewritten_query: "",
+      skipped: false,
+      reason: null,
+      final_status: "success",
+      reason_code: null,
+      summary,
+      task: null,
+      sql_result: null,
+      sql_validate_result: null,
+      hidden_context_result: null,
+      hidden_context_retry_count: 0,
+    },
+  };
+}
+
+async function fetchLatestAssistantSummary(sessionId: string, token: string | null): Promise<string | null> {
+  const headers: Record<string, string> = {};
+  if (token) {
+    headers.Authorization = `Bearer ${token}`;
+  }
+  const probeResp = await fetch(`/api/chat/sessions/${sessionId}/messages?offset=0&limit=1`, { headers });
+  if (!probeResp.ok) {
+    return null;
+  }
+  const probeJson = (await probeResp.json()) as ChatSessionMessageListResponse;
+  const total = Number(probeJson?.meta?.total ?? 0);
+  if (total <= 0) {
+    return null;
+  }
+
+  const lastOffset = Math.max(total - 1, 0);
+  const lastResp = await fetch(`/api/chat/sessions/${sessionId}/messages?offset=${lastOffset}&limit=1`, { headers });
+  if (!lastResp.ok) {
+    return null;
+  }
+  const lastJson = (await lastResp.json()) as ChatSessionMessageListResponse;
+  const row = lastJson?.data?.[0];
+  if (!row || row.role !== "assistant") {
+    return null;
+  }
+  return row.content || "";
+}
+
 export async function postChat(payload: ChatRequest): Promise<ChatResponse> {
   const response = await api.post<ChatResponse>("/chat", payload);
   return response.data;
+}
+
+export async function postChatStream(
+  payload: ChatRequest,
+  options: PostChatStreamOptions = {}
+): Promise<ChatResponse> {
+  const token = localStorage.getItem("edu_token");
+  const response = await fetch("/api/chat/stream", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+    },
+    body: JSON.stringify(payload),
+  });
+
+  if (!response.ok) {
+    let message = `Request failed (${response.status})`;
+    try {
+      const errorJson = await response.json();
+      message = errorJson?.message ?? message;
+    } catch {
+      // ignore json parse error and keep fallback message
+    }
+    throw new Error(message);
+  }
+
+  const contentType = String(response.headers.get("content-type") || "").toLowerCase();
+  if (!contentType.includes("text/event-stream")) {
+    const json = (await response.json()) as ChatResponse;
+    return json;
+  }
+
+  if (!response.body) {
+    throw new Error("Empty stream response");
+  }
+
+  const reader = response.body.getReader();
+  const decoder = new TextDecoder("utf-8");
+  let buffer = "";
+  let currentEvent = "";
+  let dataLines: string[] = [];
+  let finalResult: ChatData | null = null;
+  let workflowErrorMessage = "";
+  let streamParseError = "";
+  let lastSessionId = "";
+  let sawWorkflowEnd = false;
+
+  const flushEvent = () => {
+    if (!currentEvent || !dataLines.length) {
+      currentEvent = "";
+      dataLines = [];
+      return;
+    }
+    const rawData = dataLines.join("\n");
+    dataLines = [];
+    try {
+      const parsed = JSON.parse(rawData) as ChatStreamEventData;
+      const eventName = currentEvent as ChatStreamEventName;
+      options.onEvent?.(eventName, parsed);
+      if (parsed.session_id) {
+        lastSessionId = parsed.session_id;
+      }
+      if (eventName === "workflow_end") {
+        sawWorkflowEnd = true;
+      }
+      if (eventName === "workflow_error" && parsed.message) {
+        workflowErrorMessage = parsed.message;
+      }
+      if (eventName === "workflow_end" && parsed.result) {
+        finalResult = parsed.result;
+      }
+    } catch {
+      // 记录解析失败，避免静默吞掉最终事件导致误判
+      streamParseError = "Malformed SSE event payload";
+    } finally {
+      currentEvent = "";
+    }
+  };
+
+  while (true) {
+    const { done, value } = await reader.read();
+    if (done) {
+      break;
+    }
+    buffer += decoder.decode(value, { stream: true });
+    while (true) {
+      const newlineIndex = buffer.indexOf("\n");
+      if (newlineIndex < 0) {
+        break;
+      }
+      const line = buffer.slice(0, newlineIndex).replace(/\r$/, "");
+      buffer = buffer.slice(newlineIndex + 1);
+      if (!line) {
+        flushEvent();
+        continue;
+      }
+      if (line.startsWith("event:")) {
+        currentEvent = line.slice("event:".length).trim();
+        continue;
+      }
+      if (line.startsWith("data:")) {
+        dataLines.push(line.slice("data:".length).trim());
+      }
+    }
+  }
+  // flush decoder internal bytes to avoid truncating the last UTF-8 event
+  buffer += decoder.decode();
+  while (true) {
+    const newlineIndex = buffer.indexOf("\n");
+    if (newlineIndex < 0) {
+      break;
+    }
+    const line = buffer.slice(0, newlineIndex).replace(/\r$/, "");
+    buffer = buffer.slice(newlineIndex + 1);
+    if (!line) {
+      flushEvent();
+      continue;
+    }
+    if (line.startsWith("event:")) {
+      currentEvent = line.slice("event:".length).trim();
+      continue;
+    }
+    if (line.startsWith("data:")) {
+      dataLines.push(line.slice("data:".length).trim());
+    }
+  }
+  flushEvent();
+
+  if (workflowErrorMessage) {
+    throw new Error(workflowErrorMessage);
+  }
+  if (streamParseError) {
+    throw new Error(streamParseError);
+  }
+  if (!finalResult) {
+    if (sawWorkflowEnd && lastSessionId) {
+      const summary = await fetchLatestAssistantSummary(lastSessionId, token);
+      if (summary !== null) {
+        return buildFallbackChatResponse(lastSessionId, summary);
+      }
+    }
+    throw new Error("Missing final result from stream");
+  }
+  return { code: 0, message: "ok", data: finalResult };
 }
 
 export async function getChatSessions(params: {

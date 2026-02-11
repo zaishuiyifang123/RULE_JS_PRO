@@ -5,14 +5,78 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="6c8e0914-6428-4a24-8e3e-eeee2006fd1f" name="Changes" comment="">
+      <change beforePath="$PROJECT_DIR$/.codex/AGENTS.md" beforeDir="false" afterPath="$PROJECT_DIR$/.codex/AGENTS.md" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.env" beforeDir="false" afterPath="$PROJECT_DIR$/.env" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/AI_JS.iml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/AI_JS.iml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/dataSources.local.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/dataSources.local.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/dataSources/1d0014e9-b951-47db-a5fc-9f86d0b9537f.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/dataSources/1d0014e9-b951-47db-a5fc-9f86d0b9537f.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/misc.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/misc.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/README.md" beforeDir="false" afterPath="$PROJECT_DIR$/README.md" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/core/config.py" beforeDir="false" afterPath="$PROJECT_DIR$/app/core/config.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/app/routers/chat.py" beforeDir="false" afterPath="$PROJECT_DIR$/app/routers/chat.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/schemas/chat.py" beforeDir="false" afterPath="$PROJECT_DIR$/app/schemas/chat.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/services/chat_graph.py" beforeDir="false" afterPath="$PROJECT_DIR$/app/services/chat_graph.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/dist/assets/index-BrRMkodm.js" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/dist/assets/index-Di9icB1P.css" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/dist/index.html" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/dist/index.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/node_modules/.vite/deps/_metadata.json" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/node_modules/.vite/deps/_metadata.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/node_modules/.vite/deps/axios.js.map" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/node_modules/.vite/deps/axios.js.map" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/node_modules/.vite/deps/chunk-DJTLO6GG.js" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/node_modules/.vite/deps/chunk-DJTLO6GG.js.map" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/node_modules/.vite/deps/pinia.js" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/node_modules/.vite/deps/pinia.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/node_modules/.vite/deps/pinia.js.map" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/node_modules/.vite/deps/pinia.js.map" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/node_modules/.vite/deps/vue-router.js" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/node_modules/.vite/deps/vue-router.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/node_modules/.vite/deps/vue-router.js.map" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/node_modules/.vite/deps/vue-router.js.map" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/node_modules/.vite/deps/vue.js" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/node_modules/.vite/deps/vue.js" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/frontend/src/api/chat.ts" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/src/api/chat.ts" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/frontend/src/styles/base.css" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/src/styles/base.css" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/frontend/src/views/ChatView.vue" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/src/views/ChatView.vue" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/frontend/src/views/CockpitView.vue" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/src/views/CockpitView.vue" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/frontend/src/views/DataView.vue" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/src/views/DataView.vue" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/local_logs/node_io/5bbc79684d4c43fb/hidden_context/20260210-23-37-18-071980-success.json" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/local_logs/node_io/5bbc79684d4c43fb/intent_recognition/20260210-23-37-08-359033-success.json" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/local_logs/node_io/5bbc79684d4c43fb/intent_recognition/20260210-23-41-06-291321-success.json" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/local_logs/node_io/5bbc79684d4c43fb/sql_generation/20260210-23-37-18-039092-success.json" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/local_logs/node_io/5bbc79684d4c43fb/sql_generation/20260210-23-37-26-126568-success.json" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/local_logs/node_io/5bbc79684d4c43fb/sql_generation/20260210-23-41-17-627080-success.json" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/local_logs/node_io/5bbc79684d4c43fb/sql_validate/20260210-23-37-18-048629-success.json" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/local_logs/node_io/5bbc79684d4c43fb/sql_validate/20260210-23-37-26-143913-success.json" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/local_logs/node_io/5bbc79684d4c43fb/sql_validate/20260210-23-41-17-676361-success.json" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/local_logs/node_io/5bbc79684d4c43fb/task_parse/20260210-23-37-12-081808-success.json" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/local_logs/node_io/5bbc79684d4c43fb/task_parse/20260210-23-41-09-978211-success.json" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/local_logs/node_io/618c9d91cc604f0e/intent_recognition/20260211-03-07-36-541326-success.json" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/local_logs/node_io/618c9d91cc604f0e/result_return/20260211-03-07-38-000004-success.json" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/local_logs/node_io/7625579f724346a3/intent_recognition/20260211-02-30-40-696145-success.json" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/local_logs/node_io/7625579f724346a3/result_return/20260211-02-30-41-607410-success.json" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/local_logs/node_io/9a66d219eb854d5c/intent_recognition/20260211-03-07-22-510496-success.json" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/local_logs/node_io/9a66d219eb854d5c/result_return/20260211-03-07-23-776128-success.json" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/local_logs/node_io/a24065afa6b8480d/intent_recognition/20260211-04-33-43-543654-success.json" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/local_logs/node_io/a24065afa6b8480d/intent_recognition/20260211-04-34-03-381710-success.json" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/local_logs/node_io/a24065afa6b8480d/intent_recognition/20260211-04-34-35-634160-success.json" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/local_logs/node_io/a24065afa6b8480d/result_return/20260211-04-33-50-524095-success.json" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/local_logs/node_io/a24065afa6b8480d/result_return/20260211-04-34-11-773584-success.json" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/local_logs/node_io/a24065afa6b8480d/result_return/20260211-04-34-46-357933-success.json" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/local_logs/node_io/a24065afa6b8480d/sql_generation/20260211-04-33-49-592522-success.json" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/local_logs/node_io/a24065afa6b8480d/sql_generation/20260211-04-34-10-558794-success.json" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/local_logs/node_io/a24065afa6b8480d/sql_generation/20260211-04-34-45-371942-success.json" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/local_logs/node_io/a24065afa6b8480d/sql_validate/20260211-04-33-49-609422-success.json" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/local_logs/node_io/a24065afa6b8480d/sql_validate/20260211-04-34-10-573804-success.json" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/local_logs/node_io/a24065afa6b8480d/sql_validate/20260211-04-34-45-393317-success.json" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/local_logs/node_io/a24065afa6b8480d/task_parse/20260211-04-33-45-978047-success.json" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/local_logs/node_io/a24065afa6b8480d/task_parse/20260211-04-34-06-366417-success.json" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/local_logs/node_io/a24065afa6b8480d/task_parse/20260211-04-34-39-213568-success.json" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/local_logs/node_io/b77a2aa884694a70/hidden_context/20260211-01-26-23-690875-success.json" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/local_logs/node_io/b77a2aa884694a70/intent_recognition/20260211-01-26-14-085514-success.json" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/local_logs/node_io/b77a2aa884694a70/result_return/20260211-01-26-32-306565-success.json" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/local_logs/node_io/b77a2aa884694a70/sql_generation/20260211-01-26-23-661622-success.json" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/local_logs/node_io/b77a2aa884694a70/sql_generation/20260211-01-26-31-409498-success.json" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/local_logs/node_io/b77a2aa884694a70/sql_validate/20260211-01-26-23-668593-success.json" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/local_logs/node_io/b77a2aa884694a70/sql_validate/20260211-01-26-31-413212-success.json" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/local_logs/node_io/b77a2aa884694a70/task_parse/20260211-01-26-17-713526-success.json" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/local_logs/node_io/e3c191852e98444c/intent_recognition/20260211-03-06-40-349340-success.json" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/local_logs/node_io/e3c191852e98444c/result_return/20260211-03-06-41-151826-success.json" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/local_logs/node_io/f608b11d340b45ad/intent_recognition/20260211-03-07-05-865123-success.json" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/local_logs/node_io/f608b11d340b45ad/intent_recognition/20260211-03-07-14-134772-success.json" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/local_logs/node_io/f608b11d340b45ad/result_return/20260211-03-07-07-016851-success.json" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/local_logs/node_io/f608b11d340b45ad/result_return/20260211-03-07-15-471633-success.json" beforeDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -33,33 +97,33 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent"><![CDATA[{
-  "keyToString": {
-    "ModuleVcsDetector.initialDetectionPerformed": "true",
-    "Python.init_db.executor": "Run",
-    "Python.main.executor": "Run",
-    "Python.python scripts/init_db.py.executor": "Run",
-    "RunOnceActivity.OpenProjectViewOnStart": "true",
-    "RunOnceActivity.ShowReadmeOnStart": "true",
-    "RunOnceActivity.git.unshallow": "true",
-    "RunOnceActivity.typescript.service.memoryLimit.init": "true",
-    "SHARE_PROJECT_CONFIGURATION_FILES": "true",
-    "git-widget-placeholder": "main",
-    "node.js.detected.package.eslint": "true",
-    "node.js.detected.package.tslint": "true",
-    "node.js.selected.package.eslint": "(autodetect)",
-    "node.js.selected.package.tslint": "(autodetect)",
-    "nodejs_package_manager_path": "npm",
-    "settings.editor.selected.configurable": "preferences.keymap",
-    "ts.external.directory.path": "C:\\Users\\94750\\Desktop\\GIT_PRO\\RULE_JS_PRO\\frontend\\node_modules\\typescript\\lib",
-    "vue.rearranger.settings.migration": "true"
+  <component name="PropertiesComponent">{
+  &quot;keyToString&quot;: {
+    &quot;ModuleVcsDetector.initialDetectionPerformed&quot;: &quot;true&quot;,
+    &quot;Python.init_db.executor&quot;: &quot;Run&quot;,
+    &quot;Python.main.executor&quot;: &quot;Run&quot;,
+    &quot;Python.python scripts/init_db.py.executor&quot;: &quot;Run&quot;,
+    &quot;RunOnceActivity.OpenProjectViewOnStart&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.git.unshallow&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.typescript.service.memoryLimit.init&quot;: &quot;true&quot;,
+    &quot;SHARE_PROJECT_CONFIGURATION_FILES&quot;: &quot;true&quot;,
+    &quot;git-widget-placeholder&quot;: &quot;main&quot;,
+    &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
+    &quot;node.js.detected.package.tslint&quot;: &quot;true&quot;,
+    &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,
+    &quot;node.js.selected.package.tslint&quot;: &quot;(autodetect)&quot;,
+    &quot;nodejs_package_manager_path&quot;: &quot;npm&quot;,
+    &quot;settings.editor.selected.configurable&quot;: &quot;preferences.keymap&quot;,
+    &quot;ts.external.directory.path&quot;: &quot;C:\\Users\\94750\\Desktop\\GIT_PRO\\RULE_JS_PRO\\frontend\\node_modules\\typescript\\lib&quot;,
+    &quot;vue.rearranger.settings.migration&quot;: &quot;true&quot;
   },
-  "keyToStringList": {
-    "DatabaseDriversLRU": [
-      "mysql"
+  &quot;keyToStringList&quot;: {
+    &quot;DatabaseDriversLRU&quot;: [
+      &quot;mysql&quot;
     ]
   }
-}]]></component>
+}</component>
   <component name="RunManager" selected="Python.python scripts/init_db.py">
     <configuration name="init_db" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
       <module name="AI_JS" />
@@ -75,6 +139,7 @@
       <option name="ADD_CONTENT_ROOTS" value="true" />
       <option name="ADD_SOURCE_ROOTS" value="true" />
       <EXTENSION ID="PythonCoverageRunConfigurationExtension" runner="coverage.py" />
+      <option name="RUN_TOOL" value="" />
       <option name="SCRIPT_NAME" value="$PROJECT_DIR$/scripts/init_db.py" />
       <option name="PARAMETERS" value="" />
       <option name="SHOW_COMMAND_LINE" value="false" />
@@ -122,6 +187,7 @@
       <option name="ADD_CONTENT_ROOTS" value="true" />
       <option name="ADD_SOURCE_ROOTS" value="true" />
       <EXTENSION ID="PythonCoverageRunConfigurationExtension" runner="coverage.py" />
+      <option name="RUN_TOOL" value="" />
       <option name="SCRIPT_NAME" value="$PROJECT_DIR$/main.py" />
       <option name="PARAMETERS" value="" />
       <option name="SHOW_COMMAND_LINE" value="false" />
@@ -169,6 +235,7 @@
       <option name="ADD_CONTENT_ROOTS" value="true" />
       <option name="ADD_SOURCE_ROOTS" value="true" />
       <EXTENSION ID="PythonCoverageRunConfigurationExtension" runner="coverage.py" />
+      <option name="RUN_TOOL" value="" />
       <option name="SCRIPT_NAME" value="scripts/init_db.py" />
       <option name="PARAMETERS" value="" />
       <option name="SHOW_COMMAND_LINE" value="false" />
@@ -213,7 +280,8 @@
   <component name="SharedIndexes">
     <attachedChunks>
       <set>
-        <option value="bundled-python-sdk-5a2391486177-2887949eec09-com.jetbrains.pycharm.pro.sharedIndexes.bundled-PY-233.13763.11" />
+        <option value="bundled-js-predefined-d6986cc7102b-9b0f141eb926-JavaScript-PY-253.29346.308" />
+        <option value="bundled-python-sdk-ca5e2b39c7df-6e1f45a539f7-com.jetbrains.pycharm.pro.sharedIndexes.bundled-PY-253.29346.308" />
       </set>
     </attachedChunks>
   </component>
@@ -233,6 +301,7 @@
       <workItem from="1770600696894" duration="11413000" />
       <workItem from="1770688112303" duration="23420000" />
       <workItem from="1770728288012" duration="10801000" />
+      <workItem from="1770773797115" duration="9781000" />
     </task>
     <servers />
   </component>
