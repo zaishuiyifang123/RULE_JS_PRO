@@ -16,112 +16,143 @@
 
       <div class="page-body-scroll">
         <section class="card filter-card">
-        <div class="filter-row">
-          <div class="filter-group">
-            <span class="filter-label">数据表</span>
-            <div class="table-switcher">
-              <button
-                v-for="option in tableOptions"
-                :key="option.key"
-                class="switcher-btn"
-                :class="{ active: option.key === tableKey }"
-                type="button"
-                @click="changeTable(option.key)"
-              >
-                {{ option.label }}
+          <div class="filter-row">
+            <div class="filter-group">
+              <span class="filter-label">数据表</span>
+              <div class="table-switcher">
+                <button
+                  v-for="option in tableOptions"
+                  :key="option.key"
+                  class="switcher-btn"
+                  :class="{ active: option.key === tableKey }"
+                  type="button"
+                  @click="changeTable(option.key)"
+                >
+                  {{ option.label }}
+                </button>
+              </div>
+            </div>
+          </div>
+          <div class="filter-row">
+            <div class="filter-group">
+              <span class="filter-label">关键词</span>
+              <input v-model="keyword" class="filter-input" placeholder="支持模糊匹配" />
+            </div>
+            <div class="filter-actions">
+              <button class="btn ghost" type="button" @click="applyFilters" :disabled="loading">
+                搜索
+              </button>
+              <button class="btn ghost" type="button" @click="resetFilters" :disabled="loading">
+                重置
+              </button>
+              <button class="btn ghost" type="button" @click="toggleAdvancedFilters">
+                {{ showAdvancedFilters ? "收起高级条件" : "高级条件" }}
               </button>
             </div>
           </div>
-        </div>
-        <div class="filter-row">
-          <div class="filter-group">
-            <span class="filter-label">关键词</span>
-            <input v-model="keyword" class="filter-input" placeholder="支持模糊匹配" />
+          <div v-if="showAdvancedFilters" class="filter-list">
+            <div class="filter-group">
+              <span class="filter-label">字段搜索</span>
+              <input
+                v-model="fieldKeyword"
+                class="filter-input filter-field-search"
+                placeholder="输入字段名快速筛选"
+              />
+            </div>
+            <div v-for="(item, index) in filters" :key="`filter-${index}`" class="filter-item">
+              <select v-model="item.key" class="filter-select">
+                <option value="">字段</option>
+                <option v-for="field in filteredFieldOptions" :key="field.key" :value="field.key">
+                  {{ field.label }}
+                </option>
+              </select>
+              <input v-model="item.value" class="filter-input" placeholder="填写值" />
+              <button class="btn ghost filter-remove" type="button" @click="removeFilter(index)">
+                移除
+              </button>
+            </div>
+            <button class="btn ghost" type="button" @click="addFilter">添加条件</button>
           </div>
-          <div class="filter-actions">
-            <button class="btn ghost" type="button" @click="applyFilters" :disabled="loading">
-              搜索
-            </button>
-            <button class="btn ghost" type="button" @click="resetFilters" :disabled="loading">
-              重置
-            </button>
+          <div v-if="activeFilterChips.length" class="active-filter-wrap">
+            <p class="active-filter-title">当前筛选</p>
+            <div class="active-filter-list">
+              <button
+                v-for="chip in activeFilterChips"
+                :key="chip.key"
+                class="active-filter-chip"
+                type="button"
+                @click="removeActiveFilter(chip.key)"
+                :title="`移除 ${chip.label}`"
+              >
+                {{ chip.label }} ×
+              </button>
+            </div>
           </div>
-        </div>
-        <div class="filter-list">
-          <div v-for="(item, index) in filters" :key="`filter-${index}`" class="filter-item">
-            <select v-model="item.key" class="filter-select">
-              <option value="">字段</option>
-              <option v-for="field in currentFields" :key="field.key" :value="field.key">
-                {{ field.label }}
-              </option>
-            </select>
-            <input v-model="item.value" class="filter-input" placeholder="填写值" />
-            <button class="btn ghost filter-remove" type="button" @click="removeFilter(index)">
-              移除
-            </button>
-          </div>
-          <button class="btn ghost" type="button" @click="addFilter">添加条件</button>
-        </div>
         </section>
 
         <section class="card">
-        <div class="table-meta">
-          <div>
-            <p class="table-title">{{ currentTable.label }}列表</p>
-            <p class="table-sub">支持筛选、分页与增删改查（软删除）</p>
+          <div class="table-meta">
+            <div>
+              <p class="table-title">{{ currentTable.label }}列表</p>
+              <p class="table-sub">支持筛选、分页与增删改查（软删除）</p>
+            </div>
+            <span class="meta-count">共 {{ meta.total }} 条</span>
           </div>
-          <span class="meta-count">共 {{ meta.total }} 条</span>
-        </div>
+          <p v-if="feedbackMessage" class="data-feedback" :class="feedbackType === 'error' ? 'is-error' : 'is-success'">
+            {{ feedbackMessage }}
+          </p>
 
-        <div v-if="loading" class="table-state">正在加载数据...</div>
-        <div v-else-if="error" class="table-state error-text">{{ error }}</div>
-        <div v-else-if="rows.length === 0" class="table-state">暂无数据</div>
-        <table v-else class="data-table">
-          <thead>
-            <tr>
-              <th v-for="col in currentTable.columns" :key="col.key">{{ col.label }}</th>
-              <th>操作</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr v-for="item in rows" :key="item.id">
-              <td v-for="col in currentTable.columns" :key="col.key">
-                <span
-                  v-if="col.key === 'status' && item[col.key]"
-                  class="status-badge"
-                  :class="statusClass(item[col.key])"
-                >
-                  {{ item[col.key] }}
-                </span>
-                <span v-else>
-                  {{ item[col.key] ?? "-" }}
-                </span>
-              </td>
-              <td>
-                <div class="table-actions">
-                  <button class="btn action edit" type="button" @click="openEdit(item)">编辑</button>
-                  <button
-                    v-if="tableKey === 'student'"
-                    class="btn action view"
-                    type="button"
-                    @click="openScores(item)"
-                  >
-                    成绩
-                  </button>
-                  <button class="btn action delete" type="button" @click="removeItem(item)">删除</button>
-                </div>
-              </td>
-            </tr>
-          </tbody>
-        </table>
+          <div v-if="loading" class="table-state">正在加载数据...</div>
+          <div v-else-if="error" class="table-state error-text">{{ error }}</div>
+          <div v-else-if="rows.length === 0" class="table-state">暂无数据</div>
+          <div v-else class="data-table-wrap">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th v-for="col in currentTable.columns" :key="col.key">{{ col.label }}</th>
+                  <th>操作</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr v-for="item in rows" :key="item.id">
+                  <td v-for="col in currentTable.columns" :key="col.key">
+                    <span
+                      v-if="col.key === 'status' && item[col.key]"
+                      class="status-badge"
+                      :class="statusClass(item[col.key])"
+                    >
+                      {{ item[col.key] }}
+                    </span>
+                    <span v-else>
+                      {{ item[col.key] ?? "-" }}
+                    </span>
+                  </td>
+                  <td>
+                    <div class="table-actions">
+                      <button class="btn action edit" type="button" @click="openEdit(item)">编辑</button>
+                      <button
+                        v-if="tableKey === 'student'"
+                        class="btn action view"
+                        type="button"
+                        @click="openScores(item)"
+                      >
+                        成绩
+                      </button>
+                      <button class="btn action delete" type="button" @click="removeItem(item)">删除</button>
+                    </div>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
 
-        <PaginationBar
-          :page="page"
-          :page-size="pageSize"
-          :total="meta.total"
-          @page-change="handlePageChange"
-          @page-size-change="handlePageSizeChange"
-        />
+          <PaginationBar
+            :page="page"
+            :page-size="pageSize"
+            :total="meta.total"
+            @page-change="handlePageChange"
+            @page-size-change="handlePageSizeChange"
+          />
         </section>
       </div>
     </section>
@@ -150,7 +181,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted, ref } from "vue";
+import { computed, onMounted, onUnmounted, ref } from "vue";
 import { useRoute } from "vue-router";
 
 import api from "../api/client";
@@ -189,6 +220,10 @@ type MetaInfo = {
 type FilterItem = {
   key: string;
   value: string;
+};
+type ActiveFilterChip = {
+  key: string;
+  label: string;
 };
 
 type ScoreRow = {
@@ -335,6 +370,30 @@ const currentTable = computed(() => {
   return tableOptions.find((option) => option.key === tableKey.value) || tableOptions[0];
 });
 const currentFields = computed(() => currentTable.value.fields);
+const filteredFieldOptions = computed(() => {
+  const keywordValue = fieldKeyword.value.trim().toLowerCase();
+  if (!keywordValue) {
+    return currentFields.value;
+  }
+  return currentFields.value.filter((field) => {
+    return field.label.toLowerCase().includes(keywordValue) || field.key.toLowerCase().includes(keywordValue);
+  });
+});
+const activeFilterChips = computed<ActiveFilterChip[]>(() => {
+  const chips: ActiveFilterChip[] = [];
+  const keywordValue = keyword.value.trim();
+  if (keywordValue) {
+    chips.push({ key: "keyword", label: `关键词: ${keywordValue}` });
+  }
+  filters.value.forEach((item, index) => {
+    if (!item.key || item.value === "") {
+      return;
+    }
+    const fieldLabel = currentFields.value.find((field) => field.key === item.key)?.label || item.key;
+    chips.push({ key: `filter-${index}`, label: `${fieldLabel}: ${item.value}` });
+  });
+  return chips;
+});
 
 const rows = ref<Record<string, any>[]>([]);
 const meta = ref<MetaInfo>({ offset: 0, limit: 20, total: 0 });
@@ -345,6 +404,8 @@ const page = ref(1);
 const pageSize = ref(20);
 
 const keyword = ref("");
+const fieldKeyword = ref("");
+const showAdvancedFilters = ref(false);
 const filters = ref<FilterItem[]>([{ key: "", value: "" }]);
 
 const nameMaps = ref<NameMaps>({
@@ -366,6 +427,9 @@ const scoreLoading = ref(false);
 const scoreError = ref("");
 const scoreRows = ref<ScoreRow[]>([]);
 const scoreStudentName = ref("");
+const feedbackMessage = ref("");
+const feedbackType = ref<"success" | "error">("success");
+let feedbackTimer: ReturnType<typeof setTimeout> | null = null;
 
 const modalTitle = computed(() => {
   return modalMode.value === "create"
@@ -379,6 +443,18 @@ const buildEmptyForm = () => {
     result[field.key] = "";
   });
   return result;
+};
+
+const showFeedback = (message: string, type: "success" | "error" = "success") => {
+  feedbackMessage.value = message;
+  feedbackType.value = type;
+  if (feedbackTimer) {
+    clearTimeout(feedbackTimer);
+  }
+  feedbackTimer = setTimeout(() => {
+    feedbackMessage.value = "";
+    feedbackTimer = null;
+  }, 2200);
 };
 
 const updateFormState = (value: Record<string, any>) => {
@@ -542,6 +618,8 @@ const changeTable = (key: string) => {
   tableKey.value = key;
   page.value = 1;
   keyword.value = "";
+  fieldKeyword.value = "";
+  showAdvancedFilters.value = false;
   filters.value = [{ key: "", value: "" }];
   formState.value = buildEmptyForm();
   fetchData();
@@ -566,7 +644,25 @@ const applyFilters = () => {
 
 const resetFilters = () => {
   keyword.value = "";
+  fieldKeyword.value = "";
   filters.value = [{ key: "", value: "" }];
+  page.value = 1;
+  fetchData();
+};
+
+const toggleAdvancedFilters = () => {
+  showAdvancedFilters.value = !showAdvancedFilters.value;
+};
+
+const removeActiveFilter = (chipKey: string) => {
+  if (chipKey === "keyword") {
+    keyword.value = "";
+  } else if (chipKey.startsWith("filter-")) {
+    const index = Number(chipKey.slice("filter-".length));
+    if (!Number.isNaN(index) && index >= 0 && index < filters.value.length) {
+      removeFilter(index);
+    }
+  }
   page.value = 1;
   fetchData();
 };
@@ -700,18 +796,23 @@ const submitForm = async () => {
   try {
     validateForm();
     const payload = normalizePayload();
+    let successMessage = "保存成功";
     if (modalMode.value === "create") {
       await api.post(`/data/${tableKey.value}/create`, payload);
+      successMessage = "新增成功";
     } else {
       if (!editingId.value) {
         throw new Error("缺少编辑目标");
       }
       await api.put(`/data/${tableKey.value}/${editingId.value}`, payload);
+      successMessage = "保存成功";
     }
     closeModal();
     await fetchData();
+    showFeedback(successMessage, "success");
   } catch (err: any) {
     formError.value = err?.response?.data?.message || err?.message || "提交失败";
+    showFeedback(formError.value || "提交失败", "error");
   } finally {
     formLoading.value = false;
   }
@@ -730,8 +831,10 @@ const removeItem = async (row: Record<string, any>) => {
   try {
     await api.delete(`/data/${tableKey.value}/${row.id}`);
     await fetchData();
+    showFeedback("删除成功", "success");
   } catch (err: any) {
     error.value = err?.response?.data?.message || "删除失败";
+    showFeedback(error.value || "删除失败", "error");
   } finally {
     loading.value = false;
   }
@@ -742,5 +845,12 @@ onMounted(async () => {
   applyRouteParams();
   await fetchNameMaps();
   await fetchData();
+});
+
+onUnmounted(() => {
+  if (feedbackTimer) {
+    clearTimeout(feedbackTimer);
+    feedbackTimer = null;
+  }
 });
 </script>

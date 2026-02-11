@@ -345,13 +345,22 @@ select:focus-visible {
   border-bottom: 3px solid var(--metric-accent, var(--accent));
 }
 
+.metric-card.is-key {
+  background: linear-gradient(180deg, #ffffff 0%, #f8fbff 100%);
+  box-shadow: 0 2px 6px rgba(15, 23, 42, 0.08);
+}
+
+.metric-card.is-key .metric-value {
+  font-size: 36px;
+}
+
 .metric-info {
   display: grid;
   gap: 6px;
 }
 
 .metric-name {
-  color: var(--muted);
+  color: #475569;
   font-size: 12px;
   margin: 0;
 }
@@ -479,7 +488,7 @@ select:focus-visible {
 }
 
 .filter-field label {
-  color: var(--muted);
+  color: #475569;
   text-transform: uppercase;
   letter-spacing: 1px;
   font-size: 11px;
@@ -489,9 +498,45 @@ select:focus-visible {
   padding: 10px 12px;
   border-radius: 12px;
   border: 1px solid var(--line);
-  background: #fbfaf7;
+  background: #ffffff;
   font-size: 14px;
   color: var(--ink);
+}
+
+.active-filter-wrap {
+  margin-top: 12px;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+  border-top: 1px solid #edf2f7;
+  padding-top: 12px;
+}
+
+.active-filter-title {
+  margin: 0;
+  color: #475569;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.active-filter-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.active-filter-chip {
+  display: inline-flex;
+  align-items: center;
+  border-radius: 999px;
+  border: 1px solid #dbeafe;
+  background: #eff6ff;
+  color: #1d4ed8;
+  font-size: 12px;
+  padding: 5px 10px;
+  line-height: 1;
+  cursor: pointer;
 }
 
 .dist-card .card-head {
@@ -519,7 +564,8 @@ select:focus-visible {
 
 .tab-btn.active {
   background: #fff;
-  color: var(--ink);
+  color: #1e3a8a;
+  font-weight: 600;
   box-shadow: var(--shadow);
 }
 
@@ -543,10 +589,12 @@ select:focus-visible {
 .bar-label {
   color: var(--ink);
   font-size: 13px;
-  max-width: 140px;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  max-width: none;
+  overflow: visible;
+  text-overflow: clip;
+  white-space: normal;
+  word-break: break-word;
+  line-height: 1.35;
 }
 
 .bar-track {
@@ -566,7 +614,7 @@ select:focus-visible {
 
 .bar-value {
   font-size: 12px;
-  color: var(--muted);
+  color: #475569;
 }
 
 .donut-wrap {
@@ -582,8 +630,8 @@ select:focus-visible {
 }
 
 .donut-chart {
-  width: 140px;
-  height: 140px;
+  width: 156px;
+  height: 156px;
 }
 
 .donut-legend {
@@ -610,7 +658,7 @@ select:focus-visible {
 }
 
 .legend-value {
-  color: var(--muted);
+  color: #475569;
   font-size: 12px;
 }
 
@@ -747,7 +795,7 @@ select:focus-visible {
 
 .rank-value {
   font-size: 12px;
-  color: var(--muted);
+  color: #475569;
   min-width: 52px;
 }
 
@@ -771,6 +819,10 @@ select:focus-visible {
 
 .mini-bar.medium {
   background: #f59e0b;
+}
+
+.mini-bar.low {
+  background: #22c55e;
 }
 
 
@@ -804,6 +856,7 @@ select:focus-visible {
   padding: 12px;
   border-radius: 14px;
   border: 1px solid var(--line);
+  background: #fff;
 }
 
 .alert-level {
@@ -811,6 +864,31 @@ select:focus-visible {
   text-transform: uppercase;
   letter-spacing: 1px;
   color: var(--warm);
+  font-weight: 700;
+}
+
+.alert-level.is-high {
+  color: #dc2626;
+}
+
+.alert-level.is-medium {
+  color: #d97706;
+}
+
+.alert-level.is-low {
+  color: #15803d;
+}
+
+.alert-item p {
+  margin: 0 0 4px;
+  color: #0f172a;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.alert-item small {
+  color: #475569;
+  font-size: 12px;
 }
 
 .table-meta {
@@ -820,13 +898,33 @@ select:focus-visible {
   margin-bottom: 16px;
 }
 
+.data-feedback {
+  margin: 0 0 12px;
+  padding: 8px 10px;
+  border-radius: 10px;
+  font-size: 13px;
+  line-height: 1.4;
+}
+
+.data-feedback.is-success {
+  background: #ecfdf3;
+  border: 1px solid #bbf7d0;
+  color: #166534;
+}
+
+.data-feedback.is-error {
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  color: #991b1b;
+}
+
 .table-title {
   font-weight: 600;
 }
 
 .table-sub {
   margin: 6px 0 0;
-  color: var(--muted);
+  color: #475569;
   font-size: 13px;
 }
 
@@ -899,6 +997,10 @@ select:focus-visible {
   gap: 12px;
 }
 
+.filter-field-search {
+  min-width: 220px;
+}
+
 .filter-item {
   display: flex;
   flex-wrap: wrap;
@@ -925,6 +1027,7 @@ select:focus-visible {
   width: 100%;
   border-collapse: collapse;
   font-size: 14px;
+  min-width: 960px;
 }
 
 .data-table th,
@@ -941,6 +1044,16 @@ select:focus-visible {
   letter-spacing: 1px;
   color: var(--muted);
   font-weight: 700;
+  position: sticky;
+  top: 0;
+  z-index: 1;
+}
+
+.data-table-wrap {
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  overflow: auto;
+  max-height: 62vh;
 }
 
 .data-table tbody tr:hover {

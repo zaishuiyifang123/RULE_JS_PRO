@@ -287,7 +287,12 @@ def build_dashboard(
         .all()
     ):
         count = int(fail_sum or 0)
-        level = "high" if count >= 3 else "medium"
+        if count >= 5:
+            level = "high"
+        elif count >= 2:
+            level = "medium"
+        else:
+            level = "low"
         risks.append(
             RiskItem(
                 level=level,
@@ -332,7 +337,12 @@ def build_risk_csv(
         .all()
     ):
         count = int(fail_sum or 0)
-        level = "high" if count >= 4 else "medium"
+        if count >= 5:
+            level = "high"
+        elif count >= 2:
+            level = "medium"
+        else:
+            level = "low"
         title = f"{name}（{student_no}）".replace(",", " ")
         message = f"挂科 {count} 门".replace(",", " ")
         lines.append(f"{title},{level},{message}")

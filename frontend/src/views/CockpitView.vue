@@ -64,19 +64,28 @@
               </button>
             </div>
           </div>
+          <div v-if="activeFilterChips.length" class="active-filter-wrap">
+            <p class="active-filter-title">当前筛选</p>
+            <div class="active-filter-list">
+              <span v-for="chip in activeFilterChips" :key="chip.key" class="active-filter-chip">
+                {{ chip.label }}
+              </span>
+            </div>
+          </div>
         </section>
 
         <section class="cockpit-grid">
           <div
             class="card metric-card"
-            v-for="card in cards"
+            v-for="(card, index) in cards"
             :key="card.code"
+            :class="{ 'is-key': index < 3 }"
             :style="{ '--metric-accent': metricAccent(card.code) }"
           >
             <div class="metric-info">
               <p class="metric-name">{{ card.name }}</p>
               <p class="metric-value">{{ formatValue(card) }}</p>
-              <span class="metric-tag">{{ card.code }}</span>
+              <span class="metric-tag">{{ metricCodeLabel(card.code) }}</span>
             </div>
             <div
               class="metric-icon"
@@ -141,7 +150,7 @@
                   type="button"
                   @click="distTab = 'college'"
                 >
-                  College Scale
+                  学院规模
                 </button>
                 <button
                   class="tab-btn"
@@ -149,12 +158,12 @@
                   type="button"
                   @click="distTab = 'score'"
                 >
-                  Grade Dist.
+                  成绩分布
                 </button>
               </div>
             </div>
             <div v-if="distTab === 'college'" class="bar-chart">
-              <div v-if="distributions.college_students.length === 0" class="table-state">No data</div>
+              <div v-if="distributions.college_students.length === 0" class="table-state">暂无数据</div>
               <div v-else class="bar-list">
                 <div v-for="item in distributions.college_students" :key="item.name" class="bar-row">
                   <span class="bar-label" :title="item.name">{{ item.name }}</span>
@@ -166,7 +175,7 @@
               </div>
             </div>
             <div v-else class="donut-wrap">
-              <div v-if="scoreTotal === 0" class="table-state">No data</div>
+              <div v-if="scoreTotal === 0" class="table-state">暂无数据</div>
               <div v-else class="donut-layout">
                 <svg class="donut-chart" viewBox="0 0 120 120" role="img" aria-label="score">
                   <g transform="rotate(-90 60 60)">
@@ -189,7 +198,7 @@
                   <div v-for="segment in scoreSegments" :key="segment.name" class="legend-item">
                     <span class="legend-dot" :style="{ background: segment.color }"></span>
                     <span class="legend-name">{{ segment.name }}</span>
-                    <span class="legend-value">{{ formatNumber(segment.value) }}</span>
+                    <span class="legend-value">{{ formatNumber(segment.value) }} / {{ toRatio(segment.value, scoreTotal) }}</span>
                   </div>
                 </div>
               </div>
@@ -211,7 +220,7 @@
                 <p class="rank-title">课程挂科率</p>
                 <ol class="rank-list">
                   <li v-for="(item, index) in sortedCourseFailRate" :key="item.name" class="rank-item">
-                    <span class="rank-badge" :class="rankClass(index)" :style="rankBadgeStyle(index)">{{ index + 1 }}</span>
+                    <span class="rank-badge" :class="rankClass(index)">{{ index + 1 }}</span>
                     <div class="rank-body">
                       <span class="rank-name">{{ item.name }}</span>
                       <div class="rank-progress">
@@ -228,7 +237,7 @@
                 <p class="rank-title">班级缺勤率</p>
                 <ol class="rank-list">
                   <li v-for="(item, index) in sortedClassAbsentRate" :key="item.name" class="rank-item">
-                    <span class="rank-badge" :class="rankClass(index)" :style="rankBadgeStyle(index)">{{ index + 1 }}</span>
+                    <span class="rank-badge" :class="rankClass(index)">{{ index + 1 }}</span>
                     <div class="rank-body">
                       <span class="rank-name">{{ item.name }}</span>
                       <div class="rank-progress">
@@ -256,7 +265,7 @@
             <div v-else-if="risks.length === 0" class="table-state">暂无风险</div>
             <ul v-else class="alert-list">
               <li v-for="item in risks" :key="item.title" class="alert-item">
-                <span class="alert-level">{{ item.level }}</span>
+                <span class="alert-level" :class="riskLevelClass(item.level)">{{ item.level }}</span>
                 <div>
                   <p>{{ item.title }}</p>
                   <small>{{ item.message }}</small>
@@ -329,6 +338,27 @@ const filteredMajors = computed(() => {
     .filter((item) => item.college_id === collegeId)
     .map((item) => ({ value: item.id, label: item.major_name }));
 });
+const activeFilterChips = computed(() => {
+  const chips: Array<{ key: string; label: string }> = [];
+  if (filters.term) {
+    chips.push({ key: "term", label: `学期: ${filters.term}` });
+  }
+  if (filters.college_id) {
+    const collegeLabel =
+      filterOptions.value.colleges.find((item) => String(item.value) === String(filters.college_id))?.label ||
+      filters.college_id;
+    chips.push({ key: "college", label: `学院: ${collegeLabel}` });
+  }
+  if (filters.major_id) {
+    const majorLabel =
+      filteredMajors.value.find((item) => String(item.value) === String(filters.major_id))?.label || filters.major_id;
+    chips.push({ key: "major", label: `专业: ${majorLabel}` });
+  }
+  if (filters.grade_year) {
+    chips.push({ key: "grade", label: `年级: ${filters.grade_year}` });
+  }
+  return chips;
+});
 
 const collegeMax = computed(() => Math.max(...distributions.value.college_students.map((i) => i.value), 1));
 const scoreColor = (name: string) => {
@@ -382,6 +412,12 @@ const formatNumber = (value: number) => {
 };
 
 const toPercent = (value: number) => `${(value * 100).toFixed(1)}%`;
+const toRatio = (value: number, total: number) => {
+  if (!total) {
+    return "0.0%";
+  }
+  return `${((value / total) * 100).toFixed(1)}%`;
+};
 
 const formatValue = (card: CardItem) => {
   if (card.unit === "ratio") {
@@ -430,6 +466,23 @@ const metricIcon = (code: string) => {
   return "K";
 };
 
+const metricCodeLabel = (code: string) => {
+  const normalized = code?.toLowerCase() || "";
+  if (normalized.includes("student") || normalized.includes("stu")) {
+    return "学生指标";
+  }
+  if (normalized.includes("teacher") || normalized.includes("teach")) {
+    return "教师指标";
+  }
+  if (normalized.includes("course") || normalized.includes("class")) {
+    return "课程指标";
+  }
+  if (normalized.includes("risk") || normalized.includes("alert")) {
+    return "风险指标";
+  }
+  return "核心指标";
+};
+
 const metricAccent = (code: string) => {
   const normalized = code?.toLowerCase() || "";
   if (normalized.includes("student") || normalized.includes("stu")) {
@@ -471,21 +524,25 @@ const rankClass = (index: number) => {
   return "normal";
 };
 
-const rankBadgeStyle = (index: number) => {
-  if (index === 0) {
-    return { backgroundColor: "#dc2626", color: "#fee2e2" };
+const riskBarClass = (value: number) => {
+  if (value > 0.2) {
+    return "high";
   }
-  if (index === 1) {
-    return { backgroundColor: "#ef4444", color: "#fee2e2" };
+  if (value > 0.1) {
+    return "medium";
   }
-  if (index === 2) {
-    return { backgroundColor: "#f87171", color: "#7f1d1d" };
-  }
-  return { backgroundColor: "#fee2e2", color: "#991b1b" };
+  return "low";
 };
 
-const riskBarClass = (value: number) => {
-  return value > 0.2 ? "high" : "medium";
+const riskLevelClass = (level: string) => {
+  const text = (level || "").toLowerCase();
+  if (text.includes("high") || text.includes("高")) {
+    return "is-high";
+  }
+  if (text.includes("medium") || text.includes("中")) {
+    return "is-medium";
+  }
+  return "is-low";
 };
 
 const buildParams = () => {
