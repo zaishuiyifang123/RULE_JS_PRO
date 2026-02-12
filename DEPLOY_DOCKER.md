@@ -17,6 +17,10 @@
 - `deploy/nginx/default.conf`
 - `.env`（服务器环境变量）
 
+建议在 `.env` 中显式配置：
+- `LLM_MODEL_INTENT`（意图识别/任务解析/结果总结）
+- `LLM_MODEL_SQL_GENERATION`（SQL 生成专用，默认 `qwen3-coder-plus`）
+
 ## 3. 启动命令（外部 MySQL）
 
 ```bash
