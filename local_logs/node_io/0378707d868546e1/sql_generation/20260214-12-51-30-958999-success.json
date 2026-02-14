@@ -1,0 +1,92 @@
+{
+  "session_id": "0378707d868546e1",
+  "admin_id": 1,
+  "step_name": "sql_generation",
+  "status": "success",
+  "error_message": null,
+  "timestamp": "2026-02-14T12:51:30",
+  "input": {
+    "rewritten_query": "分析22级计科一班出勤情况，分别是谁？",
+    "parse_result": {
+      "intent": "business_query",
+      "entities": [
+        {
+          "type": "grade",
+          "value": "22级"
+        },
+        {
+          "type": "class_name",
+          "value": "计科一班"
+        }
+      ],
+      "dimensions": [
+        "student.real_name",
+        "attendance.status"
+      ],
+      "metrics": [],
+      "filters": [
+        {
+          "field": "class.grade_year",
+          "op": "=",
+          "value": 2022
+        },
+        {
+          "field": "class.class_name",
+          "op": "=",
+          "value": "计科一班"
+        },
+        {
+          "field": "student.class_id",
+          "op": "=",
+          "value": "class.id"
+        },
+        {
+          "field": "attendance.student_id",
+          "op": "=",
+          "value": "student.id"
+        }
+      ],
+      "time_range": {
+        "start": null,
+        "end": null
+      },
+      "operation": "detail",
+      "confidence": 0.95
+    },
+    "hidden_context_result": null,
+    "model_name": "qwen3-max-2026-01-23"
+  },
+  "output": {
+    "sql": "WITH base AS (SELECT student.real_name, attendance.status FROM class JOIN student ON class.id = student.class_id JOIN attendance ON student.id = attendance.student_id WHERE class.grade_year = 2022 AND class.class_name = '计科一班' AND class.is_deleted = 0 AND student.is_deleted = 0 AND attendance.is_deleted = 0) SELECT base.real_name, base.status FROM base",
+    "entity_mappings": [
+      {
+        "type": "grade",
+        "value": "22级",
+        "field": "class.grade_year",
+        "reason": "根据字段描述“年级/入学年份（如 2022 级）”映射"
+      },
+      {
+        "type": "class_name",
+        "value": "计科一班",
+        "field": "class.class_name",
+        "reason": "根据字段描述“班级名称，班级实体映射主字段”映射"
+      }
+    ],
+    "sql_fields": [
+      "student.real_name",
+      "attendance.status",
+      "class.id",
+      "student.class_id",
+      "student.id",
+      "attendance.student_id",
+      "class.grade_year",
+      "class.class_name",
+      "class.is_deleted",
+      "student.is_deleted",
+      "attendance.is_deleted",
+      "base.real_name",
+      "base.status"
+    ],
+    "applied_field_replacements": []
+  }
+}

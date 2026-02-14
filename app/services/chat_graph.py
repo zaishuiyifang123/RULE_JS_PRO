@@ -1592,6 +1592,85 @@ def execute_chat_workflow(
         skipped = parse_result is None
         operation = str((parse_result or {}).get("operation") or "").strip().lower()
         deduplicated_row_count = 0
+        field_display_hints: dict[str, str] = {}
+
+        def _helper_pick_display_label(
+                field_name: str,
+                field_description: str,
+                aliases: list[Any],
+        ) -> str:
+            for alias in aliases:
+                alias_text = str(alias).strip()
+                if not alias_text:
+                    continue
+                if "." in alias_text:
+                    continue
+                if re.search(r"[\u4e00-\u9fff]", alias_text):
+                    return alias_text
+
+            desc_text = str(field_description).strip()
+            if desc_text:
+                label = re.split(r"[，。；（(]", desc_text, maxsplit=1)[0].strip()
+                if label:
+                    return label
+
+            if "." in field_name:
+                return field_name.split(".", 1)[1]
+            return field_name
+
+        def _helper_build_field_display_hints(
+                rows: list[Any],
+                schema_hints: list[dict[str, Any]],
+        ) -> dict[str, str]:
+            exact_labels: dict[str, str] = {}
+            suffix_labels: dict[str, str] = {}
+            suffix_conflicts: set[str] = set()
+
+            for item in schema_hints:
+                if not isinstance(item, dict):
+                    continue
+                field = str(item.get("field", "")).strip()
+                if not field:
+                    continue
+                aliases_raw = item.get("aliases")
+                aliases = aliases_raw if isinstance(aliases_raw, list) else []
+                label = _helper_pick_display_label(
+                    field_name=field,
+                    field_description=str(item.get("field_description", "")).strip(),
+                    aliases=aliases,
+                )
+                if not label:
+                    continue
+                exact_labels[field] = label
+                suffix = field.split(".", 1)[1] if "." in field else field
+                if suffix not in suffix_labels:
+                    suffix_labels[suffix] = label
+                elif suffix_labels[suffix] != label:
+                    suffix_conflicts.add(suffix)
+
+            for suffix in suffix_conflicts:
+                suffix_labels.pop(suffix, None)
+
+            hints: dict[str, str] = {}
+            seen_fields: set[str] = set()
+            for row in rows:
+                if not isinstance(row, dict):
+                    continue
+                for field_name in row.keys():
+                    name = str(field_name).strip()
+                    if not name or name in seen_fields:
+                        continue
+                    seen_fields.add(name)
+                    display = exact_labels.get(name)
+                    if (not display) and ("." in name):
+                        display = exact_labels.get(name.split(".", 1)[1])
+                    if not display:
+                        suffix = name.split(".", 1)[1] if "." in name else name
+                        display = suffix_labels.get(suffix)
+                    if not display:
+                        display = name
+                    hints[name] = display
+            return hints
 
         # Guardrail: de-duplicate list-style rows to avoid one student appearing many times due to joins.
         if isinstance(sql_validate_result, dict):
@@ -1638,6 +1717,12 @@ def execute_chat_workflow(
                     normalized_validate["empty_result"] = len(unique_rows) == 0
                     sql_validate_result = normalized_validate
 
+        if isinstance(sql_validate_result, dict):
+            payload_rows = sql_validate_result.get("result")
+            if isinstance(payload_rows, list) and payload_rows:
+                _, _, schema_hints = _helper_build_kb_hints()
+                field_display_hints = _helper_build_field_display_hints(payload_rows, schema_hints)
+
         final_status = "failed"
         reason_code: str | None = None
         if intent == "chat":
@@ -1678,6 +1763,7 @@ def execute_chat_workflow(
                     task=parse_result if isinstance(parse_result, dict) else None,
                     sql_validate_result=sql_validate_result if isinstance(sql_validate_result, dict) else None,
                     hidden_context_retry_count=hidden_context_retry_count,
+                    field_display_hints=field_display_hints,
                 ),
                 model_name=model_name,
                 timeout=12.0,
@@ -1722,8 +1808,11 @@ def execute_chat_workflow(
                         continue
                     row_pairs: list[str] = []
                     for field_name, field_value in row.items():
-                        row_pairs.append(f"{field_name}={field_value}")
-                    detail_lines.append(f"{index}. {'，'.join(row_pairs)}")
+                        raw_name = str(field_name)
+                        display_name = field_display_hints.get(raw_name, raw_name)
+                        display_value = "无" if field_value is None else field_value
+                        row_pairs.append(f"{display_name}={display_value}")
+                    detail_lines.append(f"{index}. {'；'.join(row_pairs)}")
                 if len(result_rows) > max_detail_rows:
                     try:
                         export_dir = Path(settings.chat_export_dir)

@@ -1,0 +1,64 @@
+{
+  "session_id": "0378707d868546e1",
+  "admin_id": 1,
+  "step_name": "task_parse",
+  "status": "success",
+  "error_message": null,
+  "timestamp": "2026-02-14T12:50:26",
+  "input": {
+    "intent_result": {
+      "intent": "business_query",
+      "is_followup": false,
+      "confidence": 0.95,
+      "merged_query": "分析22级计算机科学与技术专业一班的出勤情况",
+      "rewritten_query": "分析22级计算机科学与技术专业一班的出勤情况",
+      "threshold": 0.7
+    }
+  },
+  "output": {
+    "intent": "business_query",
+    "entities": [
+      {
+        "type": "grade",
+        "value": "22级"
+      },
+      {
+        "type": "major",
+        "value": "计算机科学与技术"
+      },
+      {
+        "type": "class_name",
+        "value": "一班"
+      }
+    ],
+    "dimensions": [
+      "attendance.status"
+    ],
+    "metrics": [
+      "count"
+    ],
+    "filters": [
+      {
+        "field": "class.grade_year",
+        "op": "=",
+        "value": 2022
+      },
+      {
+        "field": "major.major_name",
+        "op": "=",
+        "value": "计算机科学与技术"
+      },
+      {
+        "field": "class.class_name",
+        "op": "=",
+        "value": "一班"
+      }
+    ],
+    "time_range": {
+      "start": null,
+      "end": null
+    },
+    "operation": "aggregate",
+    "confidence": 0.95
+  }
+}

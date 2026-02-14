@@ -1,0 +1,205 @@
+{
+  "session_id": "0378707d868546e1",
+  "admin_id": 1,
+  "step_name": "sql_validate",
+  "status": "success",
+  "error_message": null,
+  "timestamp": "2026-02-14T12:51:45",
+  "input": {
+    "sql_result": {
+      "sql": "WITH base AS (SELECT student.real_name, attendance.status FROM class JOIN student ON class.id = student.class_id JOIN attendance ON student.id = attendance.student_id WHERE class.grade_year = 2022 AND class.class_name = '2022级计算机科学与技术1班' AND class.is_deleted = 0 AND student.is_deleted = 0 AND attendance.is_deleted = 0) SELECT base.real_name, base.status FROM base",
+      "entity_mappings": [
+        {
+          "type": "grade",
+          "value": "22级",
+          "field": "class.grade_year",
+          "reason": "根据字段描述“年级/入学年份（如 2022 级）”映射，probe_samples 显示 class.grade_year 候选值包含 '2022'，与原始值一致"
+        },
+        {
+          "type": "class_name",
+          "value": "计科一班",
+          "field": "class.class_name",
+          "reason": "原始值“计科一班”在 probe_samples 中无精确匹配，但存在语义近似值“2022级计算机科学与技术1班”，结合 grade=2022 优先选择该候选值"
+        }
+      ],
+      "sql_fields": [
+        "student.real_name",
+        "attendance.status",
+        "class.id",
+        "student.class_id",
+        "student.id",
+        "attendance.student_id",
+        "class.grade_year",
+        "class.class_name",
+        "class.is_deleted",
+        "student.is_deleted",
+        "attendance.is_deleted",
+        "base.real_name",
+        "base.status"
+      ],
+      "applied_field_replacements": []
+    }
+  },
+  "output": {
+    "is_valid": true,
+    "error": null,
+    "rows": 38,
+    "result": [
+      {
+        "real_name": "施伟",
+        "status": "迟到"
+      },
+      {
+        "real_name": "Ethan",
+        "status": "迟到"
+      },
+      {
+        "real_name": "周鹏",
+        "status": "早退"
+      },
+      {
+        "real_name": "孔航",
+        "status": "迟到"
+      },
+      {
+        "real_name": "吴斌",
+        "status": "缺勤"
+      },
+      {
+        "real_name": "Isabella",
+        "status": "迟到"
+      },
+      {
+        "real_name": "孙芳",
+        "status": "迟到"
+      },
+      {
+        "real_name": "孙芳",
+        "status": "迟到"
+      },
+      {
+        "real_name": "钱丹",
+        "status": "出勤"
+      },
+      {
+        "real_name": "施斌",
+        "status": "迟到"
+      },
+      {
+        "real_name": "郑涛宇",
+        "status": "早退"
+      },
+      {
+        "real_name": "陶洋",
+        "status": "迟到"
+      },
+      {
+        "real_name": "何勇",
+        "status": "迟到"
+      },
+      {
+        "real_name": "姜萍",
+        "status": "缺勤"
+      },
+      {
+        "real_name": "冯峰",
+        "status": "出勤"
+      },
+      {
+        "real_name": "郑航",
+        "status": "早退"
+      },
+      {
+        "real_name": "郑航",
+        "status": "迟到"
+      },
+      {
+        "real_name": "何欣",
+        "status": "早退"
+      },
+      {
+        "real_name": "周燕",
+        "status": "早退"
+      },
+      {
+        "real_name": "周燕",
+        "status": "出勤"
+      },
+      {
+        "real_name": "赵琳",
+        "status": "缺勤"
+      },
+      {
+        "real_name": "周芳洁",
+        "status": "缺勤"
+      },
+      {
+        "real_name": "秦伟浩",
+        "status": "早退"
+      },
+      {
+        "real_name": "孙洁",
+        "status": "早退"
+      },
+      {
+        "real_name": "杨琪媛",
+        "status": "缺勤"
+      },
+      {
+        "real_name": "孙慧雪",
+        "status": "迟到"
+      },
+      {
+        "real_name": "孙慧雪",
+        "status": "缺勤"
+      },
+      {
+        "real_name": "韩琪",
+        "status": "早退"
+      },
+      {
+        "real_name": "卫博",
+        "status": "缺勤"
+      },
+      {
+        "real_name": "卫博",
+        "status": "早退"
+      },
+      {
+        "real_name": "孔雅",
+        "status": "迟到"
+      },
+      {
+        "real_name": "孔雅",
+        "status": "缺勤"
+      },
+      {
+        "real_name": "韩勇",
+        "status": "缺勤"
+      },
+      {
+        "real_name": "韩勇",
+        "status": "出勤"
+      },
+      {
+        "real_name": "何艳",
+        "status": "早退"
+      },
+      {
+        "real_name": "吕婷",
+        "status": "迟到"
+      },
+      {
+        "real_name": "吕婷",
+        "status": "早退"
+      },
+      {
+        "real_name": "钱超",
+        "status": "早退"
+      }
+    ],
+    "executed_sql": "WITH base AS (SELECT student.real_name, attendance.status FROM class JOIN student ON class.id = student.class_id JOIN attendance ON student.id = attendance.student_id WHERE class.grade_year = 2022 AND class.class_name = '2022级计算机科学与技术1班' AND class.is_deleted = 0 AND student.is_deleted = 0 AND attendance.is_deleted = 0) SELECT base.real_name, base.status FROM base",
+    "empty_result": false,
+    "zero_metric_result": false
+  }
+}

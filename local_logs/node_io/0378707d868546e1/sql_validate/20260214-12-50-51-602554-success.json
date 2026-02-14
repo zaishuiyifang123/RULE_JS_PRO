@@ -1,0 +1,77 @@
+{
+  "session_id": "0378707d868546e1",
+  "admin_id": 1,
+  "step_name": "sql_validate",
+  "status": "success",
+  "error_message": null,
+  "timestamp": "2026-02-14T12:50:51",
+  "input": {
+    "sql_result": {
+      "sql": "WITH base AS (SELECT attendance.status FROM class JOIN major ON class.major_id = major.id JOIN student ON student.class_id = class.id JOIN attendance ON attendance.student_id = student.id WHERE class.grade_year = 2022 AND major.major_name = '计算机科学与技术' AND class.class_name = '2022级计算机科学与技术1班' AND class.is_deleted = 0 AND major.is_deleted = 0 AND student.is_deleted = 0 AND attendance.is_deleted = 0) SELECT base.status, COUNT(*) AS count FROM base GROUP BY base.status",
+      "entity_mappings": [
+        {
+          "type": "grade",
+          "value": "22级",
+          "field": "class.grade_year",
+          "reason": "根据字段描述“年级/入学年份（如 2022 级）”映射，probe_samples 显示 class.grade_year 候选值包含 '2022'，与原始值一致"
+        },
+        {
+          "type": "major",
+          "value": "计算机科学与技术",
+          "field": "major.major_name",
+          "reason": "根据字段描述“专业名称，专业实体映射主字段”映射，probe_samples 显示 major.major_name 候选值包含 '计算机科学与技术'，精确匹配"
+        },
+        {
+          "type": "class_name",
+          "value": "一班",
+          "field": "class.class_name",
+          "reason": "原始值“一班”在 probe_samples 中无直接匹配，但 class.class_name 候选值中存在“2022级计算机科学与技术1班”，结合 grade=2022 和 major=计算机科学与技术，推断“一班”对应“2022级计算机科学与技术1班”"
+        }
+      ],
+      "sql_fields": [
+        "attendance.status",
+        "class.major_id",
+        "major.id",
+        "student.class_id",
+        "class.id",
+        "attendance.student_id",
+        "student.id",
+        "class.grade_year",
+        "major.major_name",
+        "class.class_name",
+        "class.is_deleted",
+        "major.is_deleted",
+        "student.is_deleted",
+        "attendance.is_deleted",
+        "base.status"
+      ],
+      "applied_field_replacements": []
+    }
+  },
+  "output": {
+    "is_valid": true,
+    "error": null,
+    "rows": 4,
+    "result": [
+      {
+        "status": "迟到",
+        "count": 13
+      },
+      {
+        "status": "早退",
+        "count": 12
+      },
+      {
+        "status": "缺勤",
+        "count": 9
+      },
+      {
+        "status": "出勤",
+        "count": 4
+      }
+    ],
+    "executed_sql": "WITH base AS (SELECT attendance.status FROM class JOIN major ON class.major_id = major.id JOIN student ON student.class_id = class.id JOIN attendance ON attendance.student_id = student.id WHERE class.grade_year = 2022 AND major.major_name = '计算机科学与技术' AND class.class_name = '2022级计算机科学与技术1班' AND class.is_deleted = 0 AND major.is_deleted = 0 AND student.is_deleted = 0 AND attendance.is_deleted = 0) SELECT base.status, COUNT(*) AS count FROM base GROUP BY base.status",
+    "empty_result": false,
+    "zero_metric_result": false
+  }
+}

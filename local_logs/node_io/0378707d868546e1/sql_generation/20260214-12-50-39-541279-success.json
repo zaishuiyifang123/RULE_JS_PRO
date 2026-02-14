@@ -1,0 +1,100 @@
+{
+  "session_id": "0378707d868546e1",
+  "admin_id": 1,
+  "step_name": "sql_generation",
+  "status": "success",
+  "error_message": null,
+  "timestamp": "2026-02-14T12:50:39",
+  "input": {
+    "rewritten_query": "分析22级计算机科学与技术专业一班的出勤情况",
+    "parse_result": {
+      "intent": "business_query",
+      "entities": [
+        {
+          "type": "grade",
+          "value": "22级"
+        },
+        {
+          "type": "major",
+          "value": "计算机科学与技术"
+        },
+        {
+          "type": "class_name",
+          "value": "一班"
+        }
+      ],
+      "dimensions": [
+        "attendance.status"
+      ],
+      "metrics": [
+        "count"
+      ],
+      "filters": [
+        {
+          "field": "class.grade_year",
+          "op": "=",
+          "value": 2022
+        },
+        {
+          "field": "major.major_name",
+          "op": "=",
+          "value": "计算机科学与技术"
+        },
+        {
+          "field": "class.class_name",
+          "op": "=",
+          "value": "一班"
+        }
+      ],
+      "time_range": {
+        "start": null,
+        "end": null
+      },
+      "operation": "aggregate",
+      "confidence": 0.95
+    },
+    "hidden_context_result": null,
+    "model_name": "qwen3-max-2026-01-23"
+  },
+  "output": {
+    "sql": "WITH base AS (SELECT attendance.status FROM class JOIN major ON class.major_id = major.id JOIN student ON student.class_id = class.id JOIN attendance ON attendance.student_id = student.id WHERE class.grade_year = 2022 AND major.major_name = '计算机科学与技术' AND class.class_name = '一班' AND class.is_deleted = 0 AND major.is_deleted = 0 AND student.is_deleted = 0 AND attendance.is_deleted = 0) SELECT base.status, COUNT(*) AS count FROM base GROUP BY base.status",
+    "entity_mappings": [
+      {
+        "type": "grade",
+        "value": "22级",
+        "field": "class.grade_year",
+        "reason": "根据字段描述“年级/入学年份（如 2022 级）”映射"
+      },
+      {
+        "type": "major",
+        "value": "计算机科学与技术",
+        "field": "major.major_name",
+        "reason": "根据字段描述“专业名称，专业实体映射主字段”映射"
+      },
+      {
+        "type": "class_name",
+        "value": "一班",
+        "field": "class.class_name",
+        "reason": "根据字段描述“班级名称，班级实体映射主字段”映射"
+      }
+    ],
+    "sql_fields": [
+      "attendance.status",
+      "class.major_id",
+      "major.id",
+      "student.class_id",
+      "class.id",
+      "attendance.student_id",
+      "student.id",
+      "class.grade_year",
+      "major.major_name",
+      "class.class_name",
+      "class.is_deleted",
+      "major.is_deleted",
+      "student.is_deleted",
+      "attendance.is_deleted",
+      "base.status"
+    ],
+    "applied_field_replacements": []
+  }
+}
