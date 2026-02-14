@@ -1,0 +1,84 @@
+{
+  "session_id": "9b125a7fa8354723",
+  "admin_id": 1,
+  "step_name": "task_parse",
+  "status": "success",
+  "error_message": null,
+  "timestamp": "2026-02-14T16:55:43",
+  "input": {
+    "intent_result": {
+      "intent": "business_query",
+      "is_followup": false,
+      "confidence": 0.95,
+      "merged_query": "查询信息工程学院2024级在2025年9月的迟到、缺勤和早退等异常考勤记录",
+      "rewritten_query": "查询信息工程学院2024级在2025年9月的迟到、缺勤和早退等异常考勤记录",
+      "threshold": 0.7
+    }
+  },
+  "output": {
+    "intent": "business_query",
+    "entities": [
+      {
+        "type": "college",
+        "value": "信息工程学院"
+      },
+      {
+        "type": "grade",
+        "value": "2024级"
+      },
+      {
+        "type": "time",
+        "value": "2025年9月"
+      },
+      {
+        "type": "attendance_status",
+        "value": "['迟到', '缺勤', '早退']"
+      }
+    ],
+    "dimensions": [
+      "student.student_no",
+      "student.real_name",
+      "course_class.id",
+      "attendance.attend_date",
+      "attendance.status"
+    ],
+    "metrics": [],
+    "filters": [
+      {
+        "field": "college.college_name",
+        "op": "=",
+        "value": "信息工程学院"
+      },
+      {
+        "field": "class.grade_year",
+        "op": "=",
+        "value": 2024
+      },
+      {
+        "field": "attendance.attend_date",
+        "op": ">=",
+        "value": "2025-09-01"
+      },
+      {
+        "field": "attendance.attend_date",
+        "op": "<=",
+        "value": "2025-09-30"
+      },
+      {
+        "field": "attendance.status",
+        "op": "in",
+        "value": [
+          "迟到",
+          "缺勤",
+          "早退"
+        ]
+      }
+    ],
+    "time_range": {
+      "start": "2025-09-01",
+      "end": "2025-09-30"
+    },
+    "operation": "detail",
+    "confidence": 0.95
+  }
+}

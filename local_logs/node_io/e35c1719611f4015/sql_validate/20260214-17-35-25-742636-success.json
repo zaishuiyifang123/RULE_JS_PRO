@@ -1,0 +1,1002 @@
+{
+  "session_id": "e35c1719611f4015",
+  "admin_id": 1,
+  "step_name": "sql_validate",
+  "status": "success",
+  "error_message": null,
+  "timestamp": "2026-02-14T17:35:25",
+  "input": {
+    "sql_result": {
+      "sql": "WITH base AS (SELECT student.student_no, student.real_name, course.course_name, course.course_code, score.score_value FROM student JOIN score ON student.id = score.student_id JOIN course ON score.course_id = course.id WHERE course.course_code IN ('K0001', 'K0002', 'K0003', 'K0004', 'K0005') AND course.course_type = '必修' AND score.score_value < 60.9 AND student.is_deleted = 0 AND course.is_deleted = 0 AND score.is_deleted = 0) SELECT base.student_no, base.real_name, base.course_name, base.course_code, base.score_value FROM base",
+      "entity_mappings": [
+        {
+          "type": "major_code",
+          "value": "M010",
+          "field": "course.course_code",
+          "reason": "原始值“M010”在 probe_samples 中无匹配，根据 retry_constraints.value_replacements 使用候选值 ['K0001','K0002','K0003','K0004','K0005'] 替代"
+        },
+        {
+          "type": "course_type",
+          "value": "必修课",
+          "field": "course.course_type",
+          "reason": "probe_samples 显示 course.course_type 实际值为“必修”，对“必修课”做模糊归一化为“必修”"
+        },
+        {
+          "type": "score_value",
+          "value": "低于60分",
+          "field": "score.score_value",
+          "reason": "原始阈值60在 probe_samples 中无严格小于记录，根据 retry_constraints.value_replacements 使用候选值60.9作为新阈值，保留“<”逻辑以捕获如59.8、57.3等不及格成绩"
+        }
+      ],
+      "sql_fields": [
+        "student.student_no",
+        "student.real_name",
+        "course.course_name",
+        "course.course_code",
+        "score.score_value",
+        "student.id",
+        "score.student_id",
+        "score.course_id",
+        "course.id",
+        "course.course_type",
+        "student.is_deleted",
+        "course.is_deleted",
+        "score.is_deleted",
+        "base.student_no",
+        "base.real_name",
+        "base.course_name",
+        "base.course_code",
+        "base.score_value"
+      ],
+      "applied_field_replacements": []
+    }
+  },
+  "output": {
+    "is_valid": true,
+    "error": null,
+    "rows": 134,
+    "result": [
+      {
+        "student_no": "S00107",
+        "real_name": "施琳",
+        "course_name": "工程学院课程2",
+        "course_code": "K0002",
+        "score_value": 58.6
+      },
+      {
+        "student_no": "S00117",
+        "real_name": "魏军",
+        "course_name": "工程学院课程2",
+        "course_code": "K0002",
+        "score_value": 55.9
+      },
+      {
+        "student_no": "S00119",
+        "real_name": "Mia",
+        "course_name": "工程学院课程2",
+        "course_code": "K0002",
+        "score_value": 57.2
+      },
+      {
+        "student_no": "S00124",
+        "real_name": "魏涛",
+        "course_name": "工程学院课程2",
+        "course_code": "K0002",
+        "score_value": 60.7
+      },
+      {
+        "student_no": "S00132",
+        "real_name": "施雅",
+        "course_name": "工程学院课程2",
+        "course_code": "K0002",
+        "score_value": 57.2
+      },
+      {
+        "student_no": "S00135",
+        "real_name": "朱慧",
+        "course_name": "工程学院课程2",
+        "course_code": "K0002",
+        "score_value": 54.6
+      },
+      {
+        "student_no": "S00136",
+        "real_name": "Lucas",
+        "course_name": "工程学院课程2",
+        "course_code": "K0002",
+        "score_value": 60.5
+      },
+      {
+        "student_no": "S00141",
+        "real_name": "张雪婷",
+        "course_name": "工程学院课程2",
+        "course_code": "K0002",
+        "score_value": 53.6
+      },
+      {
+        "student_no": "S00142",
+        "real_name": "韩琪",
+        "course_name": "工程学院课程2",
+        "course_code": "K0002",
+        "score_value": 54.0
+      },
+      {
+        "student_no": "S00274",
+        "real_name": "魏伟",
+        "course_name": "工程学院课程2",
+        "course_code": "K0002",
+        "score_value": 59.3
+      },
+      {
+        "student_no": "S00280",
+        "real_name": "Ava",
+        "course_name": "工程学院课程2",
+        "course_code": "K0002",
+        "score_value": 58.8
+      },
+      {
+        "student_no": "S00282",
+        "real_name": "钱琪",
+        "course_name": "工程学院课程2",
+        "course_code": "K0002",
+        "score_value": 53.3
+      },
+      {
+        "student_no": "S00285",
+        "real_name": "Liam",
+        "course_name": "工程学院课程2",
+        "course_code": "K0002",
+        "score_value": 51.1
+      },
+      {
+        "student_no": "S00286",
+        "real_name": "陈超",
+        "course_name": "工程学院课程2",
+        "course_code": "K0002",
+        "score_value": 57.3
+      },
+      {
+        "student_no": "S00287",
+        "real_name": "秦洋",
+        "course_name": "工程学院课程2",
+        "course_code": "K0002",
+        "score_value": 51.3
+      },
+      {
+        "student_no": "S00293",
+        "real_name": "许雅",
+        "course_name": "工程学院课程2",
+        "course_code": "K0002",
+        "score_value": 55.3
+      },
+      {
+        "student_no": "S00309",
+        "real_name": "孔敏慧",
+        "course_name": "工程学院课程2",
+        "course_code": "K0002",
+        "score_value": 60.0
+      },
+      {
+        "student_no": "S00315",
+        "real_name": "郑伟",
+        "course_name": "工程学院课程2",
+        "course_code": "K0002",
+        "score_value": 56.2
+      },
+      {
+        "student_no": "S00317",
+        "real_name": "王琳倩",
+        "course_name": "工程学院课程2",
+        "course_code": "K0002",
+        "score_value": 59.7
+      },
+      {
+        "student_no": "S00318",
+        "real_name": "陈洋鹏",
+        "course_name": "工程学院课程2",
+        "course_code": "K0002",
+        "score_value": 54.5
+      },
+      {
+        "student_no": "S02745",
+        "real_name": "张雅",
+        "course_name": "工程学院课程2",
+        "course_code": "K0002",
+        "score_value": 51.5
+      },
+      {
+        "student_no": "S02749",
+        "real_name": "郑倩",
+        "course_name": "工程学院课程2",
+        "course_code": "K0002",
+        "score_value": 56.9
+      },
+      {
+        "student_no": "S02752",
+        "real_name": "朱欣",
+        "course_name": "工程学院课程2",
+        "course_code": "K0002",
+        "score_value": 51.7
+      },
+      {
+        "student_no": "S02757",
+        "real_name": "陶浩",
+        "course_name": "工程学院课程2",
+        "course_code": "K0002",
+        "score_value": 59.9
+      },
+      {
+        "student_no": "S02764",
+        "real_name": "严磊晨",
+        "course_name": "工程学院课程2",
+        "course_code": "K0002",
+        "score_value": 59.7
+      },
+      {
+        "student_no": "S02767",
+        "real_name": "郑丹",
+        "course_name": "工程学院课程2",
+        "course_code": "K0002",
+        "score_value": 59.4
+      },
+      {
+        "student_no": "S02769",
+        "real_name": "华颖",
+        "course_name": "工程学院课程2",
+        "course_code": "K0002",
+        "score_value": 52.8
+      },
+      {
+        "student_no": "S05182",
+        "real_name": "卫鑫",
+        "course_name": "工程学院课程2",
+        "course_code": "K0002",
+        "score_value": 53.5
+      },
+      {
+        "student_no": "S05187",
+        "real_name": "何斌",
+        "course_name": "工程学院课程2",
+        "course_code": "K0002",
+        "score_value": 60.1
+      },
+      {
+        "student_no": "S05190",
+        "real_name": "何鑫",
+        "course_name": "工程学院课程2",
+        "course_code": "K0002",
+        "score_value": 55.8
+      },
+      {
+        "student_no": "S05204",
+        "real_name": "陶雪",
+        "course_name": "工程学院课程2",
+        "course_code": "K0002",
+        "score_value": 55.2
+      },
+      {
+        "student_no": "S05208",
+        "real_name": "何浩",
+        "course_name": "工程学院课程2",
+        "course_code": "K0002",
+        "score_value": 58.1
+      },
+      {
+        "student_no": "S05214",
+        "real_name": "吴萍",
+        "course_name": "工程学院课程2",
+        "course_code": "K0002",
+        "score_value": 53.6
+      },
+      {
+        "student_no": "S05218",
+        "real_name": "陈伟",
+        "course_name": "工程学院课程2",
+        "course_code": "K0002",
+        "score_value": 54.8
+      },
+      {
+        "student_no": "S05221",
+        "real_name": "郑昊",
+        "course_name": "工程学院课程2",
+        "course_code": "K0002",
+        "score_value": 58.3
+      },
+      {
+        "student_no": "S05223",
+        "real_name": "Isabella",
+        "course_name": "工程学院课程2",
+        "course_code": "K0002",
+        "score_value": 57.4
+      },
+      {
+        "student_no": "S05225",
+        "real_name": "姜凯",
+        "course_name": "工程学院课程2",
+        "course_code": "K0002",
+        "score_value": 51.7
+      },
+      {
+        "student_no": "S05229",
+        "real_name": "何军",
+        "course_name": "工程学院课程2",
+        "course_code": "K0002",
+        "score_value": 59.7
+      },
+      {
+        "student_no": "S05235",
+        "real_name": "蒋超",
+        "course_name": "工程学院课程2",
+        "course_code": "K0002",
+        "score_value": 50.5
+      },
+      {
+        "student_no": "S05241",
+        "real_name": "冯娜敏",
+        "course_name": "工程学院课程2",
+        "course_code": "K0002",
+        "score_value": 57.8
+      },
+      {
+        "student_no": "S05245",
+        "real_name": "陶慧",
+        "course_name": "工程学院课程2",
+        "course_code": "K0002",
+        "score_value": 53.9
+      },
+      {
+        "student_no": "S05246",
+        "real_name": "陶娜",
+        "course_name": "工程学院课程2",
+        "course_code": "K0002",
+        "score_value": 54.9
+      },
+      {
+        "student_no": "S05247",
+        "real_name": "钱皓",
+        "course_name": "工程学院课程2",
+        "course_code": "K0002",
+        "score_value": 54.6
+      },
+      {
+        "student_no": "S05248",
+        "real_name": "郑峰磊",
+        "course_name": "工程学院课程2",
+        "course_code": "K0002",
+        "score_value": 59.8
+      },
+      {
+        "student_no": "S05250",
+        "real_name": "尤宇",
+        "course_name": "工程学院课程2",
+        "course_code": "K0002",
+        "score_value": 50.7
+      },
+      {
+        "student_no": "S05257",
+        "real_name": "韩婷",
+        "course_name": "工程学院课程2",
+        "course_code": "K0002",
+        "score_value": 52.8
+      },
+      {
+        "student_no": "S05260",
+        "real_name": "华燕",
+        "course_name": "工程学院课程2",
+        "course_code": "K0002",
+        "score_value": 57.4
+      },
+      {
+        "student_no": "S05261",
+        "real_name": "华军鹏",
+        "course_name": "工程学院课程2",
+        "course_code": "K0002",
+        "score_value": 58.6
+      },
+      {
+        "student_no": "S05265",
+        "real_name": "卫超",
+        "course_name": "工程学院课程2",
+        "course_code": "K0002",
+        "score_value": 56.9
+      },
+      {
+        "student_no": "S05269",
+        "real_name": "李涛",
+        "course_name": "工程学院课程2",
+        "course_code": "K0002",
+        "score_value": 55.2
+      },
+      {
+        "student_no": "S05272",
+        "real_name": "沈洁",
+        "course_name": "工程学院课程2",
+        "course_code": "K0002",
+        "score_value": 57.3
+      },
+      {
+        "student_no": "S05288",
+        "real_name": "郑婷",
+        "course_name": "工程学院课程2",
+        "course_code": "K0002",
+        "score_value": 57.2
+      },
+      {
+        "student_no": "S05294",
+        "real_name": "朱静",
+        "course_name": "工程学院课程2",
+        "course_code": "K0002",
+        "score_value": 56.4
+      },
+      {
+        "student_no": "S05298",
+        "real_name": "吴婷",
+        "course_name": "工程学院课程2",
+        "course_code": "K0002",
+        "score_value": 60.3
+      },
+      {
+        "student_no": "S05300",
+        "real_name": "蒋丽雅",
+        "course_name": "工程学院课程2",
+        "course_code": "K0002",
+        "score_value": 56.2
+      },
+      {
+        "student_no": "S05308",
+        "real_name": "杨博",
+        "course_name": "工程学院课程2",
+        "course_code": "K0002",
+        "score_value": 54.0
+      },
+      {
+        "student_no": "S05309",
+        "real_name": "冯杰",
+        "course_name": "工程学院课程2",
+        "course_code": "K0002",
+        "score_value": 50.9
+      },
+      {
+        "student_no": "S05313",
+        "real_name": "何丽",
+        "course_name": "工程学院课程2",
+        "course_code": "K0002",
+        "score_value": 51.3
+      },
+      {
+        "student_no": "S05315",
+        "real_name": "褚丽萍",
+        "course_name": "工程学院课程2",
+        "course_code": "K0002",
+        "score_value": 53.4
+      },
+      {
+        "student_no": "S05328",
+        "real_name": "杨萍娜",
+        "course_name": "工程学院课程2",
+        "course_code": "K0002",
+        "score_value": 55.1
+      },
+      {
+        "student_no": "S05332",
+        "real_name": "冯洋",
+        "course_name": "工程学院课程2",
+        "course_code": "K0002",
+        "score_value": 54.8
+      },
+      {
+        "student_no": "S05334",
+        "real_name": "孙军",
+        "course_name": "工程学院课程2",
+        "course_code": "K0002",
+        "score_value": 58.3
+      },
+      {
+        "student_no": "S07625",
+        "real_name": "吴鑫",
+        "course_name": "工程学院课程2",
+        "course_code": "K0002",
+        "score_value": 54.8
+      },
+      {
+        "student_no": "S07633",
+        "real_name": "周杰强",
+        "course_name": "工程学院课程2",
+        "course_code": "K0002",
+        "score_value": 59.8
+      },
+      {
+        "student_no": "S07634",
+        "real_name": "孔峰",
+        "course_name": "工程学院课程2",
+        "course_code": "K0002",
+        "score_value": 52.2
+      },
+      {
+        "student_no": "S07644",
+        "real_name": "郑艳婷",
+        "course_name": "工程学院课程2",
+        "course_code": "K0002",
+        "score_value": 59.3
+      },
+      {
+        "student_no": "S07648",
+        "real_name": "秦鑫皓",
+        "course_name": "工程学院课程2",
+        "course_code": "K0002",
+        "score_value": 60.0
+      },
+      {
+        "student_no": "S07651",
+        "real_name": "何鹏军",
+        "course_name": "工程学院课程2",
+        "course_code": "K0002",
+        "score_value": 51.2
+      },
+      {
+        "student_no": "S07666",
+        "real_name": "金雪艳",
+        "course_name": "工程学院课程2",
+        "course_code": "K0002",
+        "score_value": 50.5
+      },
+      {
+        "student_no": "S07673",
+        "real_name": "钱峰鹏",
+        "course_name": "工程学院课程2",
+        "course_code": "K0002",
+        "score_value": 56.4
+      },
+      {
+        "student_no": "S07675",
+        "real_name": "褚洋宇",
+        "course_name": "工程学院课程2",
+        "course_code": "K0002",
+        "score_value": 54.9
+      },
+      {
+        "student_no": "S07676",
+        "real_name": "周浩斌",
+        "course_name": "工程学院课程2",
+        "course_code": "K0002",
+        "score_value": 59.5
+      },
+      {
+        "student_no": "S12722",
+        "real_name": "杨静",
+        "course_name": "工程学院课程2",
+        "course_code": "K0002",
+        "score_value": 57.6
+      },
+      {
+        "student_no": "S12727",
+        "real_name": "褚强",
+        "course_name": "工程学院课程2",
+        "course_code": "K0002",
+        "score_value": 55.4
+      },
+      {
+        "student_no": "S12728",
+        "real_name": "蒋萍",
+        "course_name": "工程学院课程2",
+        "course_code": "K0002",
+        "score_value": 60.8
+      },
+      {
+        "student_no": "S12730",
+        "real_name": "吕娜",
+        "course_name": "工程学院课程2",
+        "course_code": "K0002",
+        "score_value": 56.8
+      },
+      {
+        "student_no": "S12744",
+        "real_name": "陈丹",
+        "course_name": "工程学院课程2",
+        "course_code": "K0002",
+        "score_value": 51.9
+      },
+      {
+        "student_no": "S12746",
+        "real_name": "褚鹏峰",
+        "course_name": "工程学院课程2",
+        "course_code": "K0002",
+        "score_value": 51.8
+      },
+      {
+        "student_no": "S12748",
+        "real_name": "魏媛",
+        "course_name": "工程学院课程2",
+        "course_code": "K0002",
+        "score_value": 50.2
+      },
+      {
+        "student_no": "S12749",
+        "real_name": "何超",
+        "course_name": "工程学院课程2",
+        "course_code": "K0002",
+        "score_value": 55.5
+      },
+      {
+        "student_no": "S12752",
+        "real_name": "陈晨",
+        "course_name": "工程学院课程2",
+        "course_code": "K0002",
+        "score_value": 50.9
+      },
+      {
+        "student_no": "S12754",
+        "real_name": "钱静",
+        "course_name": "工程学院课程2",
+        "course_code": "K0002",
+        "score_value": 50.1
+      },
+      {
+        "student_no": "S12755",
+        "real_name": "Emma",
+        "course_name": "工程学院课程2",
+        "course_code": "K0002",
+        "score_value": 54.0
+      },
+      {
+        "student_no": "S12758",
+        "real_name": "王航杰",
+        "course_name": "工程学院课程2",
+        "course_code": "K0002",
+        "score_value": 60.0
+      },
+      {
+        "student_no": "S12759",
+        "real_name": "曹颖媛",
+        "course_name": "工程学院课程2",
+        "course_code": "K0002",
+        "score_value": 60.6
+      },
+      {
+        "student_no": "S12760",
+        "real_name": "严洁",
+        "course_name": "工程学院课程2",
+        "course_code": "K0002",
+        "score_value": 52.6
+      },
+      {
+        "student_no": "S12761",
+        "real_name": "陶军峰",
+        "course_name": "工程学院课程2",
+        "course_code": "K0002",
+        "score_value": 59.6
+      },
+      {
+        "student_no": "S12766",
+        "real_name": "孔超",
+        "course_name": "工程学院课程2",
+        "course_code": "K0002",
+        "score_value": 54.1
+      },
+      {
+        "student_no": "S12568",
+        "real_name": "韩伟浩",
+        "course_name": "工程学院课程3",
+        "course_code": "K0003",
+        "score_value": 51.3
+      },
+      {
+        "student_no": "S12573",
+        "real_name": "朱皓航",
+        "course_name": "工程学院课程3",
+        "course_code": "K0003",
+        "score_value": 55.8
+      },
+      {
+        "student_no": "S12574",
+        "real_name": "杨洁",
+        "course_name": "工程学院课程3",
+        "course_code": "K0003",
+        "score_value": 57.0
+      },
+      {
+        "student_no": "S12584",
+        "real_name": "孔艳萍",
+        "course_name": "工程学院课程3",
+        "course_code": "K0003",
+        "score_value": 59.8
+      },
+      {
+        "student_no": "S12589",
+        "real_name": "Mia",
+        "course_name": "工程学院课程3",
+        "course_code": "K0003",
+        "score_value": 53.7
+      },
+      {
+        "student_no": "S12598",
+        "real_name": "吕洁",
+        "course_name": "工程学院课程3",
+        "course_code": "K0003",
+        "score_value": 57.2
+      },
+      {
+        "student_no": "S12604",
+        "real_name": "金军",
+        "course_name": "工程学院课程3",
+        "course_code": "K0003",
+        "score_value": 54.9
+      },
+      {
+        "student_no": "S12609",
+        "real_name": "吴雪",
+        "course_name": "工程学院课程3",
+        "course_code": "K0003",
+        "score_value": 57.8
+      },
+      {
+        "student_no": "S12615",
+        "real_name": "陈娜",
+        "course_name": "工程学院课程3",
+        "course_code": "K0003",
+        "score_value": 50.4
+      },
+      {
+        "student_no": "S12621",
+        "real_name": "Sophia",
+        "course_name": "工程学院课程3",
+        "course_code": "K0003",
+        "score_value": 55.4
+      },
+      {
+        "student_no": "S12622",
+        "real_name": "金磊",
+        "course_name": "工程学院课程3",
+        "course_code": "K0003",
+        "score_value": 54.1
+      },
+      {
+        "student_no": "S12623",
+        "real_name": "冯强",
+        "course_name": "工程学院课程3",
+        "course_code": "K0003",
+        "score_value": 52.2
+      },
+      {
+        "student_no": "S12636",
+        "real_name": "孙斌",
+        "course_name": "工程学院课程3",
+        "course_code": "K0003",
+        "score_value": 60.0
+      },
+      {
+        "student_no": "S12637",
+        "real_name": "周媛琪",
+        "course_name": "工程学院课程3",
+        "course_code": "K0003",
+        "score_value": 57.9
+      },
+      {
+        "student_no": "S12639",
+        "real_name": "尤浩",
+        "course_name": "工程学院课程3",
+        "course_code": "K0003",
+        "score_value": 51.7
+      },
+      {
+        "student_no": "S12645",
+        "real_name": "冯超博",
+        "course_name": "工程学院课程3",
+        "course_code": "K0003",
+        "score_value": 55.1
+      },
+      {
+        "student_no": "S12652",
+        "real_name": "何娜丹",
+        "course_name": "工程学院课程3",
+        "course_code": "K0003",
+        "score_value": 60.5
+      },
+      {
+        "student_no": "S12655",
+        "real_name": "严婷婷",
+        "course_name": "工程学院课程3",
+        "course_code": "K0003",
+        "score_value": 54.8
+      },
+      {
+        "student_no": "S12660",
+        "real_name": "孙娜",
+        "course_name": "工程学院课程3",
+        "course_code": "K0003",
+        "score_value": 53.3
+      },
+      {
+        "student_no": "S12665",
+        "real_name": "冯琪",
+        "course_name": "工程学院课程3",
+        "course_code": "K0003",
+        "score_value": 51.0
+      },
+      {
+        "student_no": "S12668",
+        "real_name": "孔娜",
+        "course_name": "工程学院课程3",
+        "course_code": "K0003",
+        "score_value": 57.6
+      },
+      {
+        "student_no": "S12773",
+        "real_name": "尤雪",
+        "course_name": "工程学院课程3",
+        "course_code": "K0003",
+        "score_value": 51.3
+      },
+      {
+        "student_no": "S12780",
+        "real_name": "严雪",
+        "course_name": "工程学院课程3",
+        "course_code": "K0003",
+        "score_value": 56.2
+      },
+      {
+        "student_no": "S12781",
+        "real_name": "钱婷婷",
+        "course_name": "工程学院课程3",
+        "course_code": "K0003",
+        "score_value": 54.5
+      },
+      {
+        "student_no": "S12785",
+        "real_name": "卫鹏超",
+        "course_name": "工程学院课程3",
+        "course_code": "K0003",
+        "score_value": 57.7
+      },
+      {
+        "student_no": "S12786",
+        "real_name": "施媛",
+        "course_name": "工程学院课程3",
+        "course_code": "K0003",
+        "score_value": 54.2
+      },
+      {
+        "student_no": "S12789",
+        "real_name": "许斌斌",
+        "course_name": "工程学院课程3",
+        "course_code": "K0003",
+        "score_value": 53.1
+      },
+      {
+        "student_no": "S12794",
+        "real_name": "许敏",
+        "course_name": "工程学院课程3",
+        "course_code": "K0003",
+        "score_value": 59.7
+      },
+      {
+        "student_no": "S12798",
+        "real_name": "华鑫",
+        "course_name": "工程学院课程3",
+        "course_code": "K0003",
+        "score_value": 51.7
+      },
+      {
+        "student_no": "S12801",
+        "real_name": "施伟",
+        "course_name": "工程学院课程3",
+        "course_code": "K0003",
+        "score_value": 57.6
+      },
+      {
+        "student_no": "S12808",
+        "real_name": "Ethan",
+        "course_name": "工程学院课程3",
+        "course_code": "K0003",
+        "score_value": 57.0
+      },
+      {
+        "student_no": "S12812",
+        "real_name": "孙颖",
+        "course_name": "工程学院课程3",
+        "course_code": "K0003",
+        "score_value": 51.7
+      },
+      {
+        "student_no": "S12813",
+        "real_name": "华雅燕",
+        "course_name": "工程学院课程3",
+        "course_code": "K0003",
+        "score_value": 59.3
+      },
+      {
+        "student_no": "S12816",
+        "real_name": "周丹",
+        "course_name": "工程学院课程3",
+        "course_code": "K0003",
+        "score_value": 58.1
+      },
+      {
+        "student_no": "S17765",
+        "real_name": "钱斌强",
+        "course_name": "工程学院课程3",
+        "course_code": "K0003",
+        "score_value": 53.1
+      },
+      {
+        "student_no": "S17767",
+        "real_name": "孔琪",
+        "course_name": "工程学院课程3",
+        "course_code": "K0003",
+        "score_value": 50.8
+      },
+      {
+        "student_no": "S17768",
+        "real_name": "Emma",
+        "course_name": "工程学院课程3",
+        "course_code": "K0003",
+        "score_value": 50.2
+      },
+      {
+        "student_no": "S17777",
+        "real_name": "赵凯",
+        "course_name": "工程学院课程3",
+        "course_code": "K0003",
+        "score_value": 55.1
+      },
+      {
+        "student_no": "S17782",
+        "real_name": "陈倩媛",
+        "course_name": "工程学院课程3",
+        "course_code": "K0003",
+        "score_value": 59.6
+      },
+      {
+        "student_no": "S17786",
+        "real_name": "尤慧",
+        "course_name": "工程学院课程3",
+        "course_code": "K0003",
+        "score_value": 51.2
+      },
+      {
+        "student_no": "S17787",
+        "real_name": "韩娜",
+        "course_name": "工程学院课程3",
+        "course_code": "K0003",
+        "score_value": 55.6
+      },
+      {
+        "student_no": "S17790",
+        "real_name": "魏静",
+        "course_name": "工程学院课程3",
+        "course_code": "K0003",
+        "score_value": 57.0
+      },
+      {
+        "student_no": "S17791",
+        "real_name": "周倩萍",
+        "course_name": "工程学院课程3",
+        "course_code": "K0003",
+        "score_value": 50.5
+      },
+      {
+        "student_no": "S17797",
+        "real_name": "李洋",
+        "course_name": "工程学院课程3",
+        "course_code": "K0003",
+        "score_value": 59.3
+      },
+      {
+        "student_no": "S17798",
+        "real_name": "陈欣燕",
+        "course_name": "工程学院课程3",
+        "course_code": "K0003",
+        "score_value": 54.9
+      },
+      {
+        "student_no": "S17803",
+        "real_name": "杨斌涛",
+        "course_name": "工程学院课程3",
+        "course_code": "K0003",
+        "score_value": 52.9
+      }
+    ],
+    "executed_sql": "WITH base AS (SELECT student.student_no, student.real_name, course.course_name, course.course_code, score.score_value FROM student JOIN score ON student.id = score.student_id JOIN course ON score.course_id = course.id WHERE course.course_code IN ('K0001', 'K0002', 'K0003', 'K0004', 'K0005') AND course.course_type = '必修' AND score.score_value < 60.9 AND student.is_deleted = 0 AND course.is_deleted = 0 AND score.is_deleted = 0) SELECT base.student_no, base.real_name, base.course_name, base.course_code, base.score_value FROM base",
+    "empty_result": false,
+    "zero_metric_result": false
+  }
+}

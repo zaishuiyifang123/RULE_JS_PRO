@@ -1,0 +1,141 @@
+{
+  "session_id": "9b125a7fa8354723",
+  "admin_id": 1,
+  "step_name": "sql_generation",
+  "status": "success",
+  "error_message": null,
+  "timestamp": "2026-02-14T16:55:57",
+  "input": {
+    "rewritten_query": "查询信息工程学院2024级在2025年9月的迟到、缺勤和早退等异常考勤记录",
+    "parse_result": {
+      "intent": "business_query",
+      "entities": [
+        {
+          "type": "college",
+          "value": "信息工程学院"
+        },
+        {
+          "type": "grade",
+          "value": "2024级"
+        },
+        {
+          "type": "time",
+          "value": "2025年9月"
+        },
+        {
+          "type": "attendance_status",
+          "value": "['迟到', '缺勤', '早退']"
+        }
+      ],
+      "dimensions": [
+        "student.student_no",
+        "student.real_name",
+        "course_class.id",
+        "attendance.attend_date",
+        "attendance.status"
+      ],
+      "metrics": [],
+      "filters": [
+        {
+          "field": "college.college_name",
+          "op": "=",
+          "value": "信息工程学院"
+        },
+        {
+          "field": "class.grade_year",
+          "op": "=",
+          "value": 2024
+        },
+        {
+          "field": "attendance.attend_date",
+          "op": ">=",
+          "value": "2025-09-01"
+        },
+        {
+          "field": "attendance.attend_date",
+          "op": "<=",
+          "value": "2025-09-30"
+        },
+        {
+          "field": "attendance.status",
+          "op": "in",
+          "value": [
+            "迟到",
+            "缺勤",
+            "早退"
+          ]
+        }
+      ],
+      "time_range": {
+        "start": "2025-09-01",
+        "end": "2025-09-30"
+      },
+      "operation": "detail",
+      "confidence": 0.95
+    },
+    "hidden_context_result": null,
+    "model_name": "qwen3-max-2026-01-23"
+  },
+  "output": {
+    "sql": "WITH base AS (SELECT student.student_no, student.real_name, course_class.id AS course_class_id, attendance.attend_date, attendance.status FROM college JOIN major ON college.id = major.college_id JOIN class ON major.id = class.major_id JOIN student ON class.id = student.class_id JOIN enroll ON student.id = enroll.student_id JOIN course_class ON enroll.course_class_id = course_class.id JOIN attendance ON student.id = attendance.student_id AND course_class.id = attendance.course_class_id WHERE college.college_name = '信息工程学院' AND class.grade_year = 2024 AND attendance.attend_date >= '2025-09-01' AND attendance.attend_date <= '2025-09-30' AND attendance.status IN ('迟到', '缺勤', '早退') AND college.is_deleted = 0 AND major.is_deleted = 0 AND class.is_deleted = 0 AND student.is_deleted = 0 AND enroll.is_deleted = 0 AND course_class.is_deleted = 0 AND attendance.is_deleted = 0) SELECT base.student_no, base.real_name, base.course_class_id, base.attend_date, base.status FROM base",
+    "entity_mappings": [
+      {
+        "type": "college",
+        "value": "信息工程学院",
+        "field": "college.college_name",
+        "reason": "根据字段描述“学院名称，学院实体映射主字段”精确匹配"
+      },
+      {
+        "type": "grade",
+        "value": "2024级",
+        "field": "class.grade_year",
+        "reason": "根据字段描述“年级/入学年份（如 2022 级）”映射为整数 2024"
+      },
+      {
+        "type": "time",
+        "value": "2025年9月",
+        "field": "attendance.attend_date",
+        "reason": "转换为日期范围 2025-09-01 至 2025-09-30，符合字段描述“考勤日期”"
+      },
+      {
+        "type": "attendance_status",
+        "value": "['迟到', '缺勤', '早退']",
+        "field": "attendance.status",
+        "reason": "根据字段描述“出勤状态（出勤/缺勤/请假等）”直接使用原始值列表过滤"
+      }
+    ],
+    "sql_fields": [
+      "student.student_no",
+      "student.real_name",
+      "course_class.id",
+      "attendance.attend_date",
+      "attendance.status",
+      "college.id",
+      "major.college_id",
+      "major.id",
+      "class.major_id",
+      "class.id",
+      "student.class_id",
+      "student.id",
+      "enroll.student_id",
+      "enroll.course_class_id",
+      "attendance.student_id",
+      "attendance.course_class_id",
+      "college.college_name",
+      "class.grade_year",
+      "college.is_deleted",
+      "major.is_deleted",
+      "class.is_deleted",
+      "student.is_deleted",
+      "enroll.is_deleted",
+      "course_class.is_deleted",
+      "attendance.is_deleted",
+      "base.student_no",
+      "base.real_name",
+      "base.course_class_id",
+      "base.attend_date",
+      "base.status"
+    ],
+    "applied_field_replacements": []
+  }
+}

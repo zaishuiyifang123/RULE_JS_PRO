@@ -1,0 +1,418 @@
+{
+  "session_id": "fef72a5dd56942df",
+  "admin_id": 1,
+  "step_name": "sql_generation",
+  "status": "success",
+  "error_message": null,
+  "timestamp": "2026-02-14T17:22:38",
+  "input": {
+    "rewritten_query": "查询专业编码为M010的必修课中成绩低于60分的学生成绩明细",
+    "parse_result": {
+      "intent": "business_query",
+      "entities": [
+        {
+          "type": "major_code",
+          "value": "M010"
+        },
+        {
+          "type": "course_type",
+          "value": "必修课"
+        },
+        {
+          "type": "score_value",
+          "value": "低于60分"
+        }
+      ],
+      "dimensions": [
+        "student.student_no",
+        "student.real_name",
+        "course.course_name",
+        "course.course_code",
+        "score.score_value"
+      ],
+      "metrics": [],
+      "filters": [
+        {
+          "field": "course.course_code",
+          "op": "=",
+          "value": "M010"
+        },
+        {
+          "field": "course.course_type",
+          "op": "=",
+          "value": "必修"
+        },
+        {
+          "field": "score.score_value",
+          "op": "<",
+          "value": 60
+        }
+      ],
+      "time_range": {
+        "start": null,
+        "end": null
+      },
+      "operation": "detail",
+      "confidence": 0.95
+    },
+    "hidden_context_result": {
+      "retry_reason": "empty_result",
+      "error_type": "execution_error",
+      "error": "",
+      "failed_sql": "WITH base AS (SELECT student.student_no, student.real_name, course.course_name, course.course_code, score.score_value FROM student JOIN score ON student.id = score.student_id JOIN course ON score.course_id = course.id WHERE course.course_code = 'M010' AND course.course_type = '必修' AND score.score_value < 60 AND student.is_deleted = 0 AND course.is_deleted = 0 AND score.is_deleted = 0) SELECT base.student_no, base.real_name, base.course_name, base.course_code, base.score_value FROM base",
+      "rewritten_query": "查询专业编码为M010的必修课中成绩低于60分的学生成绩明细",
+      "field_candidates": [],
+      "probe_samples": [
+        {
+          "field": "student.student_no",
+          "probe_sql": "SELECT DISTINCT student.student_no AS value FROM student WHERE student.student_no IS NOT NULL AND student.is_deleted = 0 LIMIT 20",
+          "values": [
+            "S00001",
+            "S00002",
+            "S00003",
+            "S00004",
+            "S00005",
+            "S00006",
+            "S00007",
+            "S00008",
+            "S00009",
+            "S00010",
+            "S00011",
+            "S00012",
+            "S00013",
+            "S00014",
+            "S00015",
+            "S00016",
+            "S00017",
+            "S00018",
+            "S00019",
+            "S00020"
+          ]
+        },
+        {
+          "field": "student.real_name",
+          "probe_sql": "SELECT DISTINCT student.real_name AS value FROM student WHERE student.real_name IS NOT NULL AND student.is_deleted = 0 LIMIT 20",
+          "values": [
+            "施伟",
+            "Ethan",
+            "周鹏",
+            "孔航",
+            "吴斌",
+            "沈强博",
+            "Isabella",
+            "孙芳",
+            "钱丹",
+            "施斌",
+            "周欣",
+            "Olivia",
+            "沈燕",
+            "郑涛宇",
+            "吕斌",
+            "陶洋",
+            "何勇",
+            "姜萍",
+            "冯峰",
+            "郑航"
+          ]
+        },
+        {
+          "field": "course.course_name",
+          "probe_sql": "SELECT DISTINCT course.course_name AS value FROM course WHERE course.course_name IS NOT NULL AND course.is_deleted = 0 LIMIT 20",
+          "values": [
+            "设计学院课程1",
+            "工程学院课程2",
+            "工程学院课程3",
+            "学理学院课程4",
+            "制造学院课程5",
+            "制造学院课程6",
+            "制造学院课程7",
+            "管理学院课程8",
+            "管理学院课程9",
+            "管理学院课程10",
+            "设计学院课程11",
+            "贸易学院课程12",
+            "人文学院课程13",
+            "制造学院课程14",
+            "国语学院课程15",
+            "人文学院课程16",
+            "人文学院课程17",
+            "国语学院课程18",
+            "管理学院课程19",
+            "学理学院课程20"
+          ]
+        },
+        {
+          "field": "course.course_code",
+          "probe_sql": "SELECT DISTINCT course.course_code AS value FROM course WHERE course.course_code IS NOT NULL AND course.is_deleted = 0 LIMIT 20",
+          "values": [
+            "K0001",
+            "K0002",
+            "K0003",
+            "K0004",
+            "K0005",
+            "K0006",
+            "K0007",
+            "K0008",
+            "K0009",
+            "K0010",
+            "K0011",
+            "K0012",
+            "K0013",
+            "K0014",
+            "K0015",
+            "K0016",
+            "K0017",
+            "K0018",
+            "K0019",
+            "K0020"
+          ]
+        },
+        {
+          "field": "score.score_value",
+          "probe_sql": "SELECT DISTINCT score.score_value AS value FROM score WHERE score.score_value IS NOT NULL AND score.is_deleted = 0 LIMIT 20",
+          "values": [
+            "59.8",
+            "90.7",
+            "87.1",
+            "99.5",
+            "66.5",
+            "61.6",
+            "95.5",
+            "99.1",
+            "66.0",
+            "51.2",
+            "98.6",
+            "85.9",
+            "90.8",
+            "78.2",
+            "63.1",
+            "94.5",
+            "62.5",
+            "60.9",
+            "92.0",
+            "57.3"
+          ]
+        },
+        {
+          "field": "student.id",
+          "probe_sql": "SELECT DISTINCT student.id AS value FROM student WHERE student.id IS NOT NULL AND student.is_deleted = 0 LIMIT 20",
+          "values": [
+            "1",
+            "2",
+            "3",
+            "4",
+            "5",
+            "6",
+            "7",
+            "8",
+            "9",
+            "10",
+            "11",
+            "12",
+            "13",
+            "14",
+            "15",
+            "16",
+            "17",
+            "18",
+            "19",
+            "20"
+          ]
+        },
+        {
+          "field": "score.student_id",
+          "probe_sql": "SELECT DISTINCT score.student_id AS value FROM score WHERE score.student_id IS NOT NULL AND score.is_deleted = 0 LIMIT 20",
+          "values": [
+            "1",
+            "2",
+            "3",
+            "4",
+            "5",
+            "6",
+            "7",
+            "8",
+            "9",
+            "10",
+            "11",
+            "12",
+            "13",
+            "14",
+            "15",
+            "16",
+            "17",
+            "18",
+            "19",
+            "20"
+          ]
+        },
+        {
+          "field": "score.course_id",
+          "probe_sql": "SELECT DISTINCT score.course_id AS value FROM score WHERE score.course_id IS NOT NULL AND score.is_deleted = 0 LIMIT 20",
+          "values": [
+            "163",
+            "210",
+            "167",
+            "263",
+            "121",
+            "217",
+            "70",
+            "45",
+            "83",
+            "150",
+            "133",
+            "60",
+            "118",
+            "2",
+            "38",
+            "204",
+            "178",
+            "107",
+            "183",
+            "223"
+          ]
+        },
+        {
+          "field": "course.id",
+          "probe_sql": "SELECT DISTINCT course.id AS value FROM course WHERE course.id IS NOT NULL AND course.is_deleted = 0 LIMIT 20",
+          "values": [
+            "1",
+            "2",
+            "3",
+            "4",
+            "5",
+            "6",
+            "7",
+            "8",
+            "9",
+            "10",
+            "11",
+            "12",
+            "13",
+            "14",
+            "15",
+            "16",
+            "17",
+            "18",
+            "19",
+            "20"
+          ]
+        },
+        {
+          "field": "course.course_type",
+          "probe_sql": "SELECT DISTINCT course.course_type AS value FROM course WHERE course.course_type IS NOT NULL AND course.is_deleted = 0 LIMIT 20",
+          "values": [
+            "选修",
+            "必修"
+          ]
+        },
+        {
+          "field": "student.is_deleted",
+          "probe_sql": "SELECT DISTINCT student.is_deleted AS value FROM student WHERE student.is_deleted IS NOT NULL AND student.is_deleted = 0 LIMIT 20",
+          "values": [
+            "0"
+          ]
+        },
+        {
+          "field": "course.is_deleted",
+          "probe_sql": "SELECT DISTINCT course.is_deleted AS value FROM course WHERE course.is_deleted IS NOT NULL AND course.is_deleted = 0 LIMIT 20",
+          "values": [
+            "0"
+          ]
+        },
+        {
+          "field": "score.is_deleted",
+          "probe_sql": "SELECT DISTINCT score.is_deleted AS value FROM score WHERE score.is_deleted IS NOT NULL AND score.is_deleted = 0 LIMIT 20",
+          "values": [
+            "0"
+          ]
+        }
+      ],
+      "value_candidates": [
+        {
+          "field": "course.course_code",
+          "original_value": "M010",
+          "candidates": [
+            "K0001",
+            "K0002",
+            "K0003",
+            "K0004",
+            "K0005"
+          ],
+          "match_strategy": "fallback_probe_topn"
+        },
+        {
+          "field": "course.course_type",
+          "original_value": "必修",
+          "candidates": [
+            "必修"
+          ],
+          "match_strategy": "exact"
+        },
+        {
+          "field": "score.score_value",
+          "original_value": "60",
+          "candidates": [
+            "60.9"
+          ],
+          "match_strategy": "fuzzy"
+        }
+      ],
+      "hints": [
+        "error_type=execution_error",
+        "use_probe_samples_to_rewrite_filters_or_entities",
+        "prioritize_value_candidates_for_empty_result",
+        "retry_sql_generation_with_hidden_context"
+      ],
+      "kb_summary": {
+        "table_count": 10,
+        "field_count": 84
+      },
+      "retry_count": 1
+    },
+    "model_name": "qwen3-max-2026-01-23"
+  },
+  "output": {
+    "sql": "WITH base AS (SELECT student.student_no, student.real_name, course.course_name, course.course_code, score.score_value FROM student JOIN score ON student.id = score.student_id JOIN course ON score.course_id = course.id WHERE course.course_code IN ('K0001', 'K0002', 'K0003', 'K0004', 'K0005') AND course.course_type = '必修' AND score.score_value < 60.9 AND student.is_deleted = 0 AND course.is_deleted = 0 AND score.is_deleted = 0) SELECT base.student_no, base.real_name, base.course_name, base.course_code, base.score_value FROM base",
+    "entity_mappings": [
+      {
+        "type": "major_code",
+        "value": "M010",
+        "field": "course.course_code",
+        "reason": "原始实体值“M010”在 probe_samples 中无匹配，根据 retry_constraints.value_replacements 使用候选课程编码 ['K0001', 'K0002', 'K0003', 'K0004', 'K0005'] 替代"
+      },
+      {
+        "type": "course_type",
+        "value": "必修课",
+        "field": "course.course_type",
+        "reason": "根据字段描述“课程类型（必修/选修等）”映射，probe_samples 显示有效值为“必修”，与原始值“必修课”语义一致"
+      },
+      {
+        "type": "score_value",
+        "value": "低于60分",
+        "field": "score.score_value",
+        "reason": "原始阈值60在 probe_samples 中无低于60的精确记录，但存在59.8、57.3等不及格分数；retry_constraints 提供 fuzzy 候选值60.9，为保留可能的浮点误差边界，采用 < 60.9 以覆盖真实不及格情况"
+      }
+    ],
+    "sql_fields": [
+      "student.student_no",
+      "student.real_name",
+      "course.course_name",
+      "course.course_code",
+      "score.score_value",
+      "student.id",
+      "score.student_id",
+      "score.course_id",
+      "course.id",
+      "course.course_type",
+      "student.is_deleted",
+      "course.is_deleted",
+      "score.is_deleted",
+      "base.student_no",
+      "base.real_name",
+      "base.course_name",
+      "base.course_code",
+      "base.score_value"
+    ],
+    "applied_field_replacements": []
+  }
+}

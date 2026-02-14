@@ -1,0 +1,51 @@
+{
+  "session_id": "e7de7c809bf44057",
+  "admin_id": 1,
+  "step_name": "task_parse",
+  "status": "success",
+  "error_message": null,
+  "timestamp": "2026-02-14T16:41:16",
+  "input": {
+    "intent_result": {
+      "intent": "business_query",
+      "is_followup": false,
+      "confidence": 0.95,
+      "merged_query": "查询 2025-2026-1 学期各专业平均分排名前 10 的专业及对应分数",
+      "rewritten_query": "查询 2025-2026-1 学期各专业平均分排名前 10 的专业及对应分数",
+      "threshold": 0.7
+    }
+  },
+  "output": {
+    "intent": "business_query",
+    "entities": [
+      {
+        "type": "term",
+        "value": "2025-2026-1"
+      }
+    ],
+    "dimensions": [
+      "major.major_name"
+    ],
+    "metrics": [
+      "avg(score.score_value)"
+    ],
+    "filters": [
+      {
+        "field": "score.term",
+        "op": "=",
+        "value": "2025-2026-1"
+      },
+      {
+        "field": "score.is_deleted",
+        "op": "=",
+        "value": false
+      }
+    ],
+    "time_range": {
+      "start": null,
+      "end": null
+    },
+    "operation": "ranking",
+    "confidence": 0.98
+  }
+}

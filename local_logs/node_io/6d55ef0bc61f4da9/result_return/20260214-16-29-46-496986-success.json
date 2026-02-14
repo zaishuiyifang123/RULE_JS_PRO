@@ -1,0 +1,255 @@
+{
+  "session_id": "6d55ef0bc61f4da9",
+  "admin_id": 1,
+  "step_name": "result_return",
+  "status": "success",
+  "error_message": null,
+  "timestamp": "2026-02-14T16:29:46",
+  "input": {
+    "message": "2025-2026-1 学期专业平均分 Top10",
+    "intent_result": {
+      "intent": "business_query",
+      "is_followup": false,
+      "confidence": 0.95,
+      "merged_query": "查询 2025-2026-1 学期各专业的平均分，并按降序排列取前 10 名",
+      "rewritten_query": "查询 2025-2026-1 学期各专业的平均分，并按降序排列取前 10 名",
+      "threshold": 0.7
+    },
+    "parse_result": {
+      "intent": "business_query",
+      "entities": [
+        {
+          "type": "term",
+          "value": "2025-2026-1"
+        }
+      ],
+      "dimensions": [
+        "major.major_name"
+      ],
+      "metrics": [
+        "avg(score.score_value)"
+      ],
+      "filters": [
+        {
+          "field": "score.term",
+          "op": "=",
+          "value": "2025-2026-1"
+        },
+        {
+          "field": "score.is_deleted",
+          "op": "=",
+          "value": false
+        }
+      ],
+      "time_range": {
+        "start": null,
+        "end": null
+      },
+      "operation": "ranking",
+      "confidence": 0.95
+    },
+    "sql_result": {
+      "sql": "WITH base AS (SELECT major.major_name, score.score_value FROM score JOIN student ON score.student_id = student.id JOIN major ON student.major_id = major.id WHERE score.term = '2025-2026-1' AND score.is_deleted = 0 AND student.is_deleted = 0 AND major.is_deleted = 0) SELECT base.major_name, AVG(base.score_value) AS avg_score FROM base GROUP BY base.major_name ORDER BY avg_score DESC LIMIT 10",
+      "entity_mappings": [
+        {
+          "type": "term",
+          "value": "2025-2026-1",
+          "field": "score.term",
+          "reason": "根据字段描述“学期（如 2025-2026-1）”映射"
+        }
+      ],
+      "sql_fields": [
+        "major.major_name",
+        "score.score_value",
+        "score.student_id",
+        "student.id",
+        "student.major_id",
+        "major.id",
+        "score.term",
+        "score.is_deleted",
+        "student.is_deleted",
+        "major.is_deleted",
+        "base.major_name",
+        "base.score_value"
+      ],
+      "applied_field_replacements": []
+    },
+    "sql_validate_result": {
+      "is_valid": true,
+      "error": null,
+      "rows": 10,
+      "result": [
+        {
+          "major_name": "软件工程3",
+          "avg_score": 75.7471688364306
+        },
+        {
+          "major_name": "人力资源管理",
+          "avg_score": 75.6668803162045
+        },
+        {
+          "major_name": "市场营销3",
+          "avg_score": 75.57719010776944
+        },
+        {
+          "major_name": "日语",
+          "avg_score": 75.35614323412251
+        },
+        {
+          "major_name": "汉语言文学3",
+          "avg_score": 75.34626068416824
+        },
+        {
+          "major_name": "电气工程及其自动化2",
+          "avg_score": 75.32777778103821
+        },
+        {
+          "major_name": "工商管理3",
+          "avg_score": 75.32051267175594
+        },
+        {
+          "major_name": "网络工程3",
+          "avg_score": 75.29326925522241
+        },
+        {
+          "major_name": "计算机科学与技术",
+          "avg_score": 75.29190327817835
+        },
+        {
+          "major_name": "财务管理",
+          "avg_score": 75.24439103786762
+        }
+      ],
+      "executed_sql": "WITH base AS (SELECT major.major_name, score.score_value FROM score JOIN student ON score.student_id = student.id JOIN major ON student.major_id = major.id WHERE score.term = '2025-2026-1' AND score.is_deleted = 0 AND student.is_deleted = 0 AND major.is_deleted = 0) SELECT base.major_name, AVG(base.score_value) AS avg_score FROM base GROUP BY base.major_name ORDER BY avg_score DESC LIMIT 10",
+      "empty_result": false,
+      "zero_metric_result": false
+    },
+    "hidden_context_result": null,
+    "hidden_context_retry_count": 0
+  },
+  "output": {
+    "session_id": "6d55ef0bc61f4da9",
+    "intent": "business_query",
+    "is_followup": false,
+    "merged_query": "查询 2025-2026-1 学期各专业的平均分，并按降序排列取前 10 名",
+    "rewritten_query": "查询 2025-2026-1 学期各专业的平均分，并按降序排列取前 10 名",
+    "skipped": false,
+    "reason": null,
+    "final_status": "success",
+    "reason_code": null,
+    "summary": "2025-2026-1学期专业平均分Top10已查出，最高为软件工程3（75.75分），人力资源管理、市场营销3等紧随其后，共10个专业。",
+    "assistant_reply": "2025-2026-1学期专业平均分Top10已查出，最高为软件工程3（75.75分），人力资源管理、市场营销3等紧随其后，共10个专业。\n\n详细信息：\n1. major_name=软件工程3；avg_score=75.7471688364306\n2. major_name=人力资源管理；avg_score=75.6668803162045\n3. major_name=市场营销3；avg_score=75.57719010776944\n4. major_name=日语；avg_score=75.35614323412251\n5. major_name=汉语言文学3；avg_score=75.34626068416824\n6. major_name=电气工程及其自动化2；avg_score=75.32777778103821\n7. major_name=工商管理3；avg_score=75.32051267175594\n8. major_name=网络工程3；avg_score=75.29326925522241\n9. major_name=计算机科学与技术；avg_score=75.29190327817835\n10. major_name=财务管理；avg_score=75.24439103786762",
+    "download_url": null,
+    "task": {
+      "intent": "business_query",
+      "entities": [
+        {
+          "type": "term",
+          "value": "2025-2026-1"
+        }
+      ],
+      "dimensions": [
+        "major.major_name"
+      ],
+      "metrics": [
+        "avg(score.score_value)"
+      ],
+      "filters": [
+        {
+          "field": "score.term",
+          "op": "=",
+          "value": "2025-2026-1"
+        },
+        {
+          "field": "score.is_deleted",
+          "op": "=",
+          "value": false
+        }
+      ],
+      "time_range": {
+        "start": null,
+        "end": null
+      },
+      "operation": "ranking",
+      "confidence": 0.95
+    },
+    "sql_result": {
+      "sql": "WITH base AS (SELECT major.major_name, score.score_value FROM score JOIN student ON score.student_id = student.id JOIN major ON student.major_id = major.id WHERE score.term = '2025-2026-1' AND score.is_deleted = 0 AND student.is_deleted = 0 AND major.is_deleted = 0) SELECT base.major_name, AVG(base.score_value) AS avg_score FROM base GROUP BY base.major_name ORDER BY avg_score DESC LIMIT 10",
+      "entity_mappings": [
+        {
+          "type": "term",
+          "value": "2025-2026-1",
+          "field": "score.term",
+          "reason": "根据字段描述“学期（如 2025-2026-1）”映射"
+        }
+      ],
+      "sql_fields": [
+        "major.major_name",
+        "score.score_value",
+        "score.student_id",
+        "student.id",
+        "student.major_id",
+        "major.id",
+        "score.term",
+        "score.is_deleted",
+        "student.is_deleted",
+        "major.is_deleted",
+        "base.major_name",
+        "base.score_value"
+      ],
+      "applied_field_replacements": []
+    },
+    "sql_validate_result": {
+      "is_valid": true,
+      "error": null,
+      "rows": 10,
+      "result": [
+        {
+          "major_name": "软件工程3",
+          "avg_score": 75.7471688364306
+        },
+        {
+          "major_name": "人力资源管理",
+          "avg_score": 75.6668803162045
+        },
+        {
+          "major_name": "市场营销3",
+          "avg_score": 75.57719010776944
+        },
+        {
+          "major_name": "日语",
+          "avg_score": 75.35614323412251
+        },
+        {
+          "major_name": "汉语言文学3",
+          "avg_score": 75.34626068416824
+        },
+        {
+          "major_name": "电气工程及其自动化2",
+          "avg_score": 75.32777778103821
+        },
+        {
+          "major_name": "工商管理3",
+          "avg_score": 75.32051267175594
+        },
+        {
+          "major_name": "网络工程3",
+          "avg_score": 75.29326925522241
+        },
+        {
+          "major_name": "计算机科学与技术",
+          "avg_score": 75.29190327817835
+        },
+        {
+          "major_name": "财务管理",
+          "avg_score": 75.24439103786762
+        }
+      ],
+      "executed_sql": "WITH base AS (SELECT major.major_name, score.score_value FROM score JOIN student ON score.student_id = student.id JOIN major ON student.major_id = major.id WHERE score.term = '2025-2026-1' AND score.is_deleted = 0 AND student.is_deleted = 0 AND major.is_deleted = 0) SELECT base.major_name, AVG(base.score_value) AS avg_score FROM base GROUP BY base.major_name ORDER BY avg_score DESC LIMIT 10",
+      "empty_result": false,
+      "zero_metric_result": false
+    },
+    "hidden_context_result": null,
+    "hidden_context_retry_count": 0
+  }
+}

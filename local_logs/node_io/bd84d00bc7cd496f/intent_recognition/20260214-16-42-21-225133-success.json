@@ -1,0 +1,22 @@
+{
+  "session_id": "bd84d00bc7cd496f",
+  "admin_id": 1,
+  "step_name": "intent_recognition",
+  "status": "success",
+  "error_message": null,
+  "timestamp": "2026-02-14T16:42:21",
+  "input": {
+    "message": "2025年9月考勤出勤率趋势（按日期）",
+    "history_user_messages": [],
+    "threshold": 0.7,
+    "model_name": "qwen-plus"
+  },
+  "output": {
+    "intent": "business_query",
+    "is_followup": false,
+    "confidence": 0.95,
+    "merged_query": "统计2025年9月每日的考勤出勤率趋势",
+    "rewritten_query": "统计2025年9月每日的考勤出勤率趋势",
+    "threshold": 0.7
+  }
+}

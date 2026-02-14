@@ -1,0 +1,22 @@
+{
+  "session_id": "6d55ef0bc61f4da9",
+  "admin_id": 1,
+  "step_name": "intent_recognition",
+  "status": "success",
+  "error_message": null,
+  "timestamp": "2026-02-14T16:29:33",
+  "input": {
+    "message": "2025-2026-1 学期专业平均分 Top10",
+    "history_user_messages": [],
+    "threshold": 0.7,
+    "model_name": "qwen-plus"
+  },
+  "output": {
+    "intent": "business_query",
+    "is_followup": false,
+    "confidence": 0.95,
+    "merged_query": "查询 2025-2026-1 学期各专业的平均分，并按降序排列取前 10 名",
+    "rewritten_query": "查询 2025-2026-1 学期各专业的平均分，并按降序排列取前 10 名",
+    "threshold": 0.7
+  }
+}

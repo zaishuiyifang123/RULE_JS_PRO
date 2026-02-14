@@ -1,0 +1,51 @@
+{
+  "session_id": "bd84d00bc7cd496f",
+  "admin_id": 1,
+  "step_name": "task_parse",
+  "status": "success",
+  "error_message": null,
+  "timestamp": "2026-02-14T16:42:26",
+  "input": {
+    "intent_result": {
+      "intent": "business_query",
+      "is_followup": false,
+      "confidence": 0.95,
+      "merged_query": "统计2025年9月每日的考勤出勤率趋势",
+      "rewritten_query": "统计2025年9月每日的考勤出勤率趋势",
+      "threshold": 0.7
+    }
+  },
+  "output": {
+    "intent": "business_query",
+    "entities": [],
+    "dimensions": [
+      "attendance.attend_date"
+    ],
+    "metrics": [
+      "COUNT(CASE WHEN attendance.status = '出勤' THEN 1 END) * 100.0 / COUNT(*)"
+    ],
+    "filters": [
+      {
+        "field": "attendance.attend_date",
+        "op": ">=",
+        "value": "2025-09-01"
+      },
+      {
+        "field": "attendance.attend_date",
+        "op": "<=",
+        "value": "2025-09-30"
+      },
+      {
+        "field": "attendance.is_deleted",
+        "op": "=",
+        "value": false
+      }
+    ],
+    "time_range": {
+      "start": "2025-09-01",
+      "end": "2025-09-30"
+    },
+    "operation": "trend",
+    "confidence": 0.95
+  }
+}

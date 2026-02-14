@@ -1,0 +1,159 @@
+{
+  "session_id": "6d55ef0bc61f4da9",
+  "admin_id": 1,
+  "step_name": "sql_validate",
+  "status": "success",
+  "error_message": null,
+  "timestamp": "2026-02-14T16:30:56",
+  "input": {
+    "sql_result": {
+      "sql": "WITH base AS (SELECT attendance.attend_date, attendance.status FROM attendance WHERE attendance.attend_date >= '2025-09-01' AND attendance.attend_date <= '2025-09-30' AND attendance.is_deleted = 0) SELECT base.attend_date, COUNT(CASE WHEN base.status = '出勤' THEN 1 END) * 100.0 / COUNT(*) AS attendance_rate FROM base GROUP BY base.attend_date ORDER BY base.attend_date",
+      "entity_mappings": [
+        {
+          "type": "time",
+          "value": "2025年9月",
+          "field": "attendance.attend_date",
+          "reason": "根据字段描述“考勤日期”及任务中 time_range 映射为 attend_date 范围过滤"
+        }
+      ],
+      "sql_fields": [
+        "attendance.attend_date",
+        "attendance.status",
+        "attendance.is_deleted",
+        "base.attend_date",
+        "base.status"
+      ],
+      "applied_field_replacements": []
+    }
+  },
+  "output": {
+    "is_valid": true,
+    "error": null,
+    "rows": 30,
+    "result": [
+      {
+        "attend_date": "2025-09-01",
+        "attendance_rate": "27.86885"
+      },
+      {
+        "attend_date": "2025-09-02",
+        "attendance_rate": "21.42857"
+      },
+      {
+        "attend_date": "2025-09-03",
+        "attendance_rate": "21.66667"
+      },
+      {
+        "attend_date": "2025-09-04",
+        "attendance_rate": "22.22222"
+      },
+      {
+        "attend_date": "2025-09-05",
+        "attendance_rate": "23.88060"
+      },
+      {
+        "attend_date": "2025-09-06",
+        "attendance_rate": "34.28571"
+      },
+      {
+        "attend_date": "2025-09-07",
+        "attendance_rate": "26.47059"
+      },
+      {
+        "attend_date": "2025-09-08",
+        "attendance_rate": "29.03226"
+      },
+      {
+        "attend_date": "2025-09-09",
+        "attendance_rate": "37.03704"
+      },
+      {
+        "attend_date": "2025-09-10",
+        "attendance_rate": "33.33333"
+      },
+      {
+        "attend_date": "2025-09-11",
+        "attendance_rate": "26.66667"
+      },
+      {
+        "attend_date": "2025-09-12",
+        "attendance_rate": "29.03226"
+      },
+      {
+        "attend_date": "2025-09-13",
+        "attendance_rate": "26.47059"
+      },
+      {
+        "attend_date": "2025-09-14",
+        "attendance_rate": "23.33333"
+      },
+      {
+        "attend_date": "2025-09-15",
+        "attendance_rate": "24.65753"
+      },
+      {
+        "attend_date": "2025-09-16",
+        "attendance_rate": "32.92683"
+      },
+      {
+        "attend_date": "2025-09-17",
+        "attendance_rate": "28.12500"
+      },
+      {
+        "attend_date": "2025-09-18",
+        "attendance_rate": "27.14286"
+      },
+      {
+        "attend_date": "2025-09-19",
+        "attendance_rate": "23.80952"
+      },
+      {
+        "attend_date": "2025-09-20",
+        "attendance_rate": "32.35294"
+      },
+      {
+        "attend_date": "2025-09-21",
+        "attendance_rate": "31.88406"
+      },
+      {
+        "attend_date": "2025-09-22",
+        "attendance_rate": "28.16901"
+      },
+      {
+        "attend_date": "2025-09-23",
+        "attendance_rate": "25.71429"
+      },
+      {
+        "attend_date": "2025-09-24",
+        "attendance_rate": "29.23077"
+      },
+      {
+        "attend_date": "2025-09-25",
+        "attendance_rate": "37.50000"
+      },
+      {
+        "attend_date": "2025-09-26",
+        "attendance_rate": "36.50794"
+      },
+      {
+        "attend_date": "2025-09-27",
+        "attendance_rate": "22.22222"
+      },
+      {
+        "attend_date": "2025-09-28",
+        "attendance_rate": "20.31250"
+      },
+      {
+        "attend_date": "2025-09-29",
+        "attendance_rate": "24.59016"
+      },
+      {
+        "attend_date": "2025-09-30",
+        "attendance_rate": "30.64516"
+      }
+    ],
+    "executed_sql": "WITH base AS (SELECT attendance.attend_date, attendance.status FROM attendance WHERE attendance.attend_date >= '2025-09-01' AND attendance.attend_date <= '2025-09-30' AND attendance.is_deleted = 0) SELECT base.attend_date, COUNT(CASE WHEN base.status = '出勤' THEN 1 END) * 100.0 / COUNT(*) AS attendance_rate FROM base GROUP BY base.attend_date ORDER BY base.attend_date",
+    "empty_result": false,
+    "zero_metric_result": false
+  }
+}

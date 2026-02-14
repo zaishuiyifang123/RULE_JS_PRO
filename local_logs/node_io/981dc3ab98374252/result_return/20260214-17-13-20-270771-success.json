@@ -1,0 +1,3337 @@
+{
+  "session_id": "981dc3ab98374252",
+  "admin_id": 1,
+  "step_name": "result_return",
+  "status": "success",
+  "error_message": null,
+  "timestamp": "2026-02-14T17:13:20",
+  "input": {
+    "message": "查询专业编码 M010、必修课、成绩低于60分的学生成绩明细",
+    "intent_result": {
+      "intent": "business_query",
+      "is_followup": false,
+      "confidence": 0.95,
+      "merged_query": "查询专业编码为M010的必修课中成绩低于60分的所有学生成绩明细",
+      "rewritten_query": "查询专业编码为M010的必修课中成绩低于60分的所有学生成绩明细",
+      "threshold": 0.7
+    },
+    "parse_result": {
+      "intent": "business_query",
+      "entities": [
+        {
+          "type": "major_code",
+          "value": "M010"
+        },
+        {
+          "type": "course_type",
+          "value": "必修课"
+        },
+        {
+          "type": "score_value",
+          "value": "低于60分"
+        }
+      ],
+      "dimensions": [
+        "student.student_no",
+        "student.real_name",
+        "course.course_name",
+        "course.course_code",
+        "score.score_value",
+        "score.score_level"
+      ],
+      "metrics": [],
+      "filters": [
+        {
+          "field": "major.major_code",
+          "op": "=",
+          "value": "M010"
+        },
+        {
+          "field": "course.course_type",
+          "op": "=",
+          "value": "必修课"
+        },
+        {
+          "field": "score.score_value",
+          "op": "<",
+          "value": 60
+        }
+      ],
+      "time_range": {
+        "start": null,
+        "end": null
+      },
+      "operation": "detail",
+      "confidence": 0.95
+    },
+    "sql_result": {
+      "sql": "WITH base AS (SELECT student.student_no, student.real_name, course.course_name, course.course_code, score.score_value, score.score_level FROM score JOIN student ON score.student_id = student.id JOIN course ON score.course_id = course.id JOIN major ON student.major_id = major.id WHERE major.major_code = 'M010' AND course.course_type = '必修' AND score.score_value < 60 AND student.is_deleted = 0 AND course.is_deleted = 0 AND major.is_deleted = 0 AND score.is_deleted = 0) SELECT base.student_no, base.real_name, base.course_name, base.course_code, base.score_value, base.score_level FROM base",
+      "entity_mappings": [
+        {
+          "type": "major_code",
+          "value": "M010",
+          "field": "major.major_code",
+          "reason": "probe_samples 显示 major.major_code 候选值包含 'M010'，精确匹配"
+        },
+        {
+          "type": "course_type",
+          "value": "必修课",
+          "field": "course.course_type",
+          "reason": "probe_samples 显示 course.course_type 实际值为 '必修'，根据 value_candidates 将 '必修课' 归一化为 '必修'"
+        },
+        {
+          "type": "score_value",
+          "value": "低于60分",
+          "field": "score.score_value",
+          "reason": "原始过滤值为 60，probe_samples 中存在接近值如 60.9、59.8 等，保留数值比较逻辑 score_value < 60，因任务语义明确要求低于60分，且 probe_samples 证实存在低于60的记录（如59.8、57.3、51.2），无需修改阈值"
+        }
+      ],
+      "sql_fields": [
+        "student.student_no",
+        "student.real_name",
+        "course.course_name",
+        "course.course_code",
+        "score.score_value",
+        "score.score_level",
+        "score.student_id",
+        "student.id",
+        "score.course_id",
+        "course.id",
+        "student.major_id",
+        "major.id",
+        "major.major_code",
+        "course.course_type",
+        "student.is_deleted",
+        "course.is_deleted",
+        "major.is_deleted",
+        "score.is_deleted",
+        "base.student_no",
+        "base.real_name",
+        "base.course_name",
+        "base.course_code",
+        "base.score_value",
+        "base.score_level"
+      ],
+      "applied_field_replacements": []
+    },
+    "sql_validate_result": {
+      "is_valid": true,
+      "error": null,
+      "rows": 157,
+      "result": [
+        {
+          "student_no": "S02842",
+          "real_name": "曹燕",
+          "course_name": "制造学院课程14",
+          "course_code": "K0014",
+          "score_value": 58.0,
+          "score_level": "F"
+        },
+        {
+          "student_no": "S02843",
+          "real_name": "沈鹏",
+          "course_name": "制造学院课程32",
+          "course_code": "K0032",
+          "score_value": 58.0,
+          "score_level": "F"
+        },
+        {
+          "student_no": "S02845",
+          "real_name": "李强",
+          "course_name": "制造学院课程32",
+          "course_code": "K0032",
+          "score_value": 55.2,
+          "score_level": "F"
+        },
+        {
+          "student_no": "S02845",
+          "real_name": "李强",
+          "course_name": "制造学院课程14",
+          "course_code": "K0014",
+          "score_value": 57.1,
+          "score_level": "F"
+        },
+        {
+          "student_no": "S02854",
+          "real_name": "施宇",
+          "course_name": "制造学院课程14",
+          "course_code": "K0014",
+          "score_value": 57.0,
+          "score_level": "F"
+        },
+        {
+          "student_no": "S02856",
+          "real_name": "尤峰",
+          "course_name": "制造学院课程32",
+          "course_code": "K0032",
+          "score_value": 59.4,
+          "score_level": "F"
+        },
+        {
+          "student_no": "S02858",
+          "real_name": "孙娜",
+          "course_name": "制造学院课程32",
+          "course_code": "K0032",
+          "score_value": 58.5,
+          "score_level": "F"
+        },
+        {
+          "student_no": "S02861",
+          "real_name": "杨凯昊",
+          "course_name": "制造学院课程14",
+          "course_code": "K0014",
+          "score_value": 53.7,
+          "score_level": "F"
+        },
+        {
+          "student_no": "S02862",
+          "real_name": "孔峰",
+          "course_name": "制造学院课程32",
+          "course_code": "K0032",
+          "score_value": 52.5,
+          "score_level": "F"
+        },
+        {
+          "student_no": "S02867",
+          "real_name": "褚伟",
+          "course_name": "制造学院课程32",
+          "course_code": "K0032",
+          "score_value": 51.0,
+          "score_level": "F"
+        },
+        {
+          "student_no": "S02870",
+          "real_name": "施媛",
+          "course_name": "制造学院课程14",
+          "course_code": "K0014",
+          "score_value": 51.9,
+          "score_level": "F"
+        },
+        {
+          "student_no": "S02871",
+          "real_name": "吴航",
+          "course_name": "制造学院课程14",
+          "course_code": "K0014",
+          "score_value": 58.9,
+          "score_level": "F"
+        },
+        {
+          "student_no": "S02877",
+          "real_name": "陈军鑫",
+          "course_name": "制造学院课程14",
+          "course_code": "K0014",
+          "score_value": 53.8,
+          "score_level": "F"
+        },
+        {
+          "student_no": "S02883",
+          "real_name": "秦斌",
+          "course_name": "制造学院课程14",
+          "course_code": "K0014",
+          "score_value": 51.1,
+          "score_level": "F"
+        },
+        {
+          "student_no": "S02885",
+          "real_name": "陶杰",
+          "course_name": "制造学院课程14",
+          "course_code": "K0014",
+          "score_value": 55.1,
+          "score_level": "F"
+        },
+        {
+          "student_no": "S02890",
+          "real_name": "沈航",
+          "course_name": "制造学院课程32",
+          "course_code": "K0032",
+          "score_value": 56.0,
+          "score_level": "F"
+        },
+        {
+          "student_no": "S02890",
+          "real_name": "沈航",
+          "course_name": "制造学院课程14",
+          "course_code": "K0014",
+          "score_value": 58.5,
+          "score_level": "F"
+        },
+        {
+          "student_no": "S02893",
+          "real_name": "Sophia",
+          "course_name": "制造学院课程90",
+          "course_code": "K0090",
+          "score_value": 58.8,
+          "score_level": "F"
+        },
+        {
+          "student_no": "S02893",
+          "real_name": "Sophia",
+          "course_name": "制造学院课程63",
+          "course_code": "K0063",
+          "score_value": 54.8,
+          "score_level": "F"
+        },
+        {
+          "student_no": "S02894",
+          "real_name": "张丹媛",
+          "course_name": "制造学院课程59",
+          "course_code": "K0059",
+          "score_value": 51.5,
+          "score_level": "F"
+        },
+        {
+          "student_no": "S02895",
+          "real_name": "Isabella",
+          "course_name": "制造学院课程63",
+          "course_code": "K0063",
+          "score_value": 56.6,
+          "score_level": "F"
+        },
+        {
+          "student_no": "S02897",
+          "real_name": "朱婷萍",
+          "course_name": "制造学院课程59",
+          "course_code": "K0059",
+          "score_value": 59.9,
+          "score_level": "F"
+        },
+        {
+          "student_no": "S02897",
+          "real_name": "朱婷萍",
+          "course_name": "制造学院课程63",
+          "course_code": "K0063",
+          "score_value": 56.7,
+          "score_level": "F"
+        },
+        {
+          "student_no": "S02898",
+          "real_name": "冯颖",
+          "course_name": "制造学院课程90",
+          "course_code": "K0090",
+          "score_value": 58.3,
+          "score_level": "F"
+        },
+        {
+          "student_no": "S02898",
+          "real_name": "冯颖",
+          "course_name": "制造学院课程63",
+          "course_code": "K0063",
+          "score_value": 57.1,
+          "score_level": "F"
+        },
+        {
+          "student_no": "S02900",
+          "real_name": "吴萍媛",
+          "course_name": "制造学院课程59",
+          "course_code": "K0059",
+          "score_value": 51.0,
+          "score_level": "F"
+        },
+        {
+          "student_no": "S02901",
+          "real_name": "曹丽",
+          "course_name": "制造学院课程59",
+          "course_code": "K0059",
+          "score_value": 59.5,
+          "score_level": "F"
+        },
+        {
+          "student_no": "S02904",
+          "real_name": "许伟宇",
+          "course_name": "制造学院课程90",
+          "course_code": "K0090",
+          "score_value": 56.2,
+          "score_level": "F"
+        },
+        {
+          "student_no": "S02904",
+          "real_name": "许伟宇",
+          "course_name": "制造学院课程63",
+          "course_code": "K0063",
+          "score_value": 53.3,
+          "score_level": "F"
+        },
+        {
+          "student_no": "S02905",
+          "real_name": "杨昊",
+          "course_name": "制造学院课程90",
+          "course_code": "K0090",
+          "score_value": 55.3,
+          "score_level": "F"
+        },
+        {
+          "student_no": "S02906",
+          "real_name": "曹媛",
+          "course_name": "制造学院课程63",
+          "course_code": "K0063",
+          "score_value": 55.9,
+          "score_level": "F"
+        },
+        {
+          "student_no": "S02908",
+          "real_name": "尤婷慧",
+          "course_name": "制造学院课程90",
+          "course_code": "K0090",
+          "score_value": 58.3,
+          "score_level": "F"
+        },
+        {
+          "student_no": "S02911",
+          "real_name": "许勇晨",
+          "course_name": "制造学院课程59",
+          "course_code": "K0059",
+          "score_value": 59.6,
+          "score_level": "F"
+        },
+        {
+          "student_no": "S02911",
+          "real_name": "许勇晨",
+          "course_name": "制造学院课程90",
+          "course_code": "K0090",
+          "score_value": 50.7,
+          "score_level": "F"
+        },
+        {
+          "student_no": "S02911",
+          "real_name": "许勇晨",
+          "course_name": "制造学院课程63",
+          "course_code": "K0063",
+          "score_value": 53.3,
+          "score_level": "F"
+        },
+        {
+          "student_no": "S02914",
+          "real_name": "Liam",
+          "course_name": "制造学院课程63",
+          "course_code": "K0063",
+          "score_value": 54.4,
+          "score_level": "F"
+        },
+        {
+          "student_no": "S02916",
+          "real_name": "金琳",
+          "course_name": "制造学院课程90",
+          "course_code": "K0090",
+          "score_value": 54.0,
+          "score_level": "F"
+        },
+        {
+          "student_no": "S02919",
+          "real_name": "秦浩",
+          "course_name": "制造学院课程63",
+          "course_code": "K0063",
+          "score_value": 54.2,
+          "score_level": "F"
+        },
+        {
+          "student_no": "S02920",
+          "real_name": "钱琳",
+          "course_name": "制造学院课程90",
+          "course_code": "K0090",
+          "score_value": 56.4,
+          "score_level": "F"
+        },
+        {
+          "student_no": "S02922",
+          "real_name": "何丽敏",
+          "course_name": "制造学院课程63",
+          "course_code": "K0063",
+          "score_value": 58.2,
+          "score_level": "F"
+        },
+        {
+          "student_no": "S02925",
+          "real_name": "Ava",
+          "course_name": "制造学院课程59",
+          "course_code": "K0059",
+          "score_value": 51.7,
+          "score_level": "F"
+        },
+        {
+          "student_no": "S02925",
+          "real_name": "Ava",
+          "course_name": "制造学院课程90",
+          "course_code": "K0090",
+          "score_value": 53.3,
+          "score_level": "F"
+        },
+        {
+          "student_no": "S02926",
+          "real_name": "孙昊宇",
+          "course_name": "制造学院课程63",
+          "course_code": "K0063",
+          "score_value": 51.5,
+          "score_level": "F"
+        },
+        {
+          "student_no": "S02931",
+          "real_name": "曹琪",
+          "course_name": "制造学院课程63",
+          "course_code": "K0063",
+          "score_value": 55.0,
+          "score_level": "F"
+        },
+        {
+          "student_no": "S02932",
+          "real_name": "韩燕颖",
+          "course_name": "制造学院课程63",
+          "course_code": "K0063",
+          "score_value": 53.7,
+          "score_level": "F"
+        },
+        {
+          "student_no": "S02934",
+          "real_name": "赵航",
+          "course_name": "制造学院课程90",
+          "course_code": "K0090",
+          "score_value": 59.4,
+          "score_level": "F"
+        },
+        {
+          "student_no": "S02935",
+          "real_name": "朱雅",
+          "course_name": "制造学院课程90",
+          "course_code": "K0090",
+          "score_value": 54.1,
+          "score_level": "F"
+        },
+        {
+          "student_no": "S02936",
+          "real_name": "周军鹏",
+          "course_name": "制造学院课程59",
+          "course_code": "K0059",
+          "score_value": 56.9,
+          "score_level": "F"
+        },
+        {
+          "student_no": "S02936",
+          "real_name": "周军鹏",
+          "course_name": "制造学院课程90",
+          "course_code": "K0090",
+          "score_value": 50.8,
+          "score_level": "F"
+        },
+        {
+          "student_no": "S02937",
+          "real_name": "姜燕",
+          "course_name": "制造学院课程59",
+          "course_code": "K0059",
+          "score_value": 56.1,
+          "score_level": "F"
+        },
+        {
+          "student_no": "S02937",
+          "real_name": "姜燕",
+          "course_name": "制造学院课程63",
+          "course_code": "K0063",
+          "score_value": 51.5,
+          "score_level": "F"
+        },
+        {
+          "student_no": "S02939",
+          "real_name": "严燕雪",
+          "course_name": "制造学院课程59",
+          "course_code": "K0059",
+          "score_value": 56.2,
+          "score_level": "F"
+        },
+        {
+          "student_no": "S02939",
+          "real_name": "严燕雪",
+          "course_name": "制造学院课程63",
+          "course_code": "K0063",
+          "score_value": 55.6,
+          "score_level": "F"
+        },
+        {
+          "student_no": "S02941",
+          "real_name": "Sophia",
+          "course_name": "制造学院课程59",
+          "course_code": "K0059",
+          "score_value": 53.0,
+          "score_level": "F"
+        },
+        {
+          "student_no": "S02941",
+          "real_name": "Sophia",
+          "course_name": "制造学院课程90",
+          "course_code": "K0090",
+          "score_value": 56.6,
+          "score_level": "F"
+        },
+        {
+          "student_no": "S02946",
+          "real_name": "韩峰航",
+          "course_name": "制造学院课程127",
+          "course_code": "K0127",
+          "score_value": 58.8,
+          "score_level": "F"
+        },
+        {
+          "student_no": "S02947",
+          "real_name": "王娜",
+          "course_name": "制造学院课程193",
+          "course_code": "K0193",
+          "score_value": 58.4,
+          "score_level": "F"
+        },
+        {
+          "student_no": "S02948",
+          "real_name": "秦芳琪",
+          "course_name": "制造学院课程193",
+          "course_code": "K0193",
+          "score_value": 55.0,
+          "score_level": "F"
+        },
+        {
+          "student_no": "S02948",
+          "real_name": "秦芳琪",
+          "course_name": "制造学院课程32",
+          "course_code": "K0032",
+          "score_value": 52.5,
+          "score_level": "F"
+        },
+        {
+          "student_no": "S02949",
+          "real_name": "吴军",
+          "course_name": "制造学院课程193",
+          "course_code": "K0193",
+          "score_value": 58.2,
+          "score_level": "F"
+        },
+        {
+          "student_no": "S02949",
+          "real_name": "吴军",
+          "course_name": "制造学院课程127",
+          "course_code": "K0127",
+          "score_value": 57.2,
+          "score_level": "F"
+        },
+        {
+          "student_no": "S02950",
+          "real_name": "周慧",
+          "course_name": "制造学院课程193",
+          "course_code": "K0193",
+          "score_value": 55.6,
+          "score_level": "F"
+        },
+        {
+          "student_no": "S02951",
+          "real_name": "朱峰峰",
+          "course_name": "制造学院课程193",
+          "course_code": "K0193",
+          "score_value": 54.6,
+          "score_level": "F"
+        },
+        {
+          "student_no": "S02951",
+          "real_name": "朱峰峰",
+          "course_name": "制造学院课程127",
+          "course_code": "K0127",
+          "score_value": 59.2,
+          "score_level": "F"
+        },
+        {
+          "student_no": "S02952",
+          "real_name": "曹峰宇",
+          "course_name": "制造学院课程193",
+          "course_code": "K0193",
+          "score_value": 53.8,
+          "score_level": "F"
+        },
+        {
+          "student_no": "S02954",
+          "real_name": "秦颖",
+          "course_name": "制造学院课程193",
+          "course_code": "K0193",
+          "score_value": 54.4,
+          "score_level": "F"
+        },
+        {
+          "student_no": "S02955",
+          "real_name": "Olivia",
+          "course_name": "制造学院课程193",
+          "course_code": "K0193",
+          "score_value": 57.6,
+          "score_level": "F"
+        },
+        {
+          "student_no": "S02955",
+          "real_name": "Olivia",
+          "course_name": "制造学院课程32",
+          "course_code": "K0032",
+          "score_value": 55.1,
+          "score_level": "F"
+        },
+        {
+          "student_no": "S02958",
+          "real_name": "曹慧",
+          "course_name": "制造学院课程32",
+          "course_code": "K0032",
+          "score_value": 56.1,
+          "score_level": "F"
+        },
+        {
+          "student_no": "S02960",
+          "real_name": "钱杰",
+          "course_name": "制造学院课程32",
+          "course_code": "K0032",
+          "score_value": 59.2,
+          "score_level": "F"
+        },
+        {
+          "student_no": "S02962",
+          "real_name": "华昊",
+          "course_name": "制造学院课程127",
+          "course_code": "K0127",
+          "score_value": 51.2,
+          "score_level": "F"
+        },
+        {
+          "student_no": "S02964",
+          "real_name": "Liam",
+          "course_name": "制造学院课程193",
+          "course_code": "K0193",
+          "score_value": 52.8,
+          "score_level": "F"
+        },
+        {
+          "student_no": "S02973",
+          "real_name": "钱鹏",
+          "course_name": "制造学院课程193",
+          "course_code": "K0193",
+          "score_value": 54.8,
+          "score_level": "F"
+        },
+        {
+          "student_no": "S02973",
+          "real_name": "钱鹏",
+          "course_name": "制造学院课程32",
+          "course_code": "K0032",
+          "score_value": 51.9,
+          "score_level": "F"
+        },
+        {
+          "student_no": "S02975",
+          "real_name": "严丹",
+          "course_name": "制造学院课程127",
+          "course_code": "K0127",
+          "score_value": 56.9,
+          "score_level": "F"
+        },
+        {
+          "student_no": "S02976",
+          "real_name": "Emma",
+          "course_name": "制造学院课程32",
+          "course_code": "K0032",
+          "score_value": 58.4,
+          "score_level": "F"
+        },
+        {
+          "student_no": "S02981",
+          "real_name": "陈洁",
+          "course_name": "制造学院课程193",
+          "course_code": "K0193",
+          "score_value": 52.3,
+          "score_level": "F"
+        },
+        {
+          "student_no": "S02983",
+          "real_name": "严倩艳",
+          "course_name": "制造学院课程32",
+          "course_code": "K0032",
+          "score_value": 53.4,
+          "score_level": "F"
+        },
+        {
+          "student_no": "S02984",
+          "real_name": "许丽",
+          "course_name": "制造学院课程32",
+          "course_code": "K0032",
+          "score_value": 57.0,
+          "score_level": "F"
+        },
+        {
+          "student_no": "S02985",
+          "real_name": "卫浩浩",
+          "course_name": "制造学院课程193",
+          "course_code": "K0193",
+          "score_value": 57.4,
+          "score_level": "F"
+        },
+        {
+          "student_no": "S02985",
+          "real_name": "卫浩浩",
+          "course_name": "制造学院课程127",
+          "course_code": "K0127",
+          "score_value": 50.6,
+          "score_level": "F"
+        },
+        {
+          "student_no": "S02990",
+          "real_name": "韩勇",
+          "course_name": "制造学院课程32",
+          "course_code": "K0032",
+          "score_value": 55.2,
+          "score_level": "F"
+        },
+        {
+          "student_no": "S02991",
+          "real_name": "严丽",
+          "course_name": "制造学院课程193",
+          "course_code": "K0193",
+          "score_value": 51.8,
+          "score_level": "F"
+        },
+        {
+          "student_no": "S02994",
+          "real_name": "杨伟",
+          "course_name": "制造学院课程127",
+          "course_code": "K0127",
+          "score_value": 56.3,
+          "score_level": "F"
+        },
+        {
+          "student_no": "S02998",
+          "real_name": "施凯宇",
+          "course_name": "制造学院课程193",
+          "course_code": "K0193",
+          "score_value": 57.8,
+          "score_level": "F"
+        },
+        {
+          "student_no": "S03001",
+          "real_name": "褚欣琳",
+          "course_name": "制造学院课程193",
+          "course_code": "K0193",
+          "score_value": 52.3,
+          "score_level": "F"
+        },
+        {
+          "student_no": "S03003",
+          "real_name": "姜丽雪",
+          "course_name": "制造学院课程193",
+          "course_code": "K0193",
+          "score_value": 50.5,
+          "score_level": "F"
+        },
+        {
+          "student_no": "S03003",
+          "real_name": "姜丽雪",
+          "course_name": "制造学院课程127",
+          "course_code": "K0127",
+          "score_value": 51.3,
+          "score_level": "F"
+        },
+        {
+          "student_no": "S03004",
+          "real_name": "姜慧",
+          "course_name": "制造学院课程193",
+          "course_code": "K0193",
+          "score_value": 56.5,
+          "score_level": "F"
+        },
+        {
+          "student_no": "S03006",
+          "real_name": "冯晨",
+          "course_name": "制造学院课程127",
+          "course_code": "K0127",
+          "score_value": 52.1,
+          "score_level": "F"
+        },
+        {
+          "student_no": "S03007",
+          "real_name": "陶雪",
+          "course_name": "制造学院课程127",
+          "course_code": "K0127",
+          "score_value": 56.4,
+          "score_level": "F"
+        },
+        {
+          "student_no": "S03008",
+          "real_name": "魏欣",
+          "course_name": "制造学院课程34",
+          "course_code": "K0034",
+          "score_value": 53.9,
+          "score_level": "F"
+        },
+        {
+          "student_no": "S03009",
+          "real_name": "许鑫",
+          "course_name": "制造学院课程34",
+          "course_code": "K0034",
+          "score_value": 53.8,
+          "score_level": "F"
+        },
+        {
+          "student_no": "S03010",
+          "real_name": "吕雪",
+          "course_name": "制造学院课程34",
+          "course_code": "K0034",
+          "score_value": 56.6,
+          "score_level": "F"
+        },
+        {
+          "student_no": "S03012",
+          "real_name": "严雪琪",
+          "course_name": "制造学院课程127",
+          "course_code": "K0127",
+          "score_value": 51.1,
+          "score_level": "F"
+        },
+        {
+          "student_no": "S03013",
+          "real_name": "秦倩",
+          "course_name": "制造学院课程34",
+          "course_code": "K0034",
+          "score_value": 54.4,
+          "score_level": "F"
+        },
+        {
+          "student_no": "S03014",
+          "real_name": "韩凯",
+          "course_name": "制造学院课程127",
+          "course_code": "K0127",
+          "score_value": 52.4,
+          "score_level": "F"
+        },
+        {
+          "student_no": "S03015",
+          "real_name": "魏皓磊",
+          "course_name": "制造学院课程127",
+          "course_code": "K0127",
+          "score_value": 58.8,
+          "score_level": "F"
+        },
+        {
+          "student_no": "S03017",
+          "real_name": "Ethan",
+          "course_name": "制造学院课程193",
+          "course_code": "K0193",
+          "score_value": 55.8,
+          "score_level": "F"
+        },
+        {
+          "student_no": "S03020",
+          "real_name": "许鑫",
+          "course_name": "制造学院课程193",
+          "course_code": "K0193",
+          "score_value": 57.6,
+          "score_level": "F"
+        },
+        {
+          "student_no": "S03021",
+          "real_name": "蒋皓",
+          "course_name": "制造学院课程193",
+          "course_code": "K0193",
+          "score_value": 59.9,
+          "score_level": "F"
+        },
+        {
+          "student_no": "S03023",
+          "real_name": "王媛",
+          "course_name": "制造学院课程193",
+          "course_code": "K0193",
+          "score_value": 50.2,
+          "score_level": "F"
+        },
+        {
+          "student_no": "S03028",
+          "real_name": "冯军杰",
+          "course_name": "制造学院课程193",
+          "course_code": "K0193",
+          "score_value": 52.9,
+          "score_level": "F"
+        },
+        {
+          "student_no": "S03029",
+          "real_name": "褚丽",
+          "course_name": "制造学院课程193",
+          "course_code": "K0193",
+          "score_value": 52.0,
+          "score_level": "F"
+        },
+        {
+          "student_no": "S03031",
+          "real_name": "许倩",
+          "course_name": "制造学院课程34",
+          "course_code": "K0034",
+          "score_value": 57.0,
+          "score_level": "F"
+        },
+        {
+          "student_no": "S03032",
+          "real_name": "华琪",
+          "course_name": "制造学院课程193",
+          "course_code": "K0193",
+          "score_value": 56.1,
+          "score_level": "F"
+        },
+        {
+          "student_no": "S03035",
+          "real_name": "卫航",
+          "course_name": "制造学院课程193",
+          "course_code": "K0193",
+          "score_value": 59.7,
+          "score_level": "F"
+        },
+        {
+          "student_no": "S03035",
+          "real_name": "卫航",
+          "course_name": "制造学院课程127",
+          "course_code": "K0127",
+          "score_value": 58.3,
+          "score_level": "F"
+        },
+        {
+          "student_no": "S03038",
+          "real_name": "许丹倩",
+          "course_name": "制造学院课程193",
+          "course_code": "K0193",
+          "score_value": 50.1,
+          "score_level": "F"
+        },
+        {
+          "student_no": "S03038",
+          "real_name": "许丹倩",
+          "course_name": "制造学院课程127",
+          "course_code": "K0127",
+          "score_value": 50.5,
+          "score_level": "F"
+        },
+        {
+          "student_no": "S03040",
+          "real_name": "李丹雅",
+          "course_name": "制造学院课程193",
+          "course_code": "K0193",
+          "score_value": 56.1,
+          "score_level": "F"
+        },
+        {
+          "student_no": "S03040",
+          "real_name": "李丹雅",
+          "course_name": "制造学院课程127",
+          "course_code": "K0127",
+          "score_value": 56.2,
+          "score_level": "F"
+        },
+        {
+          "student_no": "S03042",
+          "real_name": "冯慧洁",
+          "course_name": "制造学院课程193",
+          "course_code": "K0193",
+          "score_value": 51.9,
+          "score_level": "F"
+        },
+        {
+          "student_no": "S03048",
+          "real_name": "尤萍洁",
+          "course_name": "制造学院课程127",
+          "course_code": "K0127",
+          "score_value": 54.9,
+          "score_level": "F"
+        },
+        {
+          "student_no": "S03049",
+          "real_name": "李欣",
+          "course_name": "制造学院课程7",
+          "course_code": "K0007",
+          "score_value": 58.9,
+          "score_level": "F"
+        },
+        {
+          "student_no": "S03050",
+          "real_name": "张磊",
+          "course_name": "制造学院课程7",
+          "course_code": "K0007",
+          "score_value": 52.3,
+          "score_level": "F"
+        },
+        {
+          "student_no": "S03052",
+          "real_name": "赵伟",
+          "course_name": "制造学院课程14",
+          "course_code": "K0014",
+          "score_value": 50.3,
+          "score_level": "F"
+        },
+        {
+          "student_no": "S03055",
+          "real_name": "郑军",
+          "course_name": "制造学院课程230",
+          "course_code": "K0230",
+          "score_value": 50.4,
+          "score_level": "F"
+        },
+        {
+          "student_no": "S03056",
+          "real_name": "赵晨",
+          "course_name": "制造学院课程230",
+          "course_code": "K0230",
+          "score_value": 52.7,
+          "score_level": "F"
+        },
+        {
+          "student_no": "S03056",
+          "real_name": "赵晨",
+          "course_name": "制造学院课程7",
+          "course_code": "K0007",
+          "score_value": 52.7,
+          "score_level": "F"
+        },
+        {
+          "student_no": "S03057",
+          "real_name": "郑斌",
+          "course_name": "制造学院课程14",
+          "course_code": "K0014",
+          "score_value": 53.7,
+          "score_level": "F"
+        },
+        {
+          "student_no": "S03058",
+          "real_name": "陶洁",
+          "course_name": "制造学院课程230",
+          "course_code": "K0230",
+          "score_value": 56.7,
+          "score_level": "F"
+        },
+        {
+          "student_no": "S03058",
+          "real_name": "陶洁",
+          "course_name": "制造学院课程7",
+          "course_code": "K0007",
+          "score_value": 57.4,
+          "score_level": "F"
+        },
+        {
+          "student_no": "S03059",
+          "real_name": "孔伟博",
+          "course_name": "制造学院课程230",
+          "course_code": "K0230",
+          "score_value": 57.4,
+          "score_level": "F"
+        },
+        {
+          "student_no": "S03059",
+          "real_name": "孔伟博",
+          "course_name": "制造学院课程7",
+          "course_code": "K0007",
+          "score_value": 55.0,
+          "score_level": "F"
+        },
+        {
+          "student_no": "S03060",
+          "real_name": "严燕",
+          "course_name": "制造学院课程7",
+          "course_code": "K0007",
+          "score_value": 56.2,
+          "score_level": "F"
+        },
+        {
+          "student_no": "S03066",
+          "real_name": "褚婷",
+          "course_name": "制造学院课程14",
+          "course_code": "K0014",
+          "score_value": 56.5,
+          "score_level": "F"
+        },
+        {
+          "student_no": "S03066",
+          "real_name": "褚婷",
+          "course_name": "制造学院课程230",
+          "course_code": "K0230",
+          "score_value": 51.1,
+          "score_level": "F"
+        },
+        {
+          "student_no": "S03066",
+          "real_name": "褚婷",
+          "course_name": "制造学院课程7",
+          "course_code": "K0007",
+          "score_value": 54.4,
+          "score_level": "F"
+        },
+        {
+          "student_no": "S03068",
+          "real_name": "张涛",
+          "course_name": "制造学院课程14",
+          "course_code": "K0014",
+          "score_value": 59.0,
+          "score_level": "F"
+        },
+        {
+          "student_no": "S03069",
+          "real_name": "冯丹芳",
+          "course_name": "制造学院课程7",
+          "course_code": "K0007",
+          "score_value": 53.2,
+          "score_level": "F"
+        },
+        {
+          "student_no": "S03072",
+          "real_name": "魏艳",
+          "course_name": "制造学院课程230",
+          "course_code": "K0230",
+          "score_value": 56.9,
+          "score_level": "F"
+        },
+        {
+          "student_no": "S03074",
+          "real_name": "张洁",
+          "course_name": "制造学院课程7",
+          "course_code": "K0007",
+          "score_value": 52.1,
+          "score_level": "F"
+        },
+        {
+          "student_no": "S03076",
+          "real_name": "施航",
+          "course_name": "制造学院课程14",
+          "course_code": "K0014",
+          "score_value": 55.8,
+          "score_level": "F"
+        },
+        {
+          "student_no": "S03077",
+          "real_name": "赵慧芳",
+          "course_name": "制造学院课程7",
+          "course_code": "K0007",
+          "score_value": 55.8,
+          "score_level": "F"
+        },
+        {
+          "student_no": "S03082",
+          "real_name": "Ethan",
+          "course_name": "制造学院课程7",
+          "course_code": "K0007",
+          "score_value": 54.5,
+          "score_level": "F"
+        },
+        {
+          "student_no": "S03084",
+          "real_name": "施琪芳",
+          "course_name": "制造学院课程7",
+          "course_code": "K0007",
+          "score_value": 57.2,
+          "score_level": "F"
+        },
+        {
+          "student_no": "S03087",
+          "real_name": "郑宇",
+          "course_name": "制造学院课程230",
+          "course_code": "K0230",
+          "score_value": 55.3,
+          "score_level": "F"
+        },
+        {
+          "student_no": "S03087",
+          "real_name": "郑宇",
+          "course_name": "制造学院课程7",
+          "course_code": "K0007",
+          "score_value": 57.0,
+          "score_level": "F"
+        },
+        {
+          "student_no": "S03088",
+          "real_name": "魏芳芳",
+          "course_name": "制造学院课程230",
+          "course_code": "K0230",
+          "score_value": 58.3,
+          "score_level": "F"
+        },
+        {
+          "student_no": "S03089",
+          "real_name": "沈晨",
+          "course_name": "制造学院课程230",
+          "course_code": "K0230",
+          "score_value": 57.0,
+          "score_level": "F"
+        },
+        {
+          "student_no": "S03089",
+          "real_name": "沈晨",
+          "course_name": "制造学院课程7",
+          "course_code": "K0007",
+          "score_value": 51.4,
+          "score_level": "F"
+        },
+        {
+          "student_no": "S03091",
+          "real_name": "何洁",
+          "course_name": "制造学院课程230",
+          "course_code": "K0230",
+          "score_value": 56.9,
+          "score_level": "F"
+        },
+        {
+          "student_no": "S03092",
+          "real_name": "赵倩媛",
+          "course_name": "制造学院课程230",
+          "course_code": "K0230",
+          "score_value": 53.9,
+          "score_level": "F"
+        },
+        {
+          "student_no": "S03095",
+          "real_name": "Lucas",
+          "course_name": "制造学院课程7",
+          "course_code": "K0007",
+          "score_value": 57.8,
+          "score_level": "F"
+        },
+        {
+          "student_no": "S03096",
+          "real_name": "孙丹",
+          "course_name": "制造学院课程7",
+          "course_code": "K0007",
+          "score_value": 55.0,
+          "score_level": "F"
+        },
+        {
+          "student_no": "S03098",
+          "real_name": "朱涛",
+          "course_name": "制造学院课程14",
+          "course_code": "K0014",
+          "score_value": 51.5,
+          "score_level": "F"
+        },
+        {
+          "student_no": "S03108",
+          "real_name": "吴萍",
+          "course_name": "制造学院课程230",
+          "course_code": "K0230",
+          "score_value": 57.1,
+          "score_level": "F"
+        },
+        {
+          "student_no": "S03109",
+          "real_name": "严皓",
+          "course_name": "制造学院课程230",
+          "course_code": "K0230",
+          "score_value": 54.6,
+          "score_level": "F"
+        },
+        {
+          "student_no": "S03117",
+          "real_name": "施浩",
+          "course_name": "制造学院课程230",
+          "course_code": "K0230",
+          "score_value": 54.2,
+          "score_level": "F"
+        },
+        {
+          "student_no": "S03119",
+          "real_name": "卫宇",
+          "course_name": "制造学院课程230",
+          "course_code": "K0230",
+          "score_value": 59.9,
+          "score_level": "F"
+        },
+        {
+          "student_no": "S03122",
+          "real_name": "金静",
+          "course_name": "制造学院课程230",
+          "course_code": "K0230",
+          "score_value": 51.0,
+          "score_level": "F"
+        },
+        {
+          "student_no": "S03131",
+          "real_name": "陈媛",
+          "course_name": "制造学院课程230",
+          "course_code": "K0230",
+          "score_value": 50.8,
+          "score_level": "F"
+        },
+        {
+          "student_no": "S03137",
+          "real_name": "钱皓",
+          "course_name": "制造学院课程230",
+          "course_code": "K0230",
+          "score_value": 55.9,
+          "score_level": "F"
+        },
+        {
+          "student_no": "S03138",
+          "real_name": "魏凯",
+          "course_name": "制造学院课程230",
+          "course_code": "K0230",
+          "score_value": 59.3,
+          "score_level": "F"
+        },
+        {
+          "student_no": "S03140",
+          "real_name": "Liam",
+          "course_name": "制造学院课程230",
+          "course_code": "K0230",
+          "score_value": 59.9,
+          "score_level": "F"
+        },
+        {
+          "student_no": "S03149",
+          "real_name": "张敏",
+          "course_name": "制造学院课程230",
+          "course_code": "K0230",
+          "score_value": 58.7,
+          "score_level": "F"
+        }
+      ],
+      "executed_sql": "WITH base AS (SELECT student.student_no, student.real_name, course.course_name, course.course_code, score.score_value, score.score_level FROM score JOIN student ON score.student_id = student.id JOIN course ON score.course_id = course.id JOIN major ON student.major_id = major.id WHERE major.major_code = 'M010' AND course.course_type = '必修' AND score.score_value < 60 AND student.is_deleted = 0 AND course.is_deleted = 0 AND major.is_deleted = 0 AND score.is_deleted = 0) SELECT base.student_no, base.real_name, base.course_name, base.course_code, base.score_value, base.score_level FROM base",
+      "empty_result": false,
+      "zero_metric_result": false
+    },
+    "hidden_context_result": {
+      "retry_reason": "empty_result",
+      "error_type": "execution_error",
+      "error": "",
+      "failed_sql": "WITH base AS (SELECT student.student_no, student.real_name, course.course_name, course.course_code, score.score_value, score.score_level FROM score JOIN student ON score.student_id = student.id JOIN course ON score.course_id = course.id JOIN major ON student.major_id = major.id WHERE major.major_code = 'M010' AND course.course_type = '必修课' AND score.score_value < 60 AND student.is_deleted = 0 AND course.is_deleted = 0 AND major.is_deleted = 0 AND score.is_deleted = 0) SELECT base.student_no, base.real_name, base.course_name, base.course_code, base.score_value, base.score_level FROM base",
+      "rewritten_query": "查询专业编码为M010的必修课中成绩低于60分的所有学生成绩明细",
+      "field_candidates": [],
+      "probe_samples": [
+        {
+          "field": "student.student_no",
+          "probe_sql": "SELECT DISTINCT student.student_no AS value FROM student WHERE student.student_no IS NOT NULL AND student.is_deleted = 0 LIMIT 20",
+          "values": [
+            "S00001",
+            "S00002",
+            "S00003",
+            "S00004",
+            "S00005",
+            "S00006",
+            "S00007",
+            "S00008",
+            "S00009",
+            "S00010",
+            "S00011",
+            "S00012",
+            "S00013",
+            "S00014",
+            "S00015",
+            "S00016",
+            "S00017",
+            "S00018",
+            "S00019",
+            "S00020"
+          ]
+        },
+        {
+          "field": "student.real_name",
+          "probe_sql": "SELECT DISTINCT student.real_name AS value FROM student WHERE student.real_name IS NOT NULL AND student.is_deleted = 0 LIMIT 20",
+          "values": [
+            "施伟",
+            "Ethan",
+            "周鹏",
+            "孔航",
+            "吴斌",
+            "沈强博",
+            "Isabella",
+            "孙芳",
+            "钱丹",
+            "施斌",
+            "周欣",
+            "Olivia",
+            "沈燕",
+            "郑涛宇",
+            "吕斌",
+            "陶洋",
+            "何勇",
+            "姜萍",
+            "冯峰",
+            "郑航"
+          ]
+        },
+        {
+          "field": "course.course_name",
+          "probe_sql": "SELECT DISTINCT course.course_name AS value FROM course WHERE course.course_name IS NOT NULL AND course.is_deleted = 0 LIMIT 20",
+          "values": [
+            "设计学院课程1",
+            "工程学院课程2",
+            "工程学院课程3",
+            "学理学院课程4",
+            "制造学院课程5",
+            "制造学院课程6",
+            "制造学院课程7",
+            "管理学院课程8",
+            "管理学院课程9",
+            "管理学院课程10",
+            "设计学院课程11",
+            "贸易学院课程12",
+            "人文学院课程13",
+            "制造学院课程14",
+            "国语学院课程15",
+            "人文学院课程16",
+            "人文学院课程17",
+            "国语学院课程18",
+            "管理学院课程19",
+            "学理学院课程20"
+          ]
+        },
+        {
+          "field": "course.course_code",
+          "probe_sql": "SELECT DISTINCT course.course_code AS value FROM course WHERE course.course_code IS NOT NULL AND course.is_deleted = 0 LIMIT 20",
+          "values": [
+            "K0001",
+            "K0002",
+            "K0003",
+            "K0004",
+            "K0005",
+            "K0006",
+            "K0007",
+            "K0008",
+            "K0009",
+            "K0010",
+            "K0011",
+            "K0012",
+            "K0013",
+            "K0014",
+            "K0015",
+            "K0016",
+            "K0017",
+            "K0018",
+            "K0019",
+            "K0020"
+          ]
+        },
+        {
+          "field": "score.score_value",
+          "probe_sql": "SELECT DISTINCT score.score_value AS value FROM score WHERE score.score_value IS NOT NULL AND score.is_deleted = 0 LIMIT 20",
+          "values": [
+            "59.8",
+            "90.7",
+            "87.1",
+            "99.5",
+            "66.5",
+            "61.6",
+            "95.5",
+            "99.1",
+            "66.0",
+            "51.2",
+            "98.6",
+            "85.9",
+            "90.8",
+            "78.2",
+            "63.1",
+            "94.5",
+            "62.5",
+            "60.9",
+            "92.0",
+            "57.3"
+          ]
+        },
+        {
+          "field": "score.score_level",
+          "probe_sql": "SELECT DISTINCT score.score_level AS value FROM score WHERE score.score_level IS NOT NULL AND score.is_deleted = 0 LIMIT 20",
+          "values": [
+            "F",
+            "A",
+            "B",
+            "D",
+            "C"
+          ]
+        },
+        {
+          "field": "score.student_id",
+          "probe_sql": "SELECT DISTINCT score.student_id AS value FROM score WHERE score.student_id IS NOT NULL AND score.is_deleted = 0 LIMIT 20",
+          "values": [
+            "1",
+            "2",
+            "3",
+            "4",
+            "5",
+            "6",
+            "7",
+            "8",
+            "9",
+            "10",
+            "11",
+            "12",
+            "13",
+            "14",
+            "15",
+            "16",
+            "17",
+            "18",
+            "19",
+            "20"
+          ]
+        },
+        {
+          "field": "student.id",
+          "probe_sql": "SELECT DISTINCT student.id AS value FROM student WHERE student.id IS NOT NULL AND student.is_deleted = 0 LIMIT 20",
+          "values": [
+            "1",
+            "2",
+            "3",
+            "4",
+            "5",
+            "6",
+            "7",
+            "8",
+            "9",
+            "10",
+            "11",
+            "12",
+            "13",
+            "14",
+            "15",
+            "16",
+            "17",
+            "18",
+            "19",
+            "20"
+          ]
+        },
+        {
+          "field": "score.course_id",
+          "probe_sql": "SELECT DISTINCT score.course_id AS value FROM score WHERE score.course_id IS NOT NULL AND score.is_deleted = 0 LIMIT 20",
+          "values": [
+            "163",
+            "210",
+            "167",
+            "263",
+            "121",
+            "217",
+            "70",
+            "45",
+            "83",
+            "150",
+            "133",
+            "60",
+            "118",
+            "2",
+            "38",
+            "204",
+            "178",
+            "107",
+            "183",
+            "223"
+          ]
+        },
+        {
+          "field": "course.id",
+          "probe_sql": "SELECT DISTINCT course.id AS value FROM course WHERE course.id IS NOT NULL AND course.is_deleted = 0 LIMIT 20",
+          "values": [
+            "1",
+            "2",
+            "3",
+            "4",
+            "5",
+            "6",
+            "7",
+            "8",
+            "9",
+            "10",
+            "11",
+            "12",
+            "13",
+            "14",
+            "15",
+            "16",
+            "17",
+            "18",
+            "19",
+            "20"
+          ]
+        },
+        {
+          "field": "student.major_id",
+          "probe_sql": "SELECT DISTINCT student.major_id AS value FROM student WHERE student.major_id IS NOT NULL AND student.is_deleted = 0 LIMIT 20",
+          "values": [
+            "1",
+            "2",
+            "3",
+            "4",
+            "5",
+            "6",
+            "7",
+            "8",
+            "9",
+            "10",
+            "11",
+            "12",
+            "13",
+            "14",
+            "15",
+            "16",
+            "17",
+            "18",
+            "19",
+            "20"
+          ]
+        },
+        {
+          "field": "major.id",
+          "probe_sql": "SELECT DISTINCT major.id AS value FROM major WHERE major.id IS NOT NULL AND major.is_deleted = 0 LIMIT 20",
+          "values": [
+            "1",
+            "2",
+            "3",
+            "4",
+            "5",
+            "6",
+            "7",
+            "8",
+            "9",
+            "10",
+            "11",
+            "12",
+            "13",
+            "14",
+            "15",
+            "16",
+            "17",
+            "18",
+            "19",
+            "20"
+          ]
+        },
+        {
+          "field": "major.major_code",
+          "probe_sql": "SELECT DISTINCT major.major_code AS value FROM major WHERE major.major_code IS NOT NULL AND major.is_deleted = 0 LIMIT 20",
+          "values": [
+            "M001",
+            "M002",
+            "M003",
+            "M004",
+            "M005",
+            "M006",
+            "M007",
+            "M008",
+            "M009",
+            "M010",
+            "M011",
+            "M012",
+            "M013",
+            "M014",
+            "M015",
+            "M016",
+            "M017",
+            "M018",
+            "M019",
+            "M020"
+          ]
+        },
+        {
+          "field": "course.course_type",
+          "probe_sql": "SELECT DISTINCT course.course_type AS value FROM course WHERE course.course_type IS NOT NULL AND course.is_deleted = 0 LIMIT 20",
+          "values": [
+            "选修",
+            "必修"
+          ]
+        },
+        {
+          "field": "student.is_deleted",
+          "probe_sql": "SELECT DISTINCT student.is_deleted AS value FROM student WHERE student.is_deleted IS NOT NULL AND student.is_deleted = 0 LIMIT 20",
+          "values": [
+            "0"
+          ]
+        },
+        {
+          "field": "course.is_deleted",
+          "probe_sql": "SELECT DISTINCT course.is_deleted AS value FROM course WHERE course.is_deleted IS NOT NULL AND course.is_deleted = 0 LIMIT 20",
+          "values": [
+            "0"
+          ]
+        },
+        {
+          "field": "major.is_deleted",
+          "probe_sql": "SELECT DISTINCT major.is_deleted AS value FROM major WHERE major.is_deleted IS NOT NULL AND major.is_deleted = 0 LIMIT 20",
+          "values": [
+            "0"
+          ]
+        },
+        {
+          "field": "score.is_deleted",
+          "probe_sql": "SELECT DISTINCT score.is_deleted AS value FROM score WHERE score.is_deleted IS NOT NULL AND score.is_deleted = 0 LIMIT 20",
+          "values": [
+            "0"
+          ]
+        }
+      ],
+      "value_candidates": [
+        {
+          "field": "major.major_code",
+          "original_value": "M010",
+          "candidates": [
+            "M010"
+          ],
+          "match_strategy": "exact"
+        },
+        {
+          "field": "course.course_type",
+          "original_value": "必修课",
+          "candidates": [
+            "必修"
+          ],
+          "match_strategy": "fuzzy"
+        },
+        {
+          "field": "score.score_value",
+          "original_value": "60",
+          "candidates": [
+            "60.9"
+          ],
+          "match_strategy": "fuzzy"
+        }
+      ],
+      "hints": [
+        "error_type=execution_error",
+        "use_probe_samples_to_rewrite_filters_or_entities",
+        "prioritize_value_candidates_for_empty_result",
+        "retry_sql_generation_with_hidden_context"
+      ],
+      "kb_summary": {
+        "table_count": 10,
+        "field_count": 84
+      },
+      "retry_count": 1
+    },
+    "hidden_context_retry_count": 1
+  },
+  "output": {
+    "session_id": "981dc3ab98374252",
+    "intent": "business_query",
+    "is_followup": false,
+    "merged_query": "查询专业编码为M010的必修课中成绩低于60分的所有学生成绩明细",
+    "rewritten_query": "查询专业编码为M010的必修课中成绩低于60分的所有学生成绩明细",
+    "skipped": false,
+    "reason": null,
+    "final_status": "success",
+    "reason_code": null,
+    "summary": "已查出专业编码M010的必修课中成绩低于60分的学生共127人，包含学号、姓名、课程名称、课程代码、成绩及等级等明细信息。",
+    "assistant_reply": "已查出专业编码M010的必修课中成绩低于60分的学生共127人，包含学号、姓名、课程名称、课程代码、成绩及等级等明细信息。\n\n详细信息：\n1. student_no=S02842；real_name=曹燕；course_name=制造学院课程14；course_code=K0014；score_value=58.0；score_level=F\n2. student_no=S02843；real_name=沈鹏；course_name=制造学院课程32；course_code=K0032；score_value=58.0；score_level=F\n3. student_no=S02845；real_name=李强；course_name=制造学院课程32；course_code=K0032；score_value=55.2；score_level=F\n4. student_no=S02854；real_name=施宇；course_name=制造学院课程14；course_code=K0014；score_value=57.0；score_level=F\n5. student_no=S02856；real_name=尤峰；course_name=制造学院课程32；course_code=K0032；score_value=59.4；score_level=F\n6. student_no=S02858；real_name=孙娜；course_name=制造学院课程32；course_code=K0032；score_value=58.5；score_level=F\n7. student_no=S02861；real_name=杨凯昊；course_name=制造学院课程14；course_code=K0014；score_value=53.7；score_level=F\n8. student_no=S02862；real_name=孔峰；course_name=制造学院课程32；course_code=K0032；score_value=52.5；score_level=F\n9. student_no=S02867；real_name=褚伟；course_name=制造学院课程32；course_code=K0032；score_value=51.0；score_level=F\n10. student_no=S02870；real_name=施媛；course_name=制造学院课程14；course_code=K0014；score_value=51.9；score_level=F\n数据共 127 行，当前仅展示前 10 行。\n已自动去重 30 条重复记录。\n数据量过多，请下载完整 CSV 查看：\n/api/chat/downloads/admin_1_session_981dc3ab98374252_20260214171320_3fafa633.csv",
+    "download_url": "/api/chat/downloads/admin_1_session_981dc3ab98374252_20260214171320_3fafa633.csv",
+    "task": {
+      "intent": "business_query",
+      "entities": [
+        {
+          "type": "major_code",
+          "value": "M010"
+        },
+        {
+          "type": "course_type",
+          "value": "必修课"
+        },
+        {
+          "type": "score_value",
+          "value": "低于60分"
+        }
+      ],
+      "dimensions": [
+        "student.student_no",
+        "student.real_name",
+        "course.course_name",
+        "course.course_code",
+        "score.score_value",
+        "score.score_level"
+      ],
+      "metrics": [],
+      "filters": [
+        {
+          "field": "major.major_code",
+          "op": "=",
+          "value": "M010"
+        },
+        {
+          "field": "course.course_type",
+          "op": "=",
+          "value": "必修课"
+        },
+        {
+          "field": "score.score_value",
+          "op": "<",
+          "value": 60
+        }
+      ],
+      "time_range": {
+        "start": null,
+        "end": null
+      },
+      "operation": "detail",
+      "confidence": 0.95
+    },
+    "sql_result": {
+      "sql": "WITH base AS (SELECT student.student_no, student.real_name, course.course_name, course.course_code, score.score_value, score.score_level FROM score JOIN student ON score.student_id = student.id JOIN course ON score.course_id = course.id JOIN major ON student.major_id = major.id WHERE major.major_code = 'M010' AND course.course_type = '必修' AND score.score_value < 60 AND student.is_deleted = 0 AND course.is_deleted = 0 AND major.is_deleted = 0 AND score.is_deleted = 0) SELECT base.student_no, base.real_name, base.course_name, base.course_code, base.score_value, base.score_level FROM base",
+      "entity_mappings": [
+        {
+          "type": "major_code",
+          "value": "M010",
+          "field": "major.major_code",
+          "reason": "probe_samples 显示 major.major_code 候选值包含 'M010'，精确匹配"
+        },
+        {
+          "type": "course_type",
+          "value": "必修课",
+          "field": "course.course_type",
+          "reason": "probe_samples 显示 course.course_type 实际值为 '必修'，根据 value_candidates 将 '必修课' 归一化为 '必修'"
+        },
+        {
+          "type": "score_value",
+          "value": "低于60分",
+          "field": "score.score_value",
+          "reason": "原始过滤值为 60，probe_samples 中存在接近值如 60.9、59.8 等，保留数值比较逻辑 score_value < 60，因任务语义明确要求低于60分，且 probe_samples 证实存在低于60的记录（如59.8、57.3、51.2），无需修改阈值"
+        }
+      ],
+      "sql_fields": [
+        "student.student_no",
+        "student.real_name",
+        "course.course_name",
+        "course.course_code",
+        "score.score_value",
+        "score.score_level",
+        "score.student_id",
+        "student.id",
+        "score.course_id",
+        "course.id",
+        "student.major_id",
+        "major.id",
+        "major.major_code",
+        "course.course_type",
+        "student.is_deleted",
+        "course.is_deleted",
+        "major.is_deleted",
+        "score.is_deleted",
+        "base.student_no",
+        "base.real_name",
+        "base.course_name",
+        "base.course_code",
+        "base.score_value",
+        "base.score_level"
+      ],
+      "applied_field_replacements": []
+    },
+    "sql_validate_result": {
+      "is_valid": true,
+      "error": null,
+      "rows": 127,
+      "result": [
+        {
+          "student_no": "S02842",
+          "real_name": "曹燕",
+          "course_name": "制造学院课程14",
+          "course_code": "K0014",
+          "score_value": 58.0,
+          "score_level": "F"
+        },
+        {
+          "student_no": "S02843",
+          "real_name": "沈鹏",
+          "course_name": "制造学院课程32",
+          "course_code": "K0032",
+          "score_value": 58.0,
+          "score_level": "F"
+        },
+        {
+          "student_no": "S02845",
+          "real_name": "李强",
+          "course_name": "制造学院课程32",
+          "course_code": "K0032",
+          "score_value": 55.2,
+          "score_level": "F"
+        },
+        {
+          "student_no": "S02854",
+          "real_name": "施宇",
+          "course_name": "制造学院课程14",
+          "course_code": "K0014",
+          "score_value": 57.0,
+          "score_level": "F"
+        },
+        {
+          "student_no": "S02856",
+          "real_name": "尤峰",
+          "course_name": "制造学院课程32",
+          "course_code": "K0032",
+          "score_value": 59.4,
+          "score_level": "F"
+        },
+        {
+          "student_no": "S02858",
+          "real_name": "孙娜",
+          "course_name": "制造学院课程32",
+          "course_code": "K0032",
+          "score_value": 58.5,
+          "score_level": "F"
+        },
+        {
+          "student_no": "S02861",
+          "real_name": "杨凯昊",
+          "course_name": "制造学院课程14",
+          "course_code": "K0014",
+          "score_value": 53.7,
+          "score_level": "F"
+        },
+        {
+          "student_no": "S02862",
+          "real_name": "孔峰",
+          "course_name": "制造学院课程32",
+          "course_code": "K0032",
+          "score_value": 52.5,
+          "score_level": "F"
+        },
+        {
+          "student_no": "S02867",
+          "real_name": "褚伟",
+          "course_name": "制造学院课程32",
+          "course_code": "K0032",
+          "score_value": 51.0,
+          "score_level": "F"
+        },
+        {
+          "student_no": "S02870",
+          "real_name": "施媛",
+          "course_name": "制造学院课程14",
+          "course_code": "K0014",
+          "score_value": 51.9,
+          "score_level": "F"
+        },
+        {
+          "student_no": "S02871",
+          "real_name": "吴航",
+          "course_name": "制造学院课程14",
+          "course_code": "K0014",
+          "score_value": 58.9,
+          "score_level": "F"
+        },
+        {
+          "student_no": "S02877",
+          "real_name": "陈军鑫",
+          "course_name": "制造学院课程14",
+          "course_code": "K0014",
+          "score_value": 53.8,
+          "score_level": "F"
+        },
+        {
+          "student_no": "S02883",
+          "real_name": "秦斌",
+          "course_name": "制造学院课程14",
+          "course_code": "K0014",
+          "score_value": 51.1,
+          "score_level": "F"
+        },
+        {
+          "student_no": "S02885",
+          "real_name": "陶杰",
+          "course_name": "制造学院课程14",
+          "course_code": "K0014",
+          "score_value": 55.1,
+          "score_level": "F"
+        },
+        {
+          "student_no": "S02890",
+          "real_name": "沈航",
+          "course_name": "制造学院课程32",
+          "course_code": "K0032",
+          "score_value": 56.0,
+          "score_level": "F"
+        },
+        {
+          "student_no": "S02893",
+          "real_name": "Sophia",
+          "course_name": "制造学院课程90",
+          "course_code": "K0090",
+          "score_value": 58.8,
+          "score_level": "F"
+        },
+        {
+          "student_no": "S02894",
+          "real_name": "张丹媛",
+          "course_name": "制造学院课程59",
+          "course_code": "K0059",
+          "score_value": 51.5,
+          "score_level": "F"
+        },
+        {
+          "student_no": "S02895",
+          "real_name": "Isabella",
+          "course_name": "制造学院课程63",
+          "course_code": "K0063",
+          "score_value": 56.6,
+          "score_level": "F"
+        },
+        {
+          "student_no": "S02897",
+          "real_name": "朱婷萍",
+          "course_name": "制造学院课程59",
+          "course_code": "K0059",
+          "score_value": 59.9,
+          "score_level": "F"
+        },
+        {
+          "student_no": "S02898",
+          "real_name": "冯颖",
+          "course_name": "制造学院课程90",
+          "course_code": "K0090",
+          "score_value": 58.3,
+          "score_level": "F"
+        },
+        {
+          "student_no": "S02900",
+          "real_name": "吴萍媛",
+          "course_name": "制造学院课程59",
+          "course_code": "K0059",
+          "score_value": 51.0,
+          "score_level": "F"
+        },
+        {
+          "student_no": "S02901",
+          "real_name": "曹丽",
+          "course_name": "制造学院课程59",
+          "course_code": "K0059",
+          "score_value": 59.5,
+          "score_level": "F"
+        },
+        {
+          "student_no": "S02904",
+          "real_name": "许伟宇",
+          "course_name": "制造学院课程90",
+          "course_code": "K0090",
+          "score_value": 56.2,
+          "score_level": "F"
+        },
+        {
+          "student_no": "S02905",
+          "real_name": "杨昊",
+          "course_name": "制造学院课程90",
+          "course_code": "K0090",
+          "score_value": 55.3,
+          "score_level": "F"
+        },
+        {
+          "student_no": "S02906",
+          "real_name": "曹媛",
+          "course_name": "制造学院课程63",
+          "course_code": "K0063",
+          "score_value": 55.9,
+          "score_level": "F"
+        },
+        {
+          "student_no": "S02908",
+          "real_name": "尤婷慧",
+          "course_name": "制造学院课程90",
+          "course_code": "K0090",
+          "score_value": 58.3,
+          "score_level": "F"
+        },
+        {
+          "student_no": "S02911",
+          "real_name": "许勇晨",
+          "course_name": "制造学院课程59",
+          "course_code": "K0059",
+          "score_value": 59.6,
+          "score_level": "F"
+        },
+        {
+          "student_no": "S02914",
+          "real_name": "Liam",
+          "course_name": "制造学院课程63",
+          "course_code": "K0063",
+          "score_value": 54.4,
+          "score_level": "F"
+        },
+        {
+          "student_no": "S02916",
+          "real_name": "金琳",
+          "course_name": "制造学院课程90",
+          "course_code": "K0090",
+          "score_value": 54.0,
+          "score_level": "F"
+        },
+        {
+          "student_no": "S02919",
+          "real_name": "秦浩",
+          "course_name": "制造学院课程63",
+          "course_code": "K0063",
+          "score_value": 54.2,
+          "score_level": "F"
+        },
+        {
+          "student_no": "S02920",
+          "real_name": "钱琳",
+          "course_name": "制造学院课程90",
+          "course_code": "K0090",
+          "score_value": 56.4,
+          "score_level": "F"
+        },
+        {
+          "student_no": "S02922",
+          "real_name": "何丽敏",
+          "course_name": "制造学院课程63",
+          "course_code": "K0063",
+          "score_value": 58.2,
+          "score_level": "F"
+        },
+        {
+          "student_no": "S02925",
+          "real_name": "Ava",
+          "course_name": "制造学院课程59",
+          "course_code": "K0059",
+          "score_value": 51.7,
+          "score_level": "F"
+        },
+        {
+          "student_no": "S02926",
+          "real_name": "孙昊宇",
+          "course_name": "制造学院课程63",
+          "course_code": "K0063",
+          "score_value": 51.5,
+          "score_level": "F"
+        },
+        {
+          "student_no": "S02931",
+          "real_name": "曹琪",
+          "course_name": "制造学院课程63",
+          "course_code": "K0063",
+          "score_value": 55.0,
+          "score_level": "F"
+        },
+        {
+          "student_no": "S02932",
+          "real_name": "韩燕颖",
+          "course_name": "制造学院课程63",
+          "course_code": "K0063",
+          "score_value": 53.7,
+          "score_level": "F"
+        },
+        {
+          "student_no": "S02934",
+          "real_name": "赵航",
+          "course_name": "制造学院课程90",
+          "course_code": "K0090",
+          "score_value": 59.4,
+          "score_level": "F"
+        },
+        {
+          "student_no": "S02935",
+          "real_name": "朱雅",
+          "course_name": "制造学院课程90",
+          "course_code": "K0090",
+          "score_value": 54.1,
+          "score_level": "F"
+        },
+        {
+          "student_no": "S02936",
+          "real_name": "周军鹏",
+          "course_name": "制造学院课程59",
+          "course_code": "K0059",
+          "score_value": 56.9,
+          "score_level": "F"
+        },
+        {
+          "student_no": "S02937",
+          "real_name": "姜燕",
+          "course_name": "制造学院课程59",
+          "course_code": "K0059",
+          "score_value": 56.1,
+          "score_level": "F"
+        },
+        {
+          "student_no": "S02939",
+          "real_name": "严燕雪",
+          "course_name": "制造学院课程59",
+          "course_code": "K0059",
+          "score_value": 56.2,
+          "score_level": "F"
+        },
+        {
+          "student_no": "S02941",
+          "real_name": "Sophia",
+          "course_name": "制造学院课程59",
+          "course_code": "K0059",
+          "score_value": 53.0,
+          "score_level": "F"
+        },
+        {
+          "student_no": "S02946",
+          "real_name": "韩峰航",
+          "course_name": "制造学院课程127",
+          "course_code": "K0127",
+          "score_value": 58.8,
+          "score_level": "F"
+        },
+        {
+          "student_no": "S02947",
+          "real_name": "王娜",
+          "course_name": "制造学院课程193",
+          "course_code": "K0193",
+          "score_value": 58.4,
+          "score_level": "F"
+        },
+        {
+          "student_no": "S02948",
+          "real_name": "秦芳琪",
+          "course_name": "制造学院课程193",
+          "course_code": "K0193",
+          "score_value": 55.0,
+          "score_level": "F"
+        },
+        {
+          "student_no": "S02949",
+          "real_name": "吴军",
+          "course_name": "制造学院课程193",
+          "course_code": "K0193",
+          "score_value": 58.2,
+          "score_level": "F"
+        },
+        {
+          "student_no": "S02950",
+          "real_name": "周慧",
+          "course_name": "制造学院课程193",
+          "course_code": "K0193",
+          "score_value": 55.6,
+          "score_level": "F"
+        },
+        {
+          "student_no": "S02951",
+          "real_name": "朱峰峰",
+          "course_name": "制造学院课程193",
+          "course_code": "K0193",
+          "score_value": 54.6,
+          "score_level": "F"
+        },
+        {
+          "student_no": "S02952",
+          "real_name": "曹峰宇",
+          "course_name": "制造学院课程193",
+          "course_code": "K0193",
+          "score_value": 53.8,
+          "score_level": "F"
+        },
+        {
+          "student_no": "S02954",
+          "real_name": "秦颖",
+          "course_name": "制造学院课程193",
+          "course_code": "K0193",
+          "score_value": 54.4,
+          "score_level": "F"
+        },
+        {
+          "student_no": "S02955",
+          "real_name": "Olivia",
+          "course_name": "制造学院课程193",
+          "course_code": "K0193",
+          "score_value": 57.6,
+          "score_level": "F"
+        },
+        {
+          "student_no": "S02958",
+          "real_name": "曹慧",
+          "course_name": "制造学院课程32",
+          "course_code": "K0032",
+          "score_value": 56.1,
+          "score_level": "F"
+        },
+        {
+          "student_no": "S02960",
+          "real_name": "钱杰",
+          "course_name": "制造学院课程32",
+          "course_code": "K0032",
+          "score_value": 59.2,
+          "score_level": "F"
+        },
+        {
+          "student_no": "S02962",
+          "real_name": "华昊",
+          "course_name": "制造学院课程127",
+          "course_code": "K0127",
+          "score_value": 51.2,
+          "score_level": "F"
+        },
+        {
+          "student_no": "S02964",
+          "real_name": "Liam",
+          "course_name": "制造学院课程193",
+          "course_code": "K0193",
+          "score_value": 52.8,
+          "score_level": "F"
+        },
+        {
+          "student_no": "S02973",
+          "real_name": "钱鹏",
+          "course_name": "制造学院课程193",
+          "course_code": "K0193",
+          "score_value": 54.8,
+          "score_level": "F"
+        },
+        {
+          "student_no": "S02975",
+          "real_name": "严丹",
+          "course_name": "制造学院课程127",
+          "course_code": "K0127",
+          "score_value": 56.9,
+          "score_level": "F"
+        },
+        {
+          "student_no": "S02976",
+          "real_name": "Emma",
+          "course_name": "制造学院课程32",
+          "course_code": "K0032",
+          "score_value": 58.4,
+          "score_level": "F"
+        },
+        {
+          "student_no": "S02981",
+          "real_name": "陈洁",
+          "course_name": "制造学院课程193",
+          "course_code": "K0193",
+          "score_value": 52.3,
+          "score_level": "F"
+        },
+        {
+          "student_no": "S02983",
+          "real_name": "严倩艳",
+          "course_name": "制造学院课程32",
+          "course_code": "K0032",
+          "score_value": 53.4,
+          "score_level": "F"
+        },
+        {
+          "student_no": "S02984",
+          "real_name": "许丽",
+          "course_name": "制造学院课程32",
+          "course_code": "K0032",
+          "score_value": 57.0,
+          "score_level": "F"
+        },
+        {
+          "student_no": "S02985",
+          "real_name": "卫浩浩",
+          "course_name": "制造学院课程193",
+          "course_code": "K0193",
+          "score_value": 57.4,
+          "score_level": "F"
+        },
+        {
+          "student_no": "S02990",
+          "real_name": "韩勇",
+          "course_name": "制造学院课程32",
+          "course_code": "K0032",
+          "score_value": 55.2,
+          "score_level": "F"
+        },
+        {
+          "student_no": "S02991",
+          "real_name": "严丽",
+          "course_name": "制造学院课程193",
+          "course_code": "K0193",
+          "score_value": 51.8,
+          "score_level": "F"
+        },
+        {
+          "student_no": "S02994",
+          "real_name": "杨伟",
+          "course_name": "制造学院课程127",
+          "course_code": "K0127",
+          "score_value": 56.3,
+          "score_level": "F"
+        },
+        {
+          "student_no": "S02998",
+          "real_name": "施凯宇",
+          "course_name": "制造学院课程193",
+          "course_code": "K0193",
+          "score_value": 57.8,
+          "score_level": "F"
+        },
+        {
+          "student_no": "S03001",
+          "real_name": "褚欣琳",
+          "course_name": "制造学院课程193",
+          "course_code": "K0193",
+          "score_value": 52.3,
+          "score_level": "F"
+        },
+        {
+          "student_no": "S03003",
+          "real_name": "姜丽雪",
+          "course_name": "制造学院课程193",
+          "course_code": "K0193",
+          "score_value": 50.5,
+          "score_level": "F"
+        },
+        {
+          "student_no": "S03004",
+          "real_name": "姜慧",
+          "course_name": "制造学院课程193",
+          "course_code": "K0193",
+          "score_value": 56.5,
+          "score_level": "F"
+        },
+        {
+          "student_no": "S03006",
+          "real_name": "冯晨",
+          "course_name": "制造学院课程127",
+          "course_code": "K0127",
+          "score_value": 52.1,
+          "score_level": "F"
+        },
+        {
+          "student_no": "S03007",
+          "real_name": "陶雪",
+          "course_name": "制造学院课程127",
+          "course_code": "K0127",
+          "score_value": 56.4,
+          "score_level": "F"
+        },
+        {
+          "student_no": "S03008",
+          "real_name": "魏欣",
+          "course_name": "制造学院课程34",
+          "course_code": "K0034",
+          "score_value": 53.9,
+          "score_level": "F"
+        },
+        {
+          "student_no": "S03009",
+          "real_name": "许鑫",
+          "course_name": "制造学院课程34",
+          "course_code": "K0034",
+          "score_value": 53.8,
+          "score_level": "F"
+        },
+        {
+          "student_no": "S03010",
+          "real_name": "吕雪",
+          "course_name": "制造学院课程34",
+          "course_code": "K0034",
+          "score_value": 56.6,
+          "score_level": "F"
+        },
+        {
+          "student_no": "S03012",
+          "real_name": "严雪琪",
+          "course_name": "制造学院课程127",
+          "course_code": "K0127",
+          "score_value": 51.1,
+          "score_level": "F"
+        },
+        {
+          "student_no": "S03013",
+          "real_name": "秦倩",
+          "course_name": "制造学院课程34",
+          "course_code": "K0034",
+          "score_value": 54.4,
+          "score_level": "F"
+        },
+        {
+          "student_no": "S03014",
+          "real_name": "韩凯",
+          "course_name": "制造学院课程127",
+          "course_code": "K0127",
+          "score_value": 52.4,
+          "score_level": "F"
+        },
+        {
+          "student_no": "S03015",
+          "real_name": "魏皓磊",
+          "course_name": "制造学院课程127",
+          "course_code": "K0127",
+          "score_value": 58.8,
+          "score_level": "F"
+        },
+        {
+          "student_no": "S03017",
+          "real_name": "Ethan",
+          "course_name": "制造学院课程193",
+          "course_code": "K0193",
+          "score_value": 55.8,
+          "score_level": "F"
+        },
+        {
+          "student_no": "S03020",
+          "real_name": "许鑫",
+          "course_name": "制造学院课程193",
+          "course_code": "K0193",
+          "score_value": 57.6,
+          "score_level": "F"
+        },
+        {
+          "student_no": "S03021",
+          "real_name": "蒋皓",
+          "course_name": "制造学院课程193",
+          "course_code": "K0193",
+          "score_value": 59.9,
+          "score_level": "F"
+        },
+        {
+          "student_no": "S03023",
+          "real_name": "王媛",
+          "course_name": "制造学院课程193",
+          "course_code": "K0193",
+          "score_value": 50.2,
+          "score_level": "F"
+        },
+        {
+          "student_no": "S03028",
+          "real_name": "冯军杰",
+          "course_name": "制造学院课程193",
+          "course_code": "K0193",
+          "score_value": 52.9,
+          "score_level": "F"
+        },
+        {
+          "student_no": "S03029",
+          "real_name": "褚丽",
+          "course_name": "制造学院课程193",
+          "course_code": "K0193",
+          "score_value": 52.0,
+          "score_level": "F"
+        },
+        {
+          "student_no": "S03031",
+          "real_name": "许倩",
+          "course_name": "制造学院课程34",
+          "course_code": "K0034",
+          "score_value": 57.0,
+          "score_level": "F"
+        },
+        {
+          "student_no": "S03032",
+          "real_name": "华琪",
+          "course_name": "制造学院课程193",
+          "course_code": "K0193",
+          "score_value": 56.1,
+          "score_level": "F"
+        },
+        {
+          "student_no": "S03035",
+          "real_name": "卫航",
+          "course_name": "制造学院课程193",
+          "course_code": "K0193",
+          "score_value": 59.7,
+          "score_level": "F"
+        },
+        {
+          "student_no": "S03038",
+          "real_name": "许丹倩",
+          "course_name": "制造学院课程193",
+          "course_code": "K0193",
+          "score_value": 50.1,
+          "score_level": "F"
+        },
+        {
+          "student_no": "S03040",
+          "real_name": "李丹雅",
+          "course_name": "制造学院课程193",
+          "course_code": "K0193",
+          "score_value": 56.1,
+          "score_level": "F"
+        },
+        {
+          "student_no": "S03042",
+          "real_name": "冯慧洁",
+          "course_name": "制造学院课程193",
+          "course_code": "K0193",
+          "score_value": 51.9,
+          "score_level": "F"
+        },
+        {
+          "student_no": "S03048",
+          "real_name": "尤萍洁",
+          "course_name": "制造学院课程127",
+          "course_code": "K0127",
+          "score_value": 54.9,
+          "score_level": "F"
+        },
+        {
+          "student_no": "S03049",
+          "real_name": "李欣",
+          "course_name": "制造学院课程7",
+          "course_code": "K0007",
+          "score_value": 58.9,
+          "score_level": "F"
+        },
+        {
+          "student_no": "S03050",
+          "real_name": "张磊",
+          "course_name": "制造学院课程7",
+          "course_code": "K0007",
+          "score_value": 52.3,
+          "score_level": "F"
+        },
+        {
+          "student_no": "S03052",
+          "real_name": "赵伟",
+          "course_name": "制造学院课程14",
+          "course_code": "K0014",
+          "score_value": 50.3,
+          "score_level": "F"
+        },
+        {
+          "student_no": "S03055",
+          "real_name": "郑军",
+          "course_name": "制造学院课程230",
+          "course_code": "K0230",
+          "score_value": 50.4,
+          "score_level": "F"
+        },
+        {
+          "student_no": "S03056",
+          "real_name": "赵晨",
+          "course_name": "制造学院课程230",
+          "course_code": "K0230",
+          "score_value": 52.7,
+          "score_level": "F"
+        },
+        {
+          "student_no": "S03057",
+          "real_name": "郑斌",
+          "course_name": "制造学院课程14",
+          "course_code": "K0014",
+          "score_value": 53.7,
+          "score_level": "F"
+        },
+        {
+          "student_no": "S03058",
+          "real_name": "陶洁",
+          "course_name": "制造学院课程230",
+          "course_code": "K0230",
+          "score_value": 56.7,
+          "score_level": "F"
+        },
+        {
+          "student_no": "S03059",
+          "real_name": "孔伟博",
+          "course_name": "制造学院课程230",
+          "course_code": "K0230",
+          "score_value": 57.4,
+          "score_level": "F"
+        },
+        {
+          "student_no": "S03060",
+          "real_name": "严燕",
+          "course_name": "制造学院课程7",
+          "course_code": "K0007",
+          "score_value": 56.2,
+          "score_level": "F"
+        },
+        {
+          "student_no": "S03066",
+          "real_name": "褚婷",
+          "course_name": "制造学院课程14",
+          "course_code": "K0014",
+          "score_value": 56.5,
+          "score_level": "F"
+        },
+        {
+          "student_no": "S03068",
+          "real_name": "张涛",
+          "course_name": "制造学院课程14",
+          "course_code": "K0014",
+          "score_value": 59.0,
+          "score_level": "F"
+        },
+        {
+          "student_no": "S03069",
+          "real_name": "冯丹芳",
+          "course_name": "制造学院课程7",
+          "course_code": "K0007",
+          "score_value": 53.2,
+          "score_level": "F"
+        },
+        {
+          "student_no": "S03072",
+          "real_name": "魏艳",
+          "course_name": "制造学院课程230",
+          "course_code": "K0230",
+          "score_value": 56.9,
+          "score_level": "F"
+        },
+        {
+          "student_no": "S03074",
+          "real_name": "张洁",
+          "course_name": "制造学院课程7",
+          "course_code": "K0007",
+          "score_value": 52.1,
+          "score_level": "F"
+        },
+        {
+          "student_no": "S03076",
+          "real_name": "施航",
+          "course_name": "制造学院课程14",
+          "course_code": "K0014",
+          "score_value": 55.8,
+          "score_level": "F"
+        },
+        {
+          "student_no": "S03077",
+          "real_name": "赵慧芳",
+          "course_name": "制造学院课程7",
+          "course_code": "K0007",
+          "score_value": 55.8,
+          "score_level": "F"
+        },
+        {
+          "student_no": "S03082",
+          "real_name": "Ethan",
+          "course_name": "制造学院课程7",
+          "course_code": "K0007",
+          "score_value": 54.5,
+          "score_level": "F"
+        },
+        {
+          "student_no": "S03084",
+          "real_name": "施琪芳",
+          "course_name": "制造学院课程7",
+          "course_code": "K0007",
+          "score_value": 57.2,
+          "score_level": "F"
+        },
+        {
+          "student_no": "S03087",
+          "real_name": "郑宇",
+          "course_name": "制造学院课程230",
+          "course_code": "K0230",
+          "score_value": 55.3,
+          "score_level": "F"
+        },
+        {
+          "student_no": "S03088",
+          "real_name": "魏芳芳",
+          "course_name": "制造学院课程230",
+          "course_code": "K0230",
+          "score_value": 58.3,
+          "score_level": "F"
+        },
+        {
+          "student_no": "S03089",
+          "real_name": "沈晨",
+          "course_name": "制造学院课程230",
+          "course_code": "K0230",
+          "score_value": 57.0,
+          "score_level": "F"
+        },
+        {
+          "student_no": "S03091",
+          "real_name": "何洁",
+          "course_name": "制造学院课程230",
+          "course_code": "K0230",
+          "score_value": 56.9,
+          "score_level": "F"
+        },
+        {
+          "student_no": "S03092",
+          "real_name": "赵倩媛",
+          "course_name": "制造学院课程230",
+          "course_code": "K0230",
+          "score_value": 53.9,
+          "score_level": "F"
+        },
+        {
+          "student_no": "S03095",
+          "real_name": "Lucas",
+          "course_name": "制造学院课程7",
+          "course_code": "K0007",
+          "score_value": 57.8,
+          "score_level": "F"
+        },
+        {
+          "student_no": "S03096",
+          "real_name": "孙丹",
+          "course_name": "制造学院课程7",
+          "course_code": "K0007",
+          "score_value": 55.0,
+          "score_level": "F"
+        },
+        {
+          "student_no": "S03098",
+          "real_name": "朱涛",
+          "course_name": "制造学院课程14",
+          "course_code": "K0014",
+          "score_value": 51.5,
+          "score_level": "F"
+        },
+        {
+          "student_no": "S03108",
+          "real_name": "吴萍",
+          "course_name": "制造学院课程230",
+          "course_code": "K0230",
+          "score_value": 57.1,
+          "score_level": "F"
+        },
+        {
+          "student_no": "S03109",
+          "real_name": "严皓",
+          "course_name": "制造学院课程230",
+          "course_code": "K0230",
+          "score_value": 54.6,
+          "score_level": "F"
+        },
+        {
+          "student_no": "S03117",
+          "real_name": "施浩",
+          "course_name": "制造学院课程230",
+          "course_code": "K0230",
+          "score_value": 54.2,
+          "score_level": "F"
+        },
+        {
+          "student_no": "S03119",
+          "real_name": "卫宇",
+          "course_name": "制造学院课程230",
+          "course_code": "K0230",
+          "score_value": 59.9,
+          "score_level": "F"
+        },
+        {
+          "student_no": "S03122",
+          "real_name": "金静",
+          "course_name": "制造学院课程230",
+          "course_code": "K0230",
+          "score_value": 51.0,
+          "score_level": "F"
+        },
+        {
+          "student_no": "S03131",
+          "real_name": "陈媛",
+          "course_name": "制造学院课程230",
+          "course_code": "K0230",
+          "score_value": 50.8,
+          "score_level": "F"
+        },
+        {
+          "student_no": "S03137",
+          "real_name": "钱皓",
+          "course_name": "制造学院课程230",
+          "course_code": "K0230",
+          "score_value": 55.9,
+          "score_level": "F"
+        },
+        {
+          "student_no": "S03138",
+          "real_name": "魏凯",
+          "course_name": "制造学院课程230",
+          "course_code": "K0230",
+          "score_value": 59.3,
+          "score_level": "F"
+        },
+        {
+          "student_no": "S03140",
+          "real_name": "Liam",
+          "course_name": "制造学院课程230",
+          "course_code": "K0230",
+          "score_value": 59.9,
+          "score_level": "F"
+        },
+        {
+          "student_no": "S03149",
+          "real_name": "张敏",
+          "course_name": "制造学院课程230",
+          "course_code": "K0230",
+          "score_value": 58.7,
+          "score_level": "F"
+        }
+      ],
+      "executed_sql": "WITH base AS (SELECT student.student_no, student.real_name, course.course_name, course.course_code, score.score_value, score.score_level FROM score JOIN student ON score.student_id = student.id JOIN course ON score.course_id = course.id JOIN major ON student.major_id = major.id WHERE major.major_code = 'M010' AND course.course_type = '必修' AND score.score_value < 60 AND student.is_deleted = 0 AND course.is_deleted = 0 AND major.is_deleted = 0 AND score.is_deleted = 0) SELECT base.student_no, base.real_name, base.course_name, base.course_code, base.score_value, base.score_level FROM base",
+      "empty_result": false,
+      "zero_metric_result": false
+    },
+    "hidden_context_result": {
+      "retry_reason": "empty_result",
+      "error_type": "execution_error",
+      "error": "",
+      "failed_sql": "WITH base AS (SELECT student.student_no, student.real_name, course.course_name, course.course_code, score.score_value, score.score_level FROM score JOIN student ON score.student_id = student.id JOIN course ON score.course_id = course.id JOIN major ON student.major_id = major.id WHERE major.major_code = 'M010' AND course.course_type = '必修课' AND score.score_value < 60 AND student.is_deleted = 0 AND course.is_deleted = 0 AND major.is_deleted = 0 AND score.is_deleted = 0) SELECT base.student_no, base.real_name, base.course_name, base.course_code, base.score_value, base.score_level FROM base",
+      "rewritten_query": "查询专业编码为M010的必修课中成绩低于60分的所有学生成绩明细",
+      "field_candidates": [],
+      "probe_samples": [
+        {
+          "field": "student.student_no",
+          "probe_sql": "SELECT DISTINCT student.student_no AS value FROM student WHERE student.student_no IS NOT NULL AND student.is_deleted = 0 LIMIT 20",
+          "values": [
+            "S00001",
+            "S00002",
+            "S00003",
+            "S00004",
+            "S00005",
+            "S00006",
+            "S00007",
+            "S00008",
+            "S00009",
+            "S00010",
+            "S00011",
+            "S00012",
+            "S00013",
+            "S00014",
+            "S00015",
+            "S00016",
+            "S00017",
+            "S00018",
+            "S00019",
+            "S00020"
+          ]
+        },
+        {
+          "field": "student.real_name",
+          "probe_sql": "SELECT DISTINCT student.real_name AS value FROM student WHERE student.real_name IS NOT NULL AND student.is_deleted = 0 LIMIT 20",
+          "values": [
+            "施伟",
+            "Ethan",
+            "周鹏",
+            "孔航",
+            "吴斌",
+            "沈强博",
+            "Isabella",
+            "孙芳",
+            "钱丹",
+            "施斌",
+            "周欣",
+            "Olivia",
+            "沈燕",
+            "郑涛宇",
+            "吕斌",
+            "陶洋",
+            "何勇",
+            "姜萍",
+            "冯峰",
+            "郑航"
+          ]
+        },
+        {
+          "field": "course.course_name",
+          "probe_sql": "SELECT DISTINCT course.course_name AS value FROM course WHERE course.course_name IS NOT NULL AND course.is_deleted = 0 LIMIT 20",
+          "values": [
+            "设计学院课程1",
+            "工程学院课程2",
+            "工程学院课程3",
+            "学理学院课程4",
+            "制造学院课程5",
+            "制造学院课程6",
+            "制造学院课程7",
+            "管理学院课程8",
+            "管理学院课程9",
+            "管理学院课程10",
+            "设计学院课程11",
+            "贸易学院课程12",
+            "人文学院课程13",
+            "制造学院课程14",
+            "国语学院课程15",
+            "人文学院课程16",
+            "人文学院课程17",
+            "国语学院课程18",
+            "管理学院课程19",
+            "学理学院课程20"
+          ]
+        },
+        {
+          "field": "course.course_code",
+          "probe_sql": "SELECT DISTINCT course.course_code AS value FROM course WHERE course.course_code IS NOT NULL AND course.is_deleted = 0 LIMIT 20",
+          "values": [
+            "K0001",
+            "K0002",
+            "K0003",
+            "K0004",
+            "K0005",
+            "K0006",
+            "K0007",
+            "K0008",
+            "K0009",
+            "K0010",
+            "K0011",
+            "K0012",
+            "K0013",
+            "K0014",
+            "K0015",
+            "K0016",
+            "K0017",
+            "K0018",
+            "K0019",
+            "K0020"
+          ]
+        },
+        {
+          "field": "score.score_value",
+          "probe_sql": "SELECT DISTINCT score.score_value AS value FROM score WHERE score.score_value IS NOT NULL AND score.is_deleted = 0 LIMIT 20",
+          "values": [
+            "59.8",
+            "90.7",
+            "87.1",
+            "99.5",
+            "66.5",
+            "61.6",
+            "95.5",
+            "99.1",
+            "66.0",
+            "51.2",
+            "98.6",
+            "85.9",
+            "90.8",
+            "78.2",
+            "63.1",
+            "94.5",
+            "62.5",
+            "60.9",
+            "92.0",
+            "57.3"
+          ]
+        },
+        {
+          "field": "score.score_level",
+          "probe_sql": "SELECT DISTINCT score.score_level AS value FROM score WHERE score.score_level IS NOT NULL AND score.is_deleted = 0 LIMIT 20",
+          "values": [
+            "F",
+            "A",
+            "B",
+            "D",
+            "C"
+          ]
+        },
+        {
+          "field": "score.student_id",
+          "probe_sql": "SELECT DISTINCT score.student_id AS value FROM score WHERE score.student_id IS NOT NULL AND score.is_deleted = 0 LIMIT 20",
+          "values": [
+            "1",
+            "2",
+            "3",
+            "4",
+            "5",
+            "6",
+            "7",
+            "8",
+            "9",
+            "10",
+            "11",
+            "12",
+            "13",
+            "14",
+            "15",
+            "16",
+            "17",
+            "18",
+            "19",
+            "20"
+          ]
+        },
+        {
+          "field": "student.id",
+          "probe_sql": "SELECT DISTINCT student.id AS value FROM student WHERE student.id IS NOT NULL AND student.is_deleted = 0 LIMIT 20",
+          "values": [
+            "1",
+            "2",
+            "3",
+            "4",
+            "5",
+            "6",
+            "7",
+            "8",
+            "9",
+            "10",
+            "11",
+            "12",
+            "13",
+            "14",
+            "15",
+            "16",
+            "17",
+            "18",
+            "19",
+            "20"
+          ]
+        },
+        {
+          "field": "score.course_id",
+          "probe_sql": "SELECT DISTINCT score.course_id AS value FROM score WHERE score.course_id IS NOT NULL AND score.is_deleted = 0 LIMIT 20",
+          "values": [
+            "163",
+            "210",
+            "167",
+            "263",
+            "121",
+            "217",
+            "70",
+            "45",
+            "83",
+            "150",
+            "133",
+            "60",
+            "118",
+            "2",
+            "38",
+            "204",
+            "178",
+            "107",
+            "183",
+            "223"
+          ]
+        },
+        {
+          "field": "course.id",
+          "probe_sql": "SELECT DISTINCT course.id AS value FROM course WHERE course.id IS NOT NULL AND course.is_deleted = 0 LIMIT 20",
+          "values": [
+            "1",
+            "2",
+            "3",
+            "4",
+            "5",
+            "6",
+            "7",
+            "8",
+            "9",
+            "10",
+            "11",
+            "12",
+            "13",
+            "14",
+            "15",
+            "16",
+            "17",
+            "18",
+            "19",
+            "20"
+          ]
+        },
+        {
+          "field": "student.major_id",
+          "probe_sql": "SELECT DISTINCT student.major_id AS value FROM student WHERE student.major_id IS NOT NULL AND student.is_deleted = 0 LIMIT 20",
+          "values": [
+            "1",
+            "2",
+            "3",
+            "4",
+            "5",
+            "6",
+            "7",
+            "8",
+            "9",
+            "10",
+            "11",
+            "12",
+            "13",
+            "14",
+            "15",
+            "16",
+            "17",
+            "18",
+            "19",
+            "20"
+          ]
+        },
+        {
+          "field": "major.id",
+          "probe_sql": "SELECT DISTINCT major.id AS value FROM major WHERE major.id IS NOT NULL AND major.is_deleted = 0 LIMIT 20",
+          "values": [
+            "1",
+            "2",
+            "3",
+            "4",
+            "5",
+            "6",
+            "7",
+            "8",
+            "9",
+            "10",
+            "11",
+            "12",
+            "13",
+            "14",
+            "15",
+            "16",
+            "17",
+            "18",
+            "19",
+            "20"
+          ]
+        },
+        {
+          "field": "major.major_code",
+          "probe_sql": "SELECT DISTINCT major.major_code AS value FROM major WHERE major.major_code IS NOT NULL AND major.is_deleted = 0 LIMIT 20",
+          "values": [
+            "M001",
+            "M002",
+            "M003",
+            "M004",
+            "M005",
+            "M006",
+            "M007",
+            "M008",
+            "M009",
+            "M010",
+            "M011",
+            "M012",
+            "M013",
+            "M014",
+            "M015",
+            "M016",
+            "M017",
+            "M018",
+            "M019",
+            "M020"
+          ]
+        },
+        {
+          "field": "course.course_type",
+          "probe_sql": "SELECT DISTINCT course.course_type AS value FROM course WHERE course.course_type IS NOT NULL AND course.is_deleted = 0 LIMIT 20",
+          "values": [
+            "选修",
+            "必修"
+          ]
+        },
+        {
+          "field": "student.is_deleted",
+          "probe_sql": "SELECT DISTINCT student.is_deleted AS value FROM student WHERE student.is_deleted IS NOT NULL AND student.is_deleted = 0 LIMIT 20",
+          "values": [
+            "0"
+          ]
+        },
+        {
+          "field": "course.is_deleted",
+          "probe_sql": "SELECT DISTINCT course.is_deleted AS value FROM course WHERE course.is_deleted IS NOT NULL AND course.is_deleted = 0 LIMIT 20",
+          "values": [
+            "0"
+          ]
+        },
+        {
+          "field": "major.is_deleted",
+          "probe_sql": "SELECT DISTINCT major.is_deleted AS value FROM major WHERE major.is_deleted IS NOT NULL AND major.is_deleted = 0 LIMIT 20",
+          "values": [
+            "0"
+          ]
+        },
+        {
+          "field": "score.is_deleted",
+          "probe_sql": "SELECT DISTINCT score.is_deleted AS value FROM score WHERE score.is_deleted IS NOT NULL AND score.is_deleted = 0 LIMIT 20",
+          "values": [
+            "0"
+          ]
+        }
+      ],
+      "value_candidates": [
+        {
+          "field": "major.major_code",
+          "original_value": "M010",
+          "candidates": [
+            "M010"
+          ],
+          "match_strategy": "exact"
+        },
+        {
+          "field": "course.course_type",
+          "original_value": "必修课",
+          "candidates": [
+            "必修"
+          ],
+          "match_strategy": "fuzzy"
+        },
+        {
+          "field": "score.score_value",
+          "original_value": "60",
+          "candidates": [
+            "60.9"
+          ],
+          "match_strategy": "fuzzy"
+        }
+      ],
+      "hints": [
+        "error_type=execution_error",
+        "use_probe_samples_to_rewrite_filters_or_entities",
+        "prioritize_value_candidates_for_empty_result",
+        "retry_sql_generation_with_hidden_context"
+      ],
+      "kb_summary": {
+        "table_count": 10,
+        "field_count": 84
+      },
+      "retry_count": 1
+    },
+    "hidden_context_retry_count": 1
+  }
+}

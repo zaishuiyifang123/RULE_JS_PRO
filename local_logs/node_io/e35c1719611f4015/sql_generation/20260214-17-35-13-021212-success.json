@@ -1,0 +1,105 @@
+{
+  "session_id": "e35c1719611f4015",
+  "admin_id": 1,
+  "step_name": "sql_generation",
+  "status": "success",
+  "error_message": null,
+  "timestamp": "2026-02-14T17:35:13",
+  "input": {
+    "rewritten_query": "查询专业编码为M010的必修课中成绩低于60分的学生成绩明细",
+    "parse_result": {
+      "intent": "business_query",
+      "entities": [
+        {
+          "type": "major_code",
+          "value": "M010"
+        },
+        {
+          "type": "course_type",
+          "value": "必修课"
+        },
+        {
+          "type": "score_value",
+          "value": "低于60分"
+        }
+      ],
+      "dimensions": [
+        "student.student_no",
+        "student.real_name",
+        "course.course_name",
+        "course.course_code",
+        "score.score_value"
+      ],
+      "metrics": [],
+      "filters": [
+        {
+          "field": "course.course_code",
+          "op": "=",
+          "value": "M010"
+        },
+        {
+          "field": "course.course_type",
+          "op": "=",
+          "value": "必修课"
+        },
+        {
+          "field": "score.score_value",
+          "op": "<",
+          "value": 60
+        }
+      ],
+      "time_range": {
+        "start": null,
+        "end": null
+      },
+      "operation": "detail",
+      "confidence": 0.95
+    },
+    "hidden_context_result": null,
+    "model_name": "qwen3-max-2026-01-23"
+  },
+  "output": {
+    "sql": "WITH base AS (SELECT student.student_no, student.real_name, course.course_name, course.course_code, score.score_value FROM student JOIN score ON student.id = score.student_id JOIN course ON score.course_id = course.id WHERE course.course_code = 'M010' AND course.course_type = '必修课' AND score.score_value < 60 AND student.is_deleted = 0 AND course.is_deleted = 0 AND score.is_deleted = 0) SELECT base.student_no, base.real_name, base.course_name, base.course_code, base.score_value FROM base",
+    "entity_mappings": [
+      {
+        "type": "major_code",
+        "value": "M010",
+        "field": "course.course_code",
+        "reason": "任务中将“专业编码”误用于课程过滤，但根据 filters 和 kb_schema_hints，course.course_code 字段描述为“课程编码”，且无专业编码字段参与成绩查询链路；此处按原始 filters 映射，保留 course.course_code = 'M010'，但语义上可能存在实体错配。"
+      },
+      {
+        "type": "course_type",
+        "value": "必修课",
+        "field": "course.course_type",
+        "reason": "根据字段描述“课程类型（必修/选修等）”映射"
+      },
+      {
+        "type": "score_value",
+        "value": "低于60分",
+        "field": "score.score_value",
+        "reason": "根据字段描述“成绩分值（常见 0-100）”映射，操作符为 < 60"
+      }
+    ],
+    "sql_fields": [
+      "student.student_no",
+      "student.real_name",
+      "course.course_name",
+      "course.course_code",
+      "score.score_value",
+      "student.id",
+      "score.student_id",
+      "score.course_id",
+      "course.id",
+      "course.course_type",
+      "student.is_deleted",
+      "course.is_deleted",
+      "score.is_deleted",
+      "base.student_no",
+      "base.real_name",
+      "base.course_name",
+      "base.course_code",
+      "base.score_value"
+    ],
+    "applied_field_replacements": []
+  }
+}

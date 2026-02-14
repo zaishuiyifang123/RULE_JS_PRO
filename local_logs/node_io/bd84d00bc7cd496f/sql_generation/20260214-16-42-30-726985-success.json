@@ -1,0 +1,58 @@
+{
+  "session_id": "bd84d00bc7cd496f",
+  "admin_id": 1,
+  "step_name": "sql_generation",
+  "status": "success",
+  "error_message": null,
+  "timestamp": "2026-02-14T16:42:30",
+  "input": {
+    "rewritten_query": "统计2025年9月每日的考勤出勤率趋势",
+    "parse_result": {
+      "intent": "business_query",
+      "entities": [],
+      "dimensions": [
+        "attendance.attend_date"
+      ],
+      "metrics": [
+        "COUNT(CASE WHEN attendance.status = '出勤' THEN 1 END) * 100.0 / COUNT(*)"
+      ],
+      "filters": [
+        {
+          "field": "attendance.attend_date",
+          "op": ">=",
+          "value": "2025-09-01"
+        },
+        {
+          "field": "attendance.attend_date",
+          "op": "<=",
+          "value": "2025-09-30"
+        },
+        {
+          "field": "attendance.is_deleted",
+          "op": "=",
+          "value": false
+        }
+      ],
+      "time_range": {
+        "start": "2025-09-01",
+        "end": "2025-09-30"
+      },
+      "operation": "trend",
+      "confidence": 0.95
+    },
+    "hidden_context_result": null,
+    "model_name": "qwen3-max-2026-01-23"
+  },
+  "output": {
+    "sql": "WITH base AS (SELECT attendance.attend_date, attendance.status FROM attendance WHERE attendance.attend_date >= '2025-09-01' AND attendance.attend_date <= '2025-09-30' AND attendance.is_deleted = 0) SELECT base.attend_date, COUNT(CASE WHEN base.status = '出勤' THEN 1 END) * 100.0 / COUNT(*) AS daily_attendance_rate FROM base GROUP BY base.attend_date ORDER BY base.attend_date",
+    "entity_mappings": [],
+    "sql_fields": [
+      "attendance.attend_date",
+      "attendance.status",
+      "attendance.is_deleted",
+      "base.attend_date",
+      "base.status"
+    ],
+    "applied_field_replacements": []
+  }
+}

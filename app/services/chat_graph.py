@@ -5,6 +5,7 @@ import json
 import re
 import uuid
 from datetime import date, datetime
+from decimal import Decimal
 from pathlib import Path
 from typing import Any, Callable, TypedDict
 
@@ -78,6 +79,9 @@ def execute_chat_workflow(
             return value.isoformat()
         if isinstance(value, date):
             return value.isoformat()
+        if isinstance(value, Decimal):
+            # MySQL 聚合表达式常返回 Decimal，需转为 JSON 可序列化数字。
+            return int(value) if value == value.to_integral_value() else float(value)
         if isinstance(value, dict):
             return {str(key): _helper_to_json_safe(item) for key, item in value.items()}
         if isinstance(value, list):
@@ -1679,10 +1683,41 @@ def execute_chat_workflow(
                     hints[name] = display
             return hints
 
+        def _helper_should_deduplicate_student_rows(rows: list[Any]) -> bool:
+            """作用：仅在“学生名单”口径下启用去重，避免误伤成绩/考勤等明细查询。"""
+            dict_rows = [row for row in rows if isinstance(row, dict)]
+            if not dict_rows:
+                return False
+            sampled_keys: set[str] = set()
+            for row in dict_rows[:20]:
+                sampled_keys.update(str(key).strip() for key in row.keys())
+            if "student_no" not in sampled_keys:
+                return False
+
+            # 若结果包含这些明细粒度字段，说明同一学生多行是业务事实，不能按学生去重。
+            detail_indicators = {
+                "course_code",
+                "course_name",
+                "course_id",
+                "course_class_id",
+                "score_value",
+                "score_level",
+                "attend_date",
+                "term",
+                "enroll_time",
+            }
+            return len(sampled_keys & detail_indicators) == 0
+
         # Guardrail: de-duplicate list-style rows to avoid one student appearing many times due to joins.
         if isinstance(sql_validate_result, dict):
             payload_rows = sql_validate_result.get("result")
-            if isinstance(payload_rows, list) and payload_rows and operation in {"detail", "ranking"}:
+            should_deduplicate = (
+                isinstance(payload_rows, list)
+                and bool(payload_rows)
+                and operation in {"detail", "ranking"}
+                and _helper_should_deduplicate_student_rows(payload_rows)
+            )
+            if should_deduplicate:
                 unique_rows: list[Any] = []
                 seen_keys: set[str] = set()
                 seen_indexes: dict[str, int] = {}

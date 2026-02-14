@@ -1,0 +1,66 @@
+{
+  "session_id": "e35c1719611f4015",
+  "admin_id": 1,
+  "step_name": "task_parse",
+  "status": "success",
+  "error_message": null,
+  "timestamp": "2026-02-14T17:34:58",
+  "input": {
+    "intent_result": {
+      "intent": "business_query",
+      "is_followup": false,
+      "confidence": 0.95,
+      "merged_query": "查询专业编码为M010的必修课中成绩低于60分的学生成绩明细",
+      "rewritten_query": "查询专业编码为M010的必修课中成绩低于60分的学生成绩明细",
+      "threshold": 0.7
+    }
+  },
+  "output": {
+    "intent": "business_query",
+    "entities": [
+      {
+        "type": "major_code",
+        "value": "M010"
+      },
+      {
+        "type": "course_type",
+        "value": "必修课"
+      },
+      {
+        "type": "score_value",
+        "value": "低于60分"
+      }
+    ],
+    "dimensions": [
+      "student.student_no",
+      "student.real_name",
+      "course.course_name",
+      "course.course_code",
+      "score.score_value"
+    ],
+    "metrics": [],
+    "filters": [
+      {
+        "field": "course.course_code",
+        "op": "=",
+        "value": "M010"
+      },
+      {
+        "field": "course.course_type",
+        "op": "=",
+        "value": "必修课"
+      },
+      {
+        "field": "score.score_value",
+        "op": "<",
+        "value": 60
+      }
+    ],
+    "time_range": {
+      "start": null,
+      "end": null
+    },
+    "operation": "detail",
+    "confidence": 0.95
+  }
+}

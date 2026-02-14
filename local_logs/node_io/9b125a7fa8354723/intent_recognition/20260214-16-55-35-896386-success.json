@@ -1,0 +1,22 @@
+{
+  "session_id": "9b125a7fa8354723",
+  "admin_id": 1,
+  "step_name": "intent_recognition",
+  "status": "success",
+  "error_message": null,
+  "timestamp": "2026-02-14T16:55:35",
+  "input": {
+    "message": "查询“信息工程学院 2024级”在 2025年9月 的异常考勤（迟到/缺勤/早退）",
+    "history_user_messages": [],
+    "threshold": 0.7,
+    "model_name": "qwen-plus"
+  },
+  "output": {
+    "intent": "business_query",
+    "is_followup": false,
+    "confidence": 0.95,
+    "merged_query": "查询信息工程学院2024级在2025年9月的迟到、缺勤和早退等异常考勤记录",
+    "rewritten_query": "查询信息工程学院2024级在2025年9月的迟到、缺勤和早退等异常考勤记录",
+    "threshold": 0.7
+  }
+}

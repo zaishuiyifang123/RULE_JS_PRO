@@ -24,6 +24,10 @@
    - `attendance=360000`
 4. 每个学生在该学期应有 6 门成绩（由班级 6 门课生成）
 
+考勤类题目口径约束：
+1. 以 `attendance` 事实记录为准。
+2. 默认不强制关联 `enroll` 做一致性校验（避免因补数脚本随机组合 `student_id/course_class_id` 导致误判为 0 行）。
+
 ---
 
 ## 1. 简单查询（单表明细）
@@ -177,7 +181,7 @@ ORDER BY a.attend_date;
 ## 4. 复杂过滤（多条件 + 时间范围）
 
 ### Q1
-问题：查询“信息工程学院 2024级”在 2025年9月 的异常考勤（迟到/缺勤/早退）。
+问题：按学生维度查询“信息工程学院 2024级”在 2025年9月 的异常考勤（迟到/缺勤/早退），以 `attendance` 记录为准，不关联 `enroll` 口径。
 
 ```sql
 SELECT
@@ -312,4 +316,3 @@ GROUP BY c.id, c.class_code, c.class_name
 ORDER BY fail_cnt DESC, fail_rate_pct DESC
 LIMIT 10;
 ```
-
